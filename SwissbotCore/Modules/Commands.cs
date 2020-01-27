@@ -19,6 +19,8 @@ using System.Threading.Tasks;
 using static SwissBot.Global;
 using Discord.Audio;
 using System.Diagnostics;
+using static SwissbotCore.RedditHandler;
+using SwissbotCore;
 
 namespace SwissBot.Modules
 {
@@ -229,104 +231,104 @@ namespace SwissBot.Modules
         }
         public async void GenNerGuild(JsonGuildObj obj, SocketGuild guild)
         {
-            try
-            {
-                var newguild = await Context.Client.CreateGuildAsync(obj.name, Context.Client.VoiceRegions.FirstOrDefault(n => n.Name == "US East"));
-                //var newguild = Client.Guilds.ToArray()[3];
-                await Context.Channel.SendMessageAsync($"Created backup guild: {await newguild.GetTextChannelsAsync().Result.First().CreateInviteAsync()}");
+        //    try
+        //    {
+        //        var newguild = await Context.Client.CreateGuildAsync(obj.name, Context.Client.VoiceRegions.FirstOrDefault(n => n.Name == "US East"));
+        //        //var newguild = Client.Guilds.ToArray()[3];
+        //        await Context.Channel.SendMessageAsync($"Created backup guild: {await newguild.GetTextChannelsAsync().Result.First().CreateInviteAsync()}");
 
-                Roles[] rz = new Roles[obj.roles.Count];
-                foreach (var item in obj.roles) rz[item.Position] = item;
-                foreach (var role in rz.Reverse())
-                {
-                    var rl = await newguild.CreateRoleAsync(role.Name, role.Permissions, role.Color, role.IsHoisted);
-                    await rl.ModifyAsync(x =>
-                    {
-                        x.Mentionable = role.IsMentionable;
-                        x.Position = obj.roles.FirstOrDefault(x2 => x2.Name == role.Name).Position;
-                    });
-                    Thread.Sleep(1000);
-                }
-                //foreach (var role in newguild.Roles)
-                //{
-                //    await role.ModifyAsync(x =>
-                //    {
-                //        x.Position = 
-                //    });
-                //}
-                foreach (var cat in obj.SocketCategory)
-                {
-                    var d = await newguild.CreateCategoryChannelAsync(cat.Name);
+        //        Roles[] rz = new Roles[obj.roles.Count];
+        //        foreach (var item in obj.roles) rz[item.Position] = item;
+        //        foreach (var role in rz.Reverse())
+        //        {
+        //            var rl = await newguild.CreateRoleAsync(role.Name, role.Permissions, role.Color, role.IsHoisted);
+        //            await rl.ModifyAsync(x =>
+        //            {
+        //                x.Mentionable = role.IsMentionable;
+        //                x.Position = obj.roles.FirstOrDefault(x2 => x2.Name == role.Name).Position;
+        //            });
+        //            Thread.Sleep(1000);
+        //        }
+        //        //foreach (var role in newguild.Roles)
+        //        //{
+        //        //    await role.ModifyAsync(x =>
+        //        //    {
+        //        //        x.Position = 
+        //        //    });
+        //        //}
+        //        foreach (var cat in obj.SocketCategory)
+        //        {
+        //            var d = await newguild.CreateCategoryChannelAsync(cat.Name);
 
-                    foreach (var perms in cat.PermissionOverwrites)
-                    {
-                        var type = perms.TargetType;
-                        if (perms.TargetId != guild.Id)
-                        {
-                            if (type == PermissionTarget.Role)
-                            {
-                                var role = guild.GetRole(perms.TargetId);
-                                if (role != null)
-                                    await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == role.Name), perms.Permissions);
-                            }
-                            if (type == PermissionTarget.User)
-                            {
-                                await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == guild.GetRole(perms.TargetId).Name), perms.Permissions);
-                            }
-                        }
-                    }
-                }
-                foreach (SocketGuildChannel cats in Client.GetGuild(newguild.Id).CategoryChannels)
-                {
-                    await cats.ModifyAsync(x =>
-                    {
-                        x.Position = obj.SocketCategory.FirstOrDefault(z => z.Name == cats.Name).Position;
-                    });
-                }
-                foreach (var chan in obj.textChannels)
-                {
-                    var c = await newguild.CreateTextChannelAsync(chan.Name, x =>
-                    {
-                        x.IsNsfw = chan.IsNsfw;
-                        x.SlowModeInterval = chan.SlowModeInterval;
-                        x.Topic = chan.Topic;
-                        x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
-                    });
-                }
-                foreach (var chan in obj.VoiceChannels)
-                {
-                    var c = await newguild.CreateVoiceChannelAsync(chan.Name, x =>
-                    {
-                        x.Bitrate = chan.Bitrate;
-                        x.UserLimit = chan.UserLimit;
-                        x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
-                    });
-                }
-                foreach (var chan in newguild.GetTextChannelsAsync().Result)
-                {
-                    await chan.ModifyAsync(x => x.Position = obj.textChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
-                }
-                foreach (var chan in newguild.GetVoiceChannelsAsync().Result)
-                {
-                    await chan.ModifyAsync(x => x.Position = obj.VoiceChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
-                }
-                using (var client = new WebClient())
-                {
-                    client.DownloadFile(obj.IconURL, "Guildicon.jpeg");
-                }
-                await newguild.ModifyAsync(x =>
-                {
-                    x.AfkChannel = Client.GetGuild(newguild.Id).VoiceChannels.FirstOrDefault(x2 => x2.Name == obj.AFKChannel.Name);
-                    x.AfkTimeout = obj.AFKTimeout;
-                    x.Icon = new Optional<Image?>(new Image($"{Environment.CurrentDirectory}{Global.systemSlash}Guildicon.jpeg"));
-                    x.VerificationLevel = VerificationLevel.Low;
-                });
-            }
-            catch (Exception ex)
-            {
-                Global.SendExeption(ex);
-                Console.WriteLine(ex);
-            }
+        //            foreach (var perms in cat.PermissionOverwrites)
+        //            {
+        //                var type = perms.TargetType;
+        //                if (perms.TargetId != guild.Id)
+        //                {
+        //                    if (type == PermissionTarget.Role)
+        //                    {
+        //                        var role = guild.GetRole(perms.TargetId);
+        //                        if (role != null)
+        //                            await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == role.Name), perms.Permissions);
+        //                    }
+        //                    if (type == PermissionTarget.User)
+        //                    {
+        //                        await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == guild.GetRole(perms.TargetId).Name), perms.Permissions);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        foreach (SocketGuildChannel cats in Client.GetGuild(newguild.Id).CategoryChannels)
+        //        {
+        //            await cats.ModifyAsync(x =>
+        //            {
+        //                x.Position = obj.SocketCategory.FirstOrDefault(z => z.Name == cats.Name).Position;
+        //            });
+        //        }
+        //        foreach (var chan in obj.textChannels)
+        //        {
+        //            var c = await newguild.CreateTextChannelAsync(chan.Name, x =>
+        //            {
+        //                x.IsNsfw = chan.IsNsfw;
+        //                x.SlowModeInterval = chan.SlowModeInterval;
+        //                x.Topic = chan.Topic;
+        //                x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
+        //            });
+        //        }
+        //        foreach (var chan in obj.VoiceChannels)
+        //        {
+        //            var c = await newguild.CreateVoiceChannelAsync(chan.Name, x =>
+        //            {
+        //                x.Bitrate = chan.Bitrate;
+        //                x.UserLimit = chan.UserLimit;
+        //                x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
+        //            });
+        //        }
+        //        foreach (var chan in newguild.GetTextChannelsAsync().Result)
+        //        {
+        //            await chan.ModifyAsync(x => x.Position = obj.textChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
+        //        }
+        //        foreach (var chan in newguild.GetVoiceChannelsAsync().Result)
+        //        {
+        //            await chan.ModifyAsync(x => x.Position = obj.VoiceChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
+        //        }
+        //        using (var client = new WebClient())
+        //        {
+        //            client.DownloadFile(obj.IconURL, "Guildicon.jpeg");
+        //        }
+        //        await newguild.ModifyAsync(x =>
+        //        {
+        //            x.AfkChannel = Client.GetGuild(newguild.Id).VoiceChannels.FirstOrDefault(x2 => x2.Name == obj.AFKChannel.Name);
+        //            x.AfkTimeout = obj.AFKTimeout;
+        //            x.Icon = new Optional<Image?>(new Image($"{Environment.CurrentDirectory}{Global.systemSlash}Guildicon.jpeg"));
+        //            x.VerificationLevel = VerificationLevel.Low;
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Global.SendExeption(ex);
+        //        Console.WriteLine(ex);
+        //    }
         }
         [Command("sendjson")]
         public async Task sendjson()
@@ -799,6 +801,37 @@ namespace SwissBot.Modules
                     await Context.Channel.SendMessageAsync($"UnMuted {u} members");
                 }
             }
+        }
+        static int rot = 0;
+        [Command("r")]
+        public async Task r()
+        {
+            HttpClient c = new HttpClient();
+            var req = await c.GetAsync("https://www.reddit.com/r/swissbot.json");
+            string resp = await req.Content.ReadAsStringAsync();
+            var data = JsonConvert.DeserializeObject<RedditHandler>(resp);
+            Regex r = new Regex(@"https:\/\/i.redd.it\/(.*?)\.");
+            var childs = data.Data.Children.Where(x => r.IsMatch(x.Data.Url.ToString()));
+            //var childs = data.Data.Children;
+            Random rnd = new Random();
+            int count = childs.Count();
+            if (rot >= count - 1)
+                rot = 0;
+            var post = childs.ToArray()[rot];
+            rot++;
+            EmbedBuilder b = new EmbedBuilder()
+            {
+                Color = new Color(0xFF4301),
+                Title = "r/Swissbot",
+                Description = post.Data.Title,
+                ImageUrl = post.Data.Url.ToString(),
+                Footer = new EmbedFooterBuilder()
+                {
+                    Text = "u/" + post.Data.Author
+                }
+            };
+            await Context.Channel.SendMessageAsync("", false, b.Build());
+
         }
         [Command("guess")]
         public async Task guess(params string[] arg)

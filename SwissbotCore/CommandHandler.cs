@@ -37,6 +37,7 @@ namespace SwissBot
             _service = new CommandService();
 
             _service.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+
             // _service.AddSingleton(new AudioService());
 
             _client.MessageReceived += LogMessage;
@@ -71,11 +72,20 @@ namespace SwissBot
         {
             while (true)
             {
-                
+
                 await Task.Delay(5000);
                 if (r != null)
-                    await r.Channel.SendMessageAsync(GenerateAIResponse(r, new Random()).Result);
+                {
+                    var es = GenerateAIResponse(r, new Random()).Result;
+                    if(es == "") { es = "e"; }
+                    try
+                    {
+                        await r.Channel.SendMessageAsync(es);
+                    }
+                    catch(Exception ex) { Console.WriteLine(ex); }
+                }
             }
+
         }
 
         private async Task checkAlt(SocketGuildUser arg)
@@ -118,7 +128,6 @@ namespace SwissBot
         {
             if (Global.AutoSlowmodeToggle)
             {
-
                 foreach (var item in sList.ToList())
                 {
                     if (item.Value >= Global.AutoSlowmodeTrigger)
@@ -167,6 +176,7 @@ namespace SwissBot
                 }
             }
         }
+
 
         private async Task _client_JoinedGuild(SocketGuild arg)
         {

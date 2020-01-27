@@ -60,6 +60,7 @@ namespace SwissBot
         public static ulong giveawayCreatorChanId { get; set; }
         public static ulong giveawayChanID { get; set; }
         public static ulong BotAiChanID { get; set; }
+        public static ulong MutedRoleID { get; set; }
         public static Dictionary<string, List<LogItem>> linkLogs { get; set; }
         public static Dictionary<string, List<LogItem>> messageLogs { get; set; }
         public static Dictionary<string, List<LogItem>> commandLogs { get; set; }
