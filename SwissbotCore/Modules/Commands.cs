@@ -91,7 +91,7 @@ namespace SwissBot.Modules
                 try
                 {
                     var audioClient = await vc.ConnectAsync();
-                    await SendAsync(audioClient, @"C:\Users\plynch\Downloads\Ilyushin IL-96 VS Airbus a340.wav");
+                    await SendAsync(audioClient, @"C:\Users\plynch\Downloads\update.wav");
                     await audioClient.StopAsync();
                 }
                 catch (Exception ex)
@@ -127,7 +127,7 @@ namespace SwissBot.Modules
                 finally { await discord.FlushAsync(); }
             }
         }
-        [Command("mlogs ")]
+        [Command("mlogs")]
         public async Task lLogs(string log, params string[] inp)
         {
             //if(File.Exists($"{Global.MessageLogsDir}\\{log}.txt"))
@@ -1509,20 +1509,150 @@ namespace SwissBot.Modules
                 }
             }
         }
+        public async Task<bool> HasPerms(SocketCommandContext c)
+        {
+             if(c.Guild.Id == Global.SwissBotDevGuildID) { return true; }
+             var user = c.Guild.GetUser(c.Message.Author.Id);
+             if (user.Guild.GetRole(Global.ModeratorRoleID).Position <= user.Hierarchy)
+                return true;
+            else
+                return false;
+        }
+        [Command("userlogs")]
+        public async Task ulog(params string[] args)
+        {
+            if(args.Count() == 0)
+                await Context.Channel.SendMessageAsync("No Parameter Provided! please use an id or mention someone");
+            if (!HasPerms(Context).Result) { await Context.Channel.SendMessageAsync("Invalad permissions!"); return; }
+            string id = args[0];
+            string limit = "15";
+            if (args.Length == 2)
+                limit = args[1];
+            ulong uid = 0;
+
+            if (id.Contains("<@"))
+            {
+                string tid = id.Trim('<', '@', '!', '>');
+                try
+                {
+                    uid = Convert.ToUInt64(tid);
+                }
+                catch { }
+            }
+            else
+            {
+                try
+                {
+                    uid = Convert.ToUInt64(id);
+                }
+                catch { await Context.Channel.SendMessageAsync("Invalad Parameter"); }
+            }
+
+            HttpClient c = new HttpClient();
+            c.DefaultRequestHeaders.Add("authorization", "cdcea84f-ef62-4c1d-9a88-033477f3f730");
+            var cont = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                {"author.id", "310586056351154176"}
+            });
+            
+            var pd = await c.PostAsync("http://27.253.119.180:3030/api/messages", cont);
+            var res = await pd.Content.ReadAsStringAsync();
+            Console.WriteLine(res);
+        }
+        [Command("modactions")]
+        public async Task modactions(params string[] args)
+        {
+            string url = "https://neoney.xyz/api/sqlite/";
+            ulong uid = 0;
+            string id = args[0];
+            if (id.Contains("<@"))
+            {
+                string tid = id.Trim('<', '@', '!', '>');
+                try
+                {
+                    uid = Convert.ToUInt64(tid);
+                }
+                catch { await Context.Channel.SendMessageAsync("Invalad Parameter"); }
+            }
+            else
+            {
+                try
+                {
+                    uid = Convert.ToUInt64(id);
+                }
+                catch { await Context.Channel.SendMessageAsync("Invalad Parameter"); }
+            }
+            HttpClient c = new HttpClient();
+            c.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "XNIc5Ct8PUjepHKOFlUvl6kI4zS7BQa0quBt7C8LIbv3euwCeZ45lhwyr81ZjdHV7fqfermlaSoY6GLO6p8Muv7b5bySAR5tu7CPAuxPeq3O6sSKo1ExWcjlQlFPCaB96PHMkkHm5R8WNf0cHGoQkCC4WiqUacMSVcXYAa0KX39lCICZiQbM735uWG2hwFxOnUeRwmSx");
+            var cont = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                {"statement", "SELECT json FROM json WHERE ID = '523762812678438913';"}
+            });
+            var post = await c.GetAsync(url);
+            var resp = await post.Content.ReadAsStringAsync();
+            Console.WriteLine(resp);
+        }
         [Command("modify")]
         public async Task modify(string configItem, params string[] input)
         {
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == 593106382111113232).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.FirstOrDefault(x => x.Id == Global.DeveloperRoleId) != null)
+            if (!HasPerms(Context).Result) { await Context.Channel.SendMessageAsync("Invalad permissions!"); return; }
+
+            if (input.Length == 0)
             {
-                if (input.Length == 0)
+                if (configItem == "list")
                 {
-                    if (configItem == "list")
+                    if (Context.Guild.Id == Global.SwissBotDevGuildID)
                     {
-                        if (Context.Guild.Id == Global.SwissBotDevGuildID)
+                        EmbedBuilder b = new EmbedBuilder();
+                        b.Footer = new EmbedFooterBuilder();
+                        b.Footer.Text = "**Dev Config**";
+                        b.Title = "Dev Config List";
+                        string list = "**Here is the current config file** \n";
+                        foreach (var item in Global.JsonItemsListDevOps) { list += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
+                        b.Description = list;
+                        b.Color = Color.Green;
+                        b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
+                        await Context.Channel.SendMessageAsync("", false, b.Build());
+                    }
+                    else
+                    {
+
+                        if (Context.Guild.GetCategoryChannel(Global.TestingCat).Channels.Contains(Context.Guild.GetTextChannel(Context.Channel.Id)))
                         {
+                            EmbedBuilder b = new EmbedBuilder();
+                            b.Footer = new EmbedFooterBuilder();
+                            b.Footer.Text = "**Admin Config**";
+                            b.Title = "Admin Config List";
+                            string list = "**Here is the current config file, not all items are here, if you wish to view more items please contact Thomas or Swiss, because they control the config items you can modify!** \n";
+                            string itemsL = "";
+                            foreach (var item in Global.jsonItemsList) { itemsL += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
+                            if (itemsL == "") { list = "**Sorry but there is nothing here or you do not have permission to change anything yet :/**"; }
+                            b.Description = list + itemsL;
+                            b.Color = Color.Green;
+                            b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
+                            await Context.Channel.SendMessageAsync("", false, b.Build());
+                        }
+                    }
+                }
+                else
+                {
+                    await Context.Channel.SendMessageAsync($"No value was provided for the variable `{configItem}`");
+                }
+            }
+            else
+            {
+                var value = string.Join(" ", input);
+                string newvalue = value;
+                if (Context.Guild.Id == Global.SwissBotDevGuildID)//allow full modify
+                {
+                    if (Global.JsonItemsListDevOps.Keys.Contains(configItem))
+                    {
+                        JsonItems data = Global.CurrentJsonData;
+                        data = modifyJsonData(data, configItem, newvalue);
+                        if (data.Token != null)
+                        {
+                            Global.SaveConfig(data);
+                            await Context.Channel.SendMessageAsync($"Sucessfuly modified the config, Updated the item {configItem} with the new value of {value}");
                             EmbedBuilder b = new EmbedBuilder();
                             b.Footer = new EmbedFooterBuilder();
                             b.Footer.Text = "**Dev Config**";
@@ -1534,38 +1664,15 @@ namespace SwissBot.Modules
                             b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
                             await Context.Channel.SendMessageAsync("", false, b.Build());
                         }
-                        else
-                        {
 
-                            if (Context.Guild.GetCategoryChannel(Global.TestingCat).Channels.Contains(Context.Guild.GetTextChannel(Context.Channel.Id)))
-                            {
-                                EmbedBuilder b = new EmbedBuilder();
-                                b.Footer = new EmbedFooterBuilder();
-                                b.Footer.Text = "**Admin Config**";
-                                b.Title = "Admin Config List";
-                                string list = "**Here is the current config file, not all items are here, if you wish to view more items please contact Thomas or Swiss, because they control the config items you can modify!** \n";
-                                string itemsL = "";
-                                foreach (var item in Global.jsonItemsList) { itemsL += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
-                                if (itemsL == "") { list = "**Sorry but there is nothing here or you do not have permission to change anything yet :/**"; }
-                                b.Description = list + itemsL;
-                                b.Color = Color.Green;
-                                b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
-                                await Context.Channel.SendMessageAsync("", false, b.Build());
-                            }
-                        }
                     }
-                    else
-                    {
-                        await Context.Channel.SendMessageAsync($"No value was provided for the variable `{configItem}`");
-                    }
+                    else { await Context.Channel.SendMessageAsync($"Could not find the config item {configItem}! Try `{Global.Preflix}modify list` for a list of the Config!"); }
                 }
-                else
+                if (Context.Guild.Id == Global.SwissGuildId)
                 {
-                    var value = string.Join(" ", input);
-                    string newvalue = value;
-                    if (Context.Guild.Id == Global.SwissBotDevGuildID)//allow full modify
+                    if (Context.Guild.GetCategoryChannel(Global.TestingCat).Channels.Contains(Context.Guild.GetTextChannel(Context.Channel.Id)))//allow some modify
                     {
-                        if (Global.JsonItemsListDevOps.Keys.Contains(configItem))
+                        if (Global.jsonItemsList.Keys.Contains(configItem))
                         {
                             JsonItems data = Global.CurrentJsonData;
                             data = modifyJsonData(data, configItem, newvalue);
@@ -1575,58 +1682,30 @@ namespace SwissBot.Modules
                                 await Context.Channel.SendMessageAsync($"Sucessfuly modified the config, Updated the item {configItem} with the new value of {value}");
                                 EmbedBuilder b = new EmbedBuilder();
                                 b.Footer = new EmbedFooterBuilder();
-                                b.Footer.Text = "**Dev Config**";
-                                b.Title = "Dev Config List";
+                                b.Footer.Text = "**Admin Config**";
+                                b.Title = "Admin Config List";
                                 string list = "**Here is the current config file** \n";
-                                foreach (var item in Global.JsonItemsListDevOps) { list += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
+                                foreach (var item in Global.jsonItemsList) { list += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
                                 b.Description = list;
                                 b.Color = Color.Green;
                                 b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
                                 await Context.Channel.SendMessageAsync("", false, b.Build());
                             }
-
                         }
-                        else { await Context.Channel.SendMessageAsync($"Could not find the config item {configItem}! Try `{Global.Preflix}modify list` for a list of the Config!"); }
-                    }
-                    if (Context.Guild.Id == Global.SwissGuildId)
-                    {
-                        if (Context.Guild.GetCategoryChannel(Global.TestingCat).Channels.Contains(Context.Guild.GetTextChannel(Context.Channel.Id)))//allow some modify
+                        else
                         {
-                            if (Global.jsonItemsList.Keys.Contains(configItem))
+                            if (Global.JsonItemsListDevOps.Keys.Contains(configItem))
                             {
-                                JsonItems data = Global.CurrentJsonData;
-                                data = modifyJsonData(data, configItem, newvalue);
-                                if (data.Token != null)
-                                {
-                                    Global.SaveConfig(data);
-                                    await Context.Channel.SendMessageAsync($"Sucessfuly modified the config, Updated the item {configItem} with the new value of {value}");
-                                    EmbedBuilder b = new EmbedBuilder();
-                                    b.Footer = new EmbedFooterBuilder();
-                                    b.Footer.Text = "**Admin Config**";
-                                    b.Title = "Admin Config List";
-                                    string list = "**Here is the current config file** \n";
-                                    foreach (var item in Global.jsonItemsList) { list += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
-                                    b.Description = list;
-                                    b.Color = Color.Green;
-                                    b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
-                                    await Context.Channel.SendMessageAsync("", false, b.Build());
-                                }
-                            }
-                            else
-                            {
-                                if (Global.JsonItemsListDevOps.Keys.Contains(configItem))
-                                {
-                                    EmbedBuilder b = new EmbedBuilder();
-                                    b.Color = Color.Red;
-                                    b.Title = "You need Better ***PERMISSION***";
-                                    b.Description = "You do not have permission to modify this item, if you think this is incorrect you can DM quin#3017 for help";
+                                EmbedBuilder b = new EmbedBuilder();
+                                b.Color = Color.Red;
+                                b.Title = "You need Better ***PERMISSION***";
+                                b.Description = "You do not have permission to modify this item, if you think this is incorrect you can DM quin#3017 for help";
 
-                                    await Context.Channel.SendMessageAsync("", false, b.Build());
-                                }
-                                else { await Context.Channel.SendMessageAsync($"Could not find the config item {configItem}! Try `{Global.Preflix}modify list` for a list of the Config!"); }
+                                await Context.Channel.SendMessageAsync("", false, b.Build());
                             }
-
+                            else { await Context.Channel.SendMessageAsync($"Could not find the config item {configItem}! Try `{Global.Preflix}modify list` for a list of the Config!"); }
                         }
+
                     }
                 }
             }

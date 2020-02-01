@@ -32,8 +32,7 @@ namespace SwissBot
         private DiscordSocketClient _client;
         private CommandService _commands;
         private CommandHandler _handler;
-        private IServiceCollection _services;
-
+       
         public async Task StartAsync()
         {
             Global.systemSlash = "/";

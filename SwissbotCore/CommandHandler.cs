@@ -30,7 +30,7 @@ namespace SwissBot
         {
             _client = client;
 
-            _client.SetGameAsync(Global.Status, "https://github.com/quinchs/Swiss001Bot", ActivityType.Playing);
+            _client.SetGameAsync(Global.Status, null, ActivityType.Playing);
 
             _client.SetStatusAsync(UserStatus.DoNotDisturb);
 
@@ -128,7 +128,8 @@ namespace SwissBot
         {
             if (Global.AutoSlowmodeToggle)
             {
-                foreach (var item in sList.ToList())
+                var list = sList.ToList();
+                foreach (var item in list)
                 {
                     if (item.Value >= Global.AutoSlowmodeTrigger)
                     {
@@ -248,7 +249,7 @@ namespace SwissBot
                     string[] filecontUn = File.ReadAllLines(Global.aiResponsePath);
                     for (int i = 0; i != filecontUn.Length; i++)
                         filecontUn[i] = filecontUn[i].ToLower();
-                    Regex rg2 = new Regex(".*(\\d{18})>.*");
+                    Regex rg2 = new Regex(".*?[@!](\\d{18}|\\d{17})>.*?");
                     string msg = "";
                     var ar = filecontUn.Select((b, i) => b == oMsg ? i : -1).Where(i => i != -1).ToArray();
                     Random ran = new Random();
@@ -262,6 +263,7 @@ namespace SwissBot
                     }
                     else
                     {
+                        dbugmsg += $"Question has 0 indexed responces, starting word analisys...\n";
                         var words = oMsg.Split(' ');
                         var query = from state in filecontUn.AsParallel()
                                     let StateWords = state.Split(' ')
@@ -269,6 +271,8 @@ namespace SwissBot
 
                         var sortedDict = from entry in query orderby entry.Count descending select entry;
                         string rMsg = sortedDict.First().Word;
+                        var s = sortedDict.Where(x => x.Count >= 1);
+                        dbugmsg += $"FOund common phrase based off of {s.Count()} results: {rMsg}\n";
                         var reslt = filecontUn.Select((b, i) => b == rMsg ? i : -1).Where(i => i != -1).ToArray();
                         if (reslt.Length != 0)
                         {
@@ -298,25 +302,29 @@ namespace SwissBot
 
                     if (rg2.IsMatch(msg))
                     {
-                        var rm = rg2.Match(msg);
-                        var user = _client.GetGuild(Global.SwissGuildId).GetUser(Convert.ToUInt64(rm.Groups[1].Value));
-                        if (user != null)
+                        var rem = rg2.Matches(msg);
+                        foreach(Match rm in rem)
                         {
-                            msg = msg.Replace(rm.Groups[0].Value, $"**(non-ping: {user.Username}#{user.Discriminator})**");
-                            dbugmsg += "Sanitized ping.. \n";
-                        }
-                        else
-                        {
-                            try
+                            var user = _client.GetGuild(Global.SwissGuildId).GetUser(Convert.ToUInt64(rm.Groups[1].Value));
+                            if (user != null)
                             {
-                                var em = await _client.GetGuild(Global.SwissGuildId).GetEmoteAsync(Convert.ToUInt64(rm.Groups[1].Value));
-                                if (em == null)
-                                {
-                                    dbugmsg += $"Could not find a user for {rm.Value}, assuming emoji or user is not in server..\n";
-                                    msg = msg.Replace(rm.Groups[0].Value, $"**(non-ping: {rm.Value})**");
-                                }
+                                msg = msg.Replace("<@" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
+                                msg = msg.Replace("<@!" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
+                                dbugmsg += "Sanitized ping.. \n";
                             }
-                            catch (Exception ex) { dbugmsg += $"{ex.Message}.. \n"; }
+                            else
+                            {
+                                try
+                                {
+                                    var em = await _client.GetGuild(Global.SwissGuildId).GetEmoteAsync(Convert.ToUInt64(rm.Groups[1].Value));
+                                    if (em == null)
+                                    {
+                                        dbugmsg += $"Could not find a user for {rm.Value}, assuming emoji or user is not in server..\n";
+                                        msg = msg.Replace(rm.Groups[0].Value, $"**(non-ping: {rm.Value})**");
+                                    }
+                                }
+                                catch (Exception ex) { dbugmsg += $"{ex.Message}.. \n"; }
+                            }
                         }
                     }
                     if (msg.Contains("@everyone")) { msg = msg.Replace("@everyone", "***(Non-ping @every0ne)***"); }
@@ -657,26 +665,9 @@ namespace SwissBot
             var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
             await arg.AddRoleAsync(unVertRole);
             Console.WriteLine($"The member {arg.Username}#{arg.Discriminator} joined the guild");
-            await checkMembers();
+            
         }
-        internal static async Task checkMembers()
-        {
-            //switch (_client.GetGuild(Global.SwissGuildId).MemberCount)
-            //{
-            //    case 5000:
-            //        await SendMilestone(5000);
-            //        break;
-            //    case 6000:
-            //        await SendMilestone(6000);
-            //        break;
-            //    case 7000:
-            //        await SendMilestone(7000);
-            //        break;
-            //    case 7500:
-            //        await SendMilestone(7500);
-            //        break;
-            //}
-        }
+        
         public static async Task SendMilestone(int count, ulong chanid = 0)
         {
             SocketTextChannel MilestoneChan;
@@ -747,7 +738,7 @@ namespace SwissBot
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
         }
         private async Task LoadLLogs()
@@ -1119,15 +1110,27 @@ namespace SwissBot
                             {
                                 Name = "Action",
                                 Value = "Message Deleted",
+                            } },
+                            {new EmbedFieldBuilder()
+                            {
+                                Name = "Channel",
+                                Value = $"<#{arg.Channel.Id}>"
+                            } },
+                            { new EmbedFieldBuilder()
+                            {
+                                Name = "Jump to timeline",
+                                Value = arg.Channel.GetMessagesAsync(2).FlattenAsync().Result.Last().GetJumpUrl()
                             } }
+
                         }
                     };
+                    await arg.DeleteAsync();
                     foreach (var item in Global.CensoredWords)
-                        if (arg.Content.Contains(item))
+                        if (arg.Content.ToLower().Contains(item.ToLower()))
                             b.Fields.Add(new EmbedFieldBuilder() { Name = "Feild", Value = item });
 
                             await _client.GetGuild(Global.SwissGuildId).GetTextChannel(665647956816429096).SendMessageAsync("", false, b.Build());
-                    await arg.DeleteAsync();
+                    
                 }
             }
             catch (Exception ex)
@@ -1143,9 +1146,10 @@ namespace SwissBot
             var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
             if (rolepos != null || r.Contains(_client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
             { return false; }
-                string cont = arg.Content;
+
+            string cont = arg.Content.ToLower();
             foreach (var item in Global.CensoredWords)
-                if (cont.Contains(item))
+                if (cont.Contains(item.ToLower()))
                     return true;
             return false;
         }
