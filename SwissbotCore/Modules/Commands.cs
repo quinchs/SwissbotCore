@@ -21,6 +21,9 @@ using Discord.Audio;
 using System.Diagnostics;
 using static SwissbotCore.RedditHandler;
 using SwissbotCore;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using Color = Discord.Color;
 
 namespace SwissBot.Modules
 {
@@ -48,7 +51,9 @@ namespace SwissBot.Modules
                 $"```{Global.Preflix}help```\n View this help message :D\n" +
                 $"```{Global.Preflix}muteusers```\n use this command in a voice channel to server mute all members in a voice channel\n **Does not mute staff**\n" +
                 $"```{Global.Preflix}unmuteusers```\n use this command in a voice channel to unserver mute all members in a voice channel\n **Does not mute/unmute staff**" +
-                $"```{Global.Preflix}autoslowmode```\n**Parameters**\n - `{Global.Preflix}autoslowmode set <NEWVALUE>`\n   Sets the current message limit, ex *5* would be 5 messages per second\n\n `{Global.Preflix}autoslowmode <on/off>`\n   Sets autoslowmode on or off\n\n",
+                $"```{Global.Preflix}autoslowmode```\n**Parameters**\n - `{Global.Preflix}autoslowmode set <NEWVALUE>`\n   Sets the current message limit, ex *5* would be 5 messages per second\n\n `{Global.Preflix}autoslowmode <on/off>`\n   Sets autoslowmode on or off\n\n" +
+                $"```{Global.Preflix}asking```\n If someone is asking alot just use this to flex image manipulation on them haterz xd rawr\n\n" + 
+                $"```{Global.Preflix}fate```\n**Parameters** - `{Global.Preflix}fate <@user>`\n Generates the council image with the mentioned users pfp in it!",
                     Footer = new EmbedFooterBuilder()
                     {
                         IconUrl = Context.Client.CurrentUser.GetAvatarUrl(),
@@ -71,7 +76,9 @@ namespace SwissBot.Modules
                 //$"**{Global.Preflix}messagelogs**\n**Parameters** - ```{Global.Preflix}messagelogs (LOG_NAME)```\n use `{Global.Preflix}messagelogs list` to view all message logs\n\n" +
                 $"```{Global.Preflix}help```\n View this help message :D" +
                 $"```{Global.Preflix}ping```\nGet the bots ping" +
-                $"```{Global.Preflix}welcome```\nTest the welcome message",
+                $"```{Global.Preflix}welcome```\nTest the welcome message" +
+                $"```{Global.Preflix}asking```\n If someone is asking alot just use this to flex image manipulation on them haterz xd rawr\n\n" +
+                $"```{Global.Preflix}fate```\n**Parameters** - `{Global.Preflix}fate <@user>`\n Generates the council image with the mentioned users pfp in it!",
                     Footer = new EmbedFooterBuilder()
                     {
                         IconUrl = Context.Client.CurrentUser.GetAvatarUrl(),
@@ -91,7 +98,7 @@ namespace SwissBot.Modules
                 try
                 {
                     var audioClient = await vc.ConnectAsync();
-                    await SendAsync(audioClient, @"C:\Users\plynch\Downloads\update.wav");
+                    await SendAsync(audioClient, @"C:\Users\plynch\Downloads\Mega.mp3");
                     await audioClient.StopAsync();
                 }
                 catch (Exception ex)
@@ -231,104 +238,104 @@ namespace SwissBot.Modules
         }
         public async void GenNerGuild(JsonGuildObj obj, SocketGuild guild)
         {
-        //    try
-        //    {
-        //        var newguild = await Context.Client.CreateGuildAsync(obj.name, Context.Client.VoiceRegions.FirstOrDefault(n => n.Name == "US East"));
-        //        //var newguild = Client.Guilds.ToArray()[3];
-        //        await Context.Channel.SendMessageAsync($"Created backup guild: {await newguild.GetTextChannelsAsync().Result.First().CreateInviteAsync()}");
+            //    try
+            //    {
+            //        var newguild = await Context.Client.CreateGuildAsync(obj.name, Context.Client.VoiceRegions.FirstOrDefault(n => n.Name == "US East"));
+            //        //var newguild = Client.Guilds.ToArray()[3];
+            //        await Context.Channel.SendMessageAsync($"Created backup guild: {await newguild.GetTextChannelsAsync().Result.First().CreateInviteAsync()}");
 
-        //        Roles[] rz = new Roles[obj.roles.Count];
-        //        foreach (var item in obj.roles) rz[item.Position] = item;
-        //        foreach (var role in rz.Reverse())
-        //        {
-        //            var rl = await newguild.CreateRoleAsync(role.Name, role.Permissions, role.Color, role.IsHoisted);
-        //            await rl.ModifyAsync(x =>
-        //            {
-        //                x.Mentionable = role.IsMentionable;
-        //                x.Position = obj.roles.FirstOrDefault(x2 => x2.Name == role.Name).Position;
-        //            });
-        //            Thread.Sleep(1000);
-        //        }
-        //        //foreach (var role in newguild.Roles)
-        //        //{
-        //        //    await role.ModifyAsync(x =>
-        //        //    {
-        //        //        x.Position = 
-        //        //    });
-        //        //}
-        //        foreach (var cat in obj.SocketCategory)
-        //        {
-        //            var d = await newguild.CreateCategoryChannelAsync(cat.Name);
+            //        Roles[] rz = new Roles[obj.roles.Count];
+            //        foreach (var item in obj.roles) rz[item.Position] = item;
+            //        foreach (var role in rz.Reverse())
+            //        {
+            //            var rl = await newguild.CreateRoleAsync(role.Name, role.Permissions, role.Color, role.IsHoisted);
+            //            await rl.ModifyAsync(x =>
+            //            {
+            //                x.Mentionable = role.IsMentionable;
+            //                x.Position = obj.roles.FirstOrDefault(x2 => x2.Name == role.Name).Position;
+            //            });
+            //            Thread.Sleep(1000);
+            //        }
+            //        //foreach (var role in newguild.Roles)
+            //        //{
+            //        //    await role.ModifyAsync(x =>
+            //        //    {
+            //        //        x.Position = 
+            //        //    });
+            //        //}
+            //        foreach (var cat in obj.SocketCategory)
+            //        {
+            //            var d = await newguild.CreateCategoryChannelAsync(cat.Name);
 
-        //            foreach (var perms in cat.PermissionOverwrites)
-        //            {
-        //                var type = perms.TargetType;
-        //                if (perms.TargetId != guild.Id)
-        //                {
-        //                    if (type == PermissionTarget.Role)
-        //                    {
-        //                        var role = guild.GetRole(perms.TargetId);
-        //                        if (role != null)
-        //                            await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == role.Name), perms.Permissions);
-        //                    }
-        //                    if (type == PermissionTarget.User)
-        //                    {
-        //                        await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == guild.GetRole(perms.TargetId).Name), perms.Permissions);
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        foreach (SocketGuildChannel cats in Client.GetGuild(newguild.Id).CategoryChannels)
-        //        {
-        //            await cats.ModifyAsync(x =>
-        //            {
-        //                x.Position = obj.SocketCategory.FirstOrDefault(z => z.Name == cats.Name).Position;
-        //            });
-        //        }
-        //        foreach (var chan in obj.textChannels)
-        //        {
-        //            var c = await newguild.CreateTextChannelAsync(chan.Name, x =>
-        //            {
-        //                x.IsNsfw = chan.IsNsfw;
-        //                x.SlowModeInterval = chan.SlowModeInterval;
-        //                x.Topic = chan.Topic;
-        //                x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
-        //            });
-        //        }
-        //        foreach (var chan in obj.VoiceChannels)
-        //        {
-        //            var c = await newguild.CreateVoiceChannelAsync(chan.Name, x =>
-        //            {
-        //                x.Bitrate = chan.Bitrate;
-        //                x.UserLimit = chan.UserLimit;
-        //                x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
-        //            });
-        //        }
-        //        foreach (var chan in newguild.GetTextChannelsAsync().Result)
-        //        {
-        //            await chan.ModifyAsync(x => x.Position = obj.textChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
-        //        }
-        //        foreach (var chan in newguild.GetVoiceChannelsAsync().Result)
-        //        {
-        //            await chan.ModifyAsync(x => x.Position = obj.VoiceChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
-        //        }
-        //        using (var client = new WebClient())
-        //        {
-        //            client.DownloadFile(obj.IconURL, "Guildicon.jpeg");
-        //        }
-        //        await newguild.ModifyAsync(x =>
-        //        {
-        //            x.AfkChannel = Client.GetGuild(newguild.Id).VoiceChannels.FirstOrDefault(x2 => x2.Name == obj.AFKChannel.Name);
-        //            x.AfkTimeout = obj.AFKTimeout;
-        //            x.Icon = new Optional<Image?>(new Image($"{Environment.CurrentDirectory}{Global.systemSlash}Guildicon.jpeg"));
-        //            x.VerificationLevel = VerificationLevel.Low;
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Global.SendExeption(ex);
-        //        Console.WriteLine(ex);
-        //    }
+            //            foreach (var perms in cat.PermissionOverwrites)
+            //            {
+            //                var type = perms.TargetType;
+            //                if (perms.TargetId != guild.Id)
+            //                {
+            //                    if (type == PermissionTarget.Role)
+            //                    {
+            //                        var role = guild.GetRole(perms.TargetId);
+            //                        if (role != null)
+            //                            await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == role.Name), perms.Permissions);
+            //                    }
+            //                    if (type == PermissionTarget.User)
+            //                    {
+            //                        await d.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(x => x.Name == guild.GetRole(perms.TargetId).Name), perms.Permissions);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        foreach (SocketGuildChannel cats in Client.GetGuild(newguild.Id).CategoryChannels)
+            //        {
+            //            await cats.ModifyAsync(x =>
+            //            {
+            //                x.Position = obj.SocketCategory.FirstOrDefault(z => z.Name == cats.Name).Position;
+            //            });
+            //        }
+            //        foreach (var chan in obj.textChannels)
+            //        {
+            //            var c = await newguild.CreateTextChannelAsync(chan.Name, x =>
+            //            {
+            //                x.IsNsfw = chan.IsNsfw;
+            //                x.SlowModeInterval = chan.SlowModeInterval;
+            //                x.Topic = chan.Topic;
+            //                x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
+            //            });
+            //        }
+            //        foreach (var chan in obj.VoiceChannels)
+            //        {
+            //            var c = await newguild.CreateVoiceChannelAsync(chan.Name, x =>
+            //            {
+            //                x.Bitrate = chan.Bitrate;
+            //                x.UserLimit = chan.UserLimit;
+            //                x.CategoryId = newguild.GetCategoryChannelsAsync().Result.FirstOrDefault(x2 => x2.Name == chan.CategoryName).Id;
+            //            });
+            //        }
+            //        foreach (var chan in newguild.GetTextChannelsAsync().Result)
+            //        {
+            //            await chan.ModifyAsync(x => x.Position = obj.textChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
+            //        }
+            //        foreach (var chan in newguild.GetVoiceChannelsAsync().Result)
+            //        {
+            //            await chan.ModifyAsync(x => x.Position = obj.VoiceChannels.FirstOrDefault(y => y.Name == chan.Name).Position);
+            //        }
+            //        using (var client = new WebClient())
+            //        {
+            //            client.DownloadFile(obj.IconURL, "Guildicon.jpeg");
+            //        }
+            //        await newguild.ModifyAsync(x =>
+            //        {
+            //            x.AfkChannel = Client.GetGuild(newguild.Id).VoiceChannels.FirstOrDefault(x2 => x2.Name == obj.AFKChannel.Name);
+            //            x.AfkTimeout = obj.AFKTimeout;
+            //            x.Icon = new Optional<Image?>(new Image($"{Environment.CurrentDirectory}{Global.systemSlash}Guildicon.jpeg"));
+            //            x.VerificationLevel = VerificationLevel.Low;
+            //        });
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Global.SendExeption(ex);
+            //        Console.WriteLine(ex);
+            //    }
         }
         [Command("sendjson")]
         public async Task sendjson()
@@ -401,10 +408,10 @@ namespace SwissBot.Modules
                         };
                         await Context.Channel.SendMessageAsync("", false, b.Build());
                     }
-                    
+
                 }
             }
-           
+
         }
         [Command("butter")]
         public async Task butter(string url)
@@ -482,6 +489,102 @@ namespace SwissBot.Modules
                 await Context.Channel.SendMessageAsync("You do not have permission to use this command!");
             }
         }
+        [Command("asking")]
+        public async Task bernie()
+        {
+            WebClient wc = new WebClient();
+            byte[] bytes = wc.DownloadData("https://cdn.discordapp.com/attachments/592768337407115264/678407124794998795/bernie.jpg");
+            MemoryStream ms = new MemoryStream(bytes);
+            System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
+            string purl = Context.Message.Author.GetAvatarUrl();
+            byte[] bytes2 = wc.DownloadData(purl);
+            MemoryStream ms2 = new MemoryStream(bytes2);
+            System.Drawing.Image img2 = System.Drawing.Image.FromStream(ms2);
+
+            int width = img.Width;
+            int height = img.Height;
+
+            using (img)
+            {
+                using (var bitmap = new Bitmap(img.Width, img.Height))
+                {
+                    using (var canvas = Graphics.FromImage(bitmap))
+                    {
+                        canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        canvas.DrawImage(img,
+                                         new Rectangle(0,
+                                                       0,
+                                                       width,
+                                                       height),
+                                         new Rectangle(0,
+                                                       0,
+                                                       img.Width,
+                                                       img.Height),
+                                         GraphicsUnit.Pixel);
+                        canvas.DrawImage(img2, (img.Width / 2) - (img2.Width / 2), (img.Height / 2) - img2.Height - 110, 256, 256);
+                        canvas.Save();
+                    }
+                    try
+                    {
+                        bitmap.Save($"{Environment.CurrentDirectory}\\img.jpg",
+                                    System.Drawing.Imaging.ImageFormat.Jpeg);
+                        await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}\\img.jpg");
+                        //this.BackgroundImage = bitmap;
+                    }
+                    catch (Exception ex) { }
+                }
+            }
+        }
+
+        [Command("fate")]
+        public async Task fate(string user)
+        {
+            //baseurl https://cdn.discordapp.com/attachments/592807608499437665/678443510210363442/council.jpg
+            WebClient wc = new WebClient();
+            byte[] bytes = wc.DownloadData("https://cdn.discordapp.com/attachments/592807608499437665/678443510210363442/council.jpg");
+            MemoryStream ms = new MemoryStream(bytes);
+            System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
+            string purl = Context.Message.MentionedUsers.First().GetAvatarUrl();
+            byte[] bytes2 = wc.DownloadData(purl);
+            MemoryStream ms2 = new MemoryStream(bytes2);
+            System.Drawing.Image img2 = System.Drawing.Image.FromStream(ms2);
+            
+
+            int width = img.Width;
+            int height = img.Height;
+
+            using (img)
+            {
+                using (var bitmap = new Bitmap(img.Width, img.Height))
+                {
+                    using (var canvas = Graphics.FromImage(bitmap))
+                    {
+                        canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        canvas.DrawImage(img,
+                                         new Rectangle(0,
+                                                       0,
+                                                       width,
+                                                       height),
+                                         new Rectangle(0,
+                                                       0,
+                                                       img.Width,
+                                                       img.Height),
+                                         GraphicsUnit.Pixel);
+                        canvas.DrawImage(img2, (img.Width / 2) - (img2.Width / 2)-10, (img.Height / 2) - (img2.Height / 2) + 100);
+                        canvas.Save();
+                    }
+                    try
+                    {
+                        bitmap.Save($"{Environment.CurrentDirectory}\\img.jpg",
+                                    System.Drawing.Imaging.ImageFormat.Jpeg);
+                        await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}\\img.jpg");
+                        //this.BackgroundImage = bitmap;
+                    }
+                    catch (Exception ex) { }
+                }
+            }
+        }
+
         [Command("terminate")]
         public async Task term()
         {
@@ -750,7 +853,7 @@ namespace SwissBot.Modules
             public bool IsMentionable { get; set; }
             public GuildPermissions Permissions { get; set; }
         }
-        [Command("muteusers")]
+        [Command("vcmute")]
         public async Task muteusers()
         {
             var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
@@ -770,14 +873,17 @@ namespace SwissBot.Modules
                         if (rolepos2 == null)
                         {
                             await user.ModifyAsync(x => x.Mute = true);
+                            if(!MutedMembers.Contains(user.Id))
+                                Global.MutedMembers.Add(user.Id);
                             u++;
                         }
+                       
                     }
                     await Context.Channel.SendMessageAsync($"Muted {u} members");
                 }
             }
         }
-        [Command("unmuteusers")]
+        [Command("vcunmute")]
         public async Task unmuteusers()
         {
             var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
@@ -789,12 +895,19 @@ namespace SwissBot.Modules
                 {
                     await Context.Channel.SendMessageAsync($"Starting to Unmute members...");
                     int u = 0;
-
-                    foreach (var user in Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users)
+                    var vcusers = Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users;
+                    foreach (var item in Global.MutedMembers)
                     {
+                        SocketGuildUser user = null;
+                        if (vcusers.Any(x => x.Id == item))
+                            user = vcusers.FirstOrDefault(x => x.Id == item);
+                        else
+                        { user = Context.Guild.GetUser(item); }
                         if (user.IsMuted)
                         {
                             await user.ModifyAsync(x => x.Mute = false);
+                            if (Global.MutedMembers.Contains(user.Id))
+                                MutedMembers.Remove(user.Id);
                             u++;
                         }
                     }

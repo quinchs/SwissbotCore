@@ -61,9 +61,11 @@ namespace SwissBot
         public static ulong giveawayChanID { get; set; }
         public static ulong BotAiChanID { get; set; }
         public static ulong MutedRoleID { get; set; }
+        public static string JabToken { get; set; }
         public static Dictionary<string, List<LogItem>> linkLogs { get; set; }
         public static Dictionary<string, List<LogItem>> messageLogs { get; set; }
         public static Dictionary<string, List<LogItem>> commandLogs { get; set; }
+        public static List<ulong> MutedMembers { get; set; }
 
 
         public static string ApiKey { get; set; }
@@ -215,6 +217,7 @@ namespace SwissBot
         public class JsonItems
         {
             public string Token { get; set; }
+            public string JabToken { get; set; }
             public string Status { get; set; }
             public char Preflix { get; set; }
             public ulong SwissGuildID { get; set; }

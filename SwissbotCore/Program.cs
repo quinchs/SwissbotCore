@@ -67,9 +67,12 @@ namespace SwissBot
             _handler = new CommandHandler(_client);
 
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
-
+           
             await Task.Delay(-1);
 
+            //jabibot
+
+            
         }
 
         private async Task Log(LogMessage msg)

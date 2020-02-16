@@ -249,7 +249,7 @@ namespace SwissBot
                     string[] filecontUn = File.ReadAllLines(Global.aiResponsePath);
                     for (int i = 0; i != filecontUn.Length; i++)
                         filecontUn[i] = filecontUn[i].ToLower();
-                    Regex rg2 = new Regex(".*?[@!](\\d{18}|\\d{17})>.*?");
+                    Regex rg2 = new Regex(".*?[@!&](\\d{18}|\\d{17})>.*?");
                     string msg = "";
                     var ar = filecontUn.Select((b, i) => b == oMsg ? i : -1).Where(i => i != -1).ToArray();
                     Random ran = new Random();
@@ -306,11 +306,16 @@ namespace SwissBot
                         foreach(Match rm in rem)
                         {
                             var user = _client.GetGuild(Global.SwissGuildId).GetUser(Convert.ToUInt64(rm.Groups[1].Value));
+                            var role = _client.GetGuild(Global.SwissGuildId).GetRole(Convert.ToUInt64(rm.Groups[1].Value));
                             if (user != null)
                             {
                                 msg = msg.Replace("<@" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
                                 msg = msg.Replace("<@!" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
                                 dbugmsg += "Sanitized ping.. \n";
+                            }
+                            else if (role != null)
+                            {
+                                msg = msg.Replace("<@&" + rm.Groups[1].Value + ">", $"**(non-ping: {role.Name})**");
                             }
                             else
                             {
@@ -345,6 +350,17 @@ namespace SwissBot
                     };
                     if (dbug)
                         await arg.Channel.SendMessageAsync("", false, eb.Build());
+                    foreach(var word in Global.CensoredWords)
+                    {
+                        string newword = "";
+                        if (msg.Contains(word))
+                        {
+                            newword += word.ToCharArray().First();
+                            for (int i = 1; i != word.ToCharArray().Length; i++)
+                                newword += "*";
+                            msg.Replace(word, newword);
+                        }
+                    }
                     return msg;
                 }
                 catch (Exception ex)
