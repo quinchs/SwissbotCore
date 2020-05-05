@@ -6,9 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static SwissBot.Global;
+using static SwissbotCore.Global;
 
-namespace SwissBot.Modules
+namespace SwissbotCore.Modules
 {
     class GiveawayGuild
     {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static SwissBot.Global;
-using SwissBot.Modules;
-namespace SwissBot
+using static SwissbotCore.Global;
+using SwissbotCore.Modules;
+namespace SwissbotCore
 {
     class GiveawayTimer
     {

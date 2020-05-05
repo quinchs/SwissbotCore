@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using SwissBot.Modules;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,17 +14,18 @@ using Discord.Audio;
 using System.Timers;
 using System.Threading;
 using Discord.Rest;
+using SwissbotCore;
+using SwissbotCore.Modules;
 
-namespace SwissBot
+namespace SwissbotCore
 {
     class CommandHandler
     {
         public static DiscordSocketClient _client;
-        private CommandService _service;
+        private Discord.Commands.CommandService _service;
         internal System.Timers.Timer t = new System.Timers.Timer();
-        internal System.Timers.Timer autoSlowmode = new System.Timers.Timer() { Enabled = false, AutoReset = true, Interval = 1000 };
-        Dictionary<ulong, int> sList = new Dictionary<ulong, int>();
-        Dictionary<ulong, int> currentSlowmodeList = new Dictionary<ulong, int>();
+        
+        Dictionary<ulong, int> ChannelPostitions = new Dictionary<ulong, int>();
         public CommandHandler(DiscordSocketClient client)
         {
             _client = client;
@@ -34,7 +34,7 @@ namespace SwissBot
 
             _client.SetStatusAsync(UserStatus.DoNotDisturb);
 
-            _service = new CommandService();
+            _service = new Discord.Commands.CommandService();
 
             _service.AddModulesAsync(Assembly.GetEntryAssembly(), null);
 
@@ -62,11 +62,25 @@ namespace SwissBot
 
             _client.Ready += Init;
 
-            autoSlowmode.Enabled = true;
-            autoSlowmode.Elapsed += AutoSlowmode_Elapsed;
+            _client.UserUpdated += mork;
 
+            t.Elapsed += DCRS;
+            t.Enabled = true;
+            t.Interval = 300000;
+            Thread t2 = new Thread(aiTrd);
+            t2.Start();
+
+            SwissbotCore.Modules.ModDatabase.Start(_client);
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Services loaded, update init");
+
         }
+
+        private async Task mork(SocketUser arg1, SocketUser arg2)
+        {
+            //dothing();
+        }
+       
+
         SocketMessage r;
         private async void aiTrd()
         {
@@ -78,6 +92,17 @@ namespace SwissBot
                 {
                     var es = GenerateAIResponse(r, new Random()).Result;
                     if(es == "") { es = "e"; }
+                    foreach (var word in Global.CensoredWords)
+                    {
+                        string newword = "";
+                        if (es.Contains(word))
+                        {
+                            newword += word.ToCharArray().First();
+                            for (int i = 1; i != word.ToCharArray().Length; i++)
+                                newword += "\\*";
+                            es.Replace(word, newword);
+                        }
+                    }
                     try
                     {
                         await r.Channel.SendMessageAsync(es);
@@ -85,13 +110,17 @@ namespace SwissBot
                     catch(Exception ex) { Console.WriteLine(ex); }
                 }
             }
-
         }
 
+        public bool IsAlt(SocketGuildUser usr)
+        {
+            if ((DateTime.UtcNow - usr.CreatedAt.UtcDateTime).TotalDays < 7)
+                return true;
+            return false;
+        }
         private async Task checkAlt(SocketGuildUser arg)
         {
-            var dt = DateTime.UtcNow;
-            if ((dt - arg.CreatedAt.UtcDateTime).TotalHours < 12.0)
+            if (IsAlt(arg))
             {
                 EmbedBuilder b = new EmbedBuilder()
                 {
@@ -121,64 +150,59 @@ namespace SwissBot
                     Color = Color.Orange,
                 };
                 await _client.GetGuild(Global.SwissGuildId).GetTextChannel(665647956816429096).SendMessageAsync("", false, b.Build());
-            }
-        }
-
-        private async void AutoSlowmode_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            if (Global.AutoSlowmodeToggle)
-            {
-                var list = sList.ToList();
-                foreach (var item in list)
+                
+                if (!Global.VerifyAlts)
                 {
-                    if (item.Value >= Global.AutoSlowmodeTrigger)
+                    EmbedBuilder eb = new EmbedBuilder()
                     {
-                        var chan = _client.GetGuild(Global.SwissGuildId).GetTextChannel(item.Key);
-                        var aChan = _client.GetGuild(Global.SwissGuildId).GetTextChannel(665647956816429096);
-                        var mLink = await chan.GetMessagesAsync(1).FlattenAsync();
 
-                        if(chan.SlowModeInterval > 0) //the channel has slowmode already
-                        {
-                            if (currentSlowmodeList.Keys.Contains(chan.Id))
-                                currentSlowmodeList[chan.Id] = currentSlowmodeList[chan.Id] + 5;
-                            else
-                                currentSlowmodeList.Add(chan.Id, chan.SlowModeInterval);
-                        }
-                        EmbedBuilder b = new EmbedBuilder()
-                        {
-                            Color = Color.Orange,
-                            Title = "Auto Alert",
-                            Fields = new List<EmbedFieldBuilder>() { { new EmbedFieldBuilder() { Name = "Reason", Value = $"Message limit of {Global.AutoSlowmodeTrigger}/sec reached" } }, { new EmbedFieldBuilder() { Name = "Channel", Value = $"<#{chan.Id}>" } }, { new EmbedFieldBuilder() { Name = "Message Link", Value = mLink.First().GetJumpUrl() } } }
-                        };
-                        if(chan.SlowModeInterval >= 5)
-                            await chan.ModifyAsync(x => x.SlowModeInterval = 5 + chan.SlowModeInterval);
-                        else
-                            await chan.ModifyAsync(x => x.SlowModeInterval = 5);
-                        await aChan.SendMessageAsync("", false, b.Build());
-                        System.Timers.Timer lt = new System.Timers.Timer()
-                        {
-                            Interval = 60000,
-                        };
-                        sList.Remove(item.Key);
-                        lt.Enabled = true;
-                        lt.Elapsed += (object s, ElapsedEventArgs arg) =>
-                        {
-                            if(currentSlowmodeList.Keys.Contains(chan.Id))
-                                chan.ModifyAsync(x => x.SlowModeInterval = currentSlowmodeList[chan.Id]);
-                            else
-                                chan.ModifyAsync(x => x.SlowModeInterval = 0);
-                        };
-                    }
-                    else
+                        Title = "Manual Verification",
+                        Description = "This user was flagged down because it was created less than 12 hours ago",
+                        Color = Color.Red
+                    };
+                    b.Fields.Add(new EmbedFieldBuilder()
                     {
-                        sList[item.Key] = 0;
-                        sList.Remove(item.Key);
-                    }
+                        Name = "Join at UTC",
+                        Value = arg.JoinedAt.Value.UtcDateTime
+                    });
+                    b.Fields.Add(new EmbedFieldBuilder()
+                    {
+                        Name = "Created at UTC",
+                        Value = arg.CreatedAt.UtcDateTime
+                    });
+                    b.Fields.Add(new EmbedFieldBuilder()
+                    {
+                        Name = "Username",
+                        Value = arg.ToString()
+                    });
+                    string anick = "None";
+                    if (arg.Nickname != null)
+                        anick = arg.Nickname;
+                    b.Fields.Add(new EmbedFieldBuilder()
+                    {
+                        Name = "Nickname",
+                        Value = anick
+                    });
+                    b.Fields.Add(new EmbedFieldBuilder()
+                    {
+                        Name = "ID",
+                        Value = arg.Id
+                    });
+
+                    var msg = await _client.GetGuild(Global.SwissGuildId).GetTextChannel(692909459831390268).SendMessageAsync("", false, b.Build());
+                    await msg.AddReactionAsync(new Emoji("✅"));
+                    await msg.AddReactionAsync(new Emoji("❌"));
+                    FList.Add(msg.Id, arg.Id);
+                    await arg.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Color = Color.Red,
+                        Title = "**Uh oh, am I smelling an alt?**",
+                        Description = "Dont worry, you are not under arrest.\nYour account was detected to be an alt. The staff team will manually have to verify you.\n\nSit Tight!"
+                    }.Build());
+                    return;
                 }
             }
         }
-
-
         private async Task _client_JoinedGuild(SocketGuild arg)
         {
             if (arg.Id != Global.SwissBotDevGuildID && arg.Id != Global.SwissGuildId && Global.GiveAwayGuilds.FirstOrDefault(x => x.giveawayguild.guildID == arg.Id).giveawayguild.guildOBJ != null)
@@ -335,32 +359,24 @@ namespace SwissBot
                     if (msg.Contains("@everyone")) { msg = msg.Replace("@everyone", "***(Non-ping @every0ne)***"); }
                     if (msg.Contains("@here")) { msg = msg.Replace("@here", "***(Non-ping @h3re)***"); }
                     dbugmsg += "Sanitized for @h3re and @every0ne\n";
-                    EmbedBuilder eb = new EmbedBuilder()
-                    {
-                        Color = Color.Orange,
-                        Title = "Ai Debug",
-                        Author = new EmbedAuthorBuilder()
-                        {
-                            Name = _client.CurrentUser.ToString(),
-                            IconUrl = _client.CurrentUser.GetAvatarUrl()
-                        },
-                        Description = "```Ai Debug Log```\n`" + dbugmsg + "`",
-
-
-                    };
+                    
                     if (dbug)
-                        await arg.Channel.SendMessageAsync("", false, eb.Build());
-                    foreach(var word in Global.CensoredWords)
                     {
-                        string newword = "";
-                        if (msg.Contains(word))
+                        EmbedBuilder eb = new EmbedBuilder()
                         {
-                            newword += word.ToCharArray().First();
-                            for (int i = 1; i != word.ToCharArray().Length; i++)
-                                newword += "*";
-                            msg.Replace(word, newword);
-                        }
+                            Color = Color.Orange,
+                            Title = "Ai Debug",
+                            Author = new EmbedAuthorBuilder()
+                            {
+                                Name = _client.CurrentUser.ToString(),
+                                IconUrl = _client.CurrentUser.GetAvatarUrl()
+                            },
+                            Description = "```Ai Debug Log```\n`" + dbugmsg + "`",
+                        };
+                        await arg.Channel.SendMessageAsync("", false, eb.Build());
                     }
+                        
+                    
                     return msg;
                 }
                 catch (Exception ex)
@@ -382,6 +398,17 @@ namespace SwissBot
                     if (r.Next(1, 2) == 1 || mu != null)
                     {
                         string msg = await GenerateAIResponse(arg, r);
+                        foreach (var word in Global.CensoredWords)
+                        {
+                            string newword = "";
+                            if (msg.Contains(word))
+                            {
+                                newword += word.ToCharArray().First();
+                                for (int i = 1; i != word.ToCharArray().Length; i++)
+                                    newword += "\\*";
+                                msg.Replace(word, newword);
+                            }
+                        }
                         if (msg != "")
                         {
                             if (msg != ("*terminate"))
@@ -414,105 +441,36 @@ namespace SwissBot
         Dictionary<ulong, ulong> FList = new Dictionary<ulong, ulong>();
         private async Task CheckVerification(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
+            var tuser = _client.GetGuild(Global.SwissGuildId).GetUser(arg3.UserId);
+
+            if (!Global.VerifyAlts && IsAlt(tuser))
+                return;
             if (arg2.Id == Global.VerificationChanID)
             {
+                var user = _client.GetGuild(Global.SwissGuildId).GetUser(arg3.UserId);
                 var emote = new Emoji("✅");
                 if (arg3.Emote.Name == emote.Name)
                 {
-                    var user = _client.GetGuild(Global.SwissGuildId).GetUser(arg3.UserId);
                     if (user == null) { user = _client.GetGuild(Global.SwissGuildId).GetUser(arg1.Value.Author.Id); }
                     string nick = "";
                     if (user.Nickname != null)
                         nick = user.Nickname;
-                    if (user.ToString().ToLower().Contains("ace") || user.ToString().ToLower().Contains("wing") || nick.ToLower().Contains("ace") || nick.ToLower().Contains("wing"))
+                    SocketRole unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
+                    if (user.Roles.Contains(unVertRole))
                     {
-                        //man
-
-                        EmbedBuilder b = new EmbedBuilder()
+                        var userRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.MemberRoleID);
+                        await user.AddRoleAsync(userRole);
+                        Console.WriteLine($"Verified user {user.Username}#{user.Discriminator}");
+                        EmbedBuilder eb2 = new EmbedBuilder()
                         {
-
-                            Title = "Manual Verification",
-                            Description = "This user was flagged down for the expression `username OR nickname contains \"ace &| wing\"`",
-                            Color = Color.Red
-                        };
-                        b.Fields.Add(new EmbedFieldBuilder()
-                        {
-                            Name = "Join at",
-                            Value = user.JoinedAt
-                        });
-                        b.Fields.Add(new EmbedFieldBuilder()
-                        {
-                            Name = "Created at",
-                            Value = user.CreatedAt
-                        });
-                        b.Fields.Add(new EmbedFieldBuilder()
-                        {
-                            Name = "Username",
-                            Value = user.ToString()
-                        });
-                        string anick = "None";
-                        if (user.Nickname != null)
-                            anick = user.Nickname;
-
-
-                        b.Fields.Add(new EmbedFieldBuilder()
-                        {
-                            Name = "Nickname",
-                            Value = anick
-                        });
-                        b.Fields.Add(new EmbedFieldBuilder()
-                        {
-                            Name = "ID",
-                            Value = user.Id
-                        });
-
-
-                        //{
-                        //         { 
-                        //         { new EmbedFieldBuilder() {
-                        //            Name = "Created at",
-                        //            Value = user.CreatedAt
-                        //         } },
-                        //         { new EmbedFieldBuilder() {
-                        //            Name = "Username",
-                        //            Value = user.ToString()
-                        //         } },
-                        //         { new EmbedFieldBuilder() {
-                        //            Name = "Nickname",
-                        //            Value = user.Nickname
-                        //         } },
-                        //        {new EmbedFieldBuilder()
-                        //        {
-                        //            Name = "ID",
-                        //            Value = user.Id
-                        //        } }
-                        //};
-
-                        Discord.Rest.RestUserMessage msg = await _client.GetGuild(Global.SwissGuildId).GetTextChannel(662142405377654804).SendMessageAsync("", false, b.Build());
-
-                        await msg.AddReactionAsync(new Emoji("✅"));
-                        await msg.AddReactionAsync(new Emoji("❌"));
-                        FList.Add(msg.Id, user.Id);
-                        return;
-                    }
-                    else
-                    {
-                        var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
-                        if (user.Roles.Contains(unVertRole))
-                        {
-                            var userRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.MemberRoleID);
-                            await user.AddRoleAsync(userRole);
-                            Console.WriteLine($"Verified user {user.Username}#{user.Discriminator}");
-                            EmbedBuilder eb2 = new EmbedBuilder()
+                            Title = $"Verified {user.Mention}",
+                            Color = Color.Green,
+                            Footer = new EmbedFooterBuilder()
                             {
-                                Title = $"Verified {user.Mention}",
-                                Color = Color.Green,
-                                Footer = new EmbedFooterBuilder()
-                                {
-                                    IconUrl = user.GetAvatarUrl(),
-                                    Text = $"{user.Username}#{user.Discriminator}"
-                                },
-                                Fields = new List<EmbedFieldBuilder>()
+                                IconUrl = user.GetAvatarUrl(),
+                                Text = $"{user.Username}#{user.Discriminator}"
+                            },
+                            Fields = new List<EmbedFieldBuilder>()
                             {
                                 {new EmbedFieldBuilder()
                                 {
@@ -521,37 +479,38 @@ namespace SwissBot
                                     Value = "false"
                                 } }
                             }
-                            };
-                            var chan = _client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.VerificationLogChanID);
-                            await chan.SendMessageAsync("", false, eb2.Build());
-                            await user.RemoveRoleAsync(unVertRole);
-                            string welcomeMessage = WelcomeMessageBuilder(Global.WelcomeMessage, user);
-                            EmbedBuilder eb = new EmbedBuilder()
+                        };
+                        var chan = _client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.VerificationLogChanID);
+                        await chan.SendMessageAsync("", false, eb2.Build());
+                        await user.RemoveRoleAsync(unVertRole);
+                        string welcomeMessage = WelcomeMessageBuilder(Global.WelcomeMessage, user);
+                        EmbedBuilder eb = new EmbedBuilder()
+                        {
+                            Title = $"***Welcome to Swiss001's Discord server!***",
+                            Footer = new EmbedFooterBuilder()
                             {
-                                Title = $"***Welcome to Swiss001's Discord server!***",
-                                Footer = new EmbedFooterBuilder()
-                                {
-                                    IconUrl = user.GetAvatarUrl(),
-                                    Text = $"{user.Username}#{user.Discriminator}"
-                                },
-                                Description = welcomeMessage,
-                                ThumbnailUrl = Global.WelcomeMessageURL,
-                                Color = Color.Green
-                            };
-                            await _client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.WelcomeMessageChanID).SendMessageAsync("", false, eb.Build());
-                            Global.ConsoleLog($"WelcomeMessage for {user.Username}#{user.Discriminator}", ConsoleColor.Blue);
-                        }
+                                IconUrl = user.GetAvatarUrl(),
+                                Text = $"{user.Username}#{user.Discriminator}"
+                            },
+                            Description = welcomeMessage,
+                            ThumbnailUrl = Global.WelcomeMessageURL,
+                            Color = Color.Green
+                        };
+                        await _client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.WelcomeMessageChanID).SendMessageAsync("", false, eb.Build());
+                        Global.ConsoleLog($"WelcomeMessage for {user.Username}#{user.Discriminator}", ConsoleColor.Blue);
                     }
                 }
             }
-            else if (arg2.Id == 662142405377654804)
+            else if (arg2.Id == 692909459831390268)
             {
+                //rewrite man verification
+                
                 if (arg3.User.Value.IsBot) { return; }
                 if (FList.Keys.Contains(arg3.MessageId))
                 {
-                    var user = _client.GetGuild(Global.SwissGuildId).GetUser(FList[arg3.MessageId]);
-
-                    var msg = _client.GetGuild(Global.SwissGuildId).GetTextChannel(662142405377654804).GetMessageAsync(arg3.MessageId).Result;
+                    var k = FList[arg3.MessageId];
+                    var user = _client.GetGuild(Global.SwissGuildId).GetUser(k);
+                    var msg = _client.GetGuild(Global.SwissGuildId).GetTextChannel(692909459831390268).GetMessageAsync(arg3.MessageId).Result;
                     var ch = new Emoji("✅");
                     var ex = new Emoji("❌");
                     if (arg3.Emote.Name == ch.Name)
@@ -597,13 +556,28 @@ namespace SwissBot
                     }
                     if (arg3.Emote.Name == ex.Name)
                     {
-                        if (user.Roles.Count == 2)
+                        try
                         {
-                            await user.BanAsync(7, "Denied by Staff");
+                            await user.SendMessageAsync("", false, new EmbedBuilder()
+                            {
+                                Title = "**You have been Stopped!**",
+                                Color = Color.Red,
+                                Description = "You've been banned from **Swiss001 Official Discord Server.**",
+                                Fields = new List<EmbedFieldBuilder>()
+                                    {
+                                        { new EmbedFieldBuilder(){
+                                        Name = "To appeal",
+                                        Value = "https://neoney.xyz/swiss001/unban"
+                                        } }
+                                    },
+                            }.Build());
                         }
+                        catch { }
+                        await user.BanAsync(7, "Denied by Staff");
                         await msg.DeleteAsync();
                         FList.Remove(arg3.MessageId);
-                        await _client.GetGuild(Global.SwissGuildId).GetTextChannel(662142405377654804).SendMessageAsync($"Banned {user.ToString()}. Moderator: {arg3.User.ToString()}");
+                        await _client.GetGuild(Global.SwissGuildId).GetTextChannel(692909459831390268).SendMessageAsync($"Banned {user.ToString()}. Moderator: {arg3.User.ToString()}");
+
                     }
                 }
             }
@@ -669,15 +643,26 @@ namespace SwissBot
 
         private async Task _client_LatencyUpdated(int arg1, int arg2)
         {
+            //string usern = "Binzo - Moderator";
+            //var user = _client.GetGuild(Global.SwissGuildId).GetUser(364839544279007234);
+            //if (user.Nickname != usern)
+            //    await user.ModifyAsync(x => x.Nickname = usern);
             await UpdateUserCount(null);
-            if (_client.GetGuild(Global.SwissGuildId).GetUser(_client.CurrentUser.Id).Nickname != "SwissBot ( * )")
-            {
-                await _client.GetGuild(Global.SwissGuildId).GetUser(_client.CurrentUser.Id).ModifyAsync(x => x.Nickname = "SwissBot ( * )");
-            }
+            //if (_client.GetGuild(Global.SwissGuildId).GetUser(_client.CurrentUser.Id).Nickname != "SwissBot ( * )")
+            //{
+            //    await _client.GetGuild(Global.SwissGuildId).GetUser(_client.CurrentUser.Id).ModifyAsync(x => x.Nickname = "SwissBot ( * )");
+            //}
         }
 
         private async Task WelcomeMessage(SocketGuildUser arg)
         {
+            //george
+            if (arg.Id == 370660333783613441)
+            {
+                await arg.BanAsync();
+                _client.GetGuild(Global.SwissGuildId).GetTextChannel(592768337407115264).SendMessageAsync("@everyone BLACK ALERT: George has tried to join the server and has been banned! ");
+                return;
+            }
             var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
             await arg.AddRoleAsync(unVertRole);
             Console.WriteLine($"The member {arg.Username}#{arg.Discriminator} joined the guild");
@@ -741,22 +726,24 @@ namespace SwissBot
                     }
                 }
 
-                t.Elapsed += DCRS;
-                t.Enabled = true;
-                t.Interval = 300000;
+               
 
                 try { UserSubCashing(); } catch (Exception ex) { Console.WriteLine(ex); }
-                // await MassWelcome();
+                //await MassWelcome();
                 //LoadLLogs();
-                Thread t2 = new Thread(aiTrd);
-                t2.Start();
                 Global.ConsoleLog("Finnished Init!", ConsoleColor.Black, ConsoleColor.DarkGreen);
+                foreach(var chan in _client.GetGuild(Global.SwissGuildId).Channels)
+                {
+                    ChannelPostitions.Add(chan.Id, chan.Position);
+                }
+               
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
         }
+       
         private async Task LoadLLogs()
         {
             Global.linkLogs = new Dictionary<string, List<Global.LogItem>>();
@@ -832,8 +819,11 @@ namespace SwissBot
         private async Task MassWelcome()
         {
             var users = _client.GetGuild(Global.SwissGuildId).Users.Where(x => x.Roles.Contains(_client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x2 => x2.Id == 627683033151176744)) && x.Roles.Count == 2);
+            int count = users.Count();
+            Console.WriteLine(count);
             foreach (var arg3 in users)
             {
+                Thread.Sleep(3000);
                 var user = _client.GetGuild(Global.SwissGuildId).GetUser(arg3.Id);
                 var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
                 if (user.Roles.Contains(unVertRole))
@@ -867,7 +857,7 @@ namespace SwissBot
                         ThumbnailUrl = Global.WelcomeMessageURL,
                         Color = Color.Green
                     };
-                    await _client.GetGuild(Global.SwissGuildId).GetTextChannel(648608707826941963).SendMessageAsync("", false, eb.Build());
+                    await _client.GetGuild(Global.SwissGuildId).GetTextChannel(701195493048582215).SendMessageAsync("", false, eb.Build());
                     Global.ConsoleLog($"WelcomeMessage for {user.Username}#{user.Discriminator}", ConsoleColor.Blue);
                 }
             }
@@ -1009,16 +999,38 @@ namespace SwissBot
         }
         private async Task UpdateUserCount(SocketGuildUser arg)
         {
-            var users = _client.GetGuild(Global.SwissGuildId).Users;
-            Console.WriteLine($"Ucount {users.Count - 20}, usersSCount{users.Count}");
-            await _client.GetGuild(Global.SwissGuildId).GetVoiceChannel(Global.StatsTotChanID).ModifyAsync(x =>
+            try
             {
-                x.Name = $"Total Users: {users.Count + 2}";
-            });
+                var g = _client.GetGuild(Global.SwissGuildId);
+                if (g == null)
+                    return;
+                var users = g.Users;
+
+                Console.WriteLine($"Ucount {users.Count - 20}, usersSCount{users.Count}");
+                await _client.GetGuild(Global.SwissGuildId).GetVoiceChannel(Global.StatsTotChanID).ModifyAsync(x =>
+                {
+                    x.Name = $"Total Users: {users.Count + 2}";
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         private async Task LogMessage(SocketMessage arg)
         {
+            try
+            {
+                if (_client.GetGuild(Global.SwissGuildId).GetUser(660238973943152707).Nickname != "Javascript gay - Sr. Moderator")
+                    await _client.GetGuild(Global.SwissGuildId).GetUser(660238973943152707).ModifyAsync(x => x.Nickname = "Javascript gay - Sr. Moderator");
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+            //dothing();
             try
             {
                 var msg = arg as SocketUserMessage;
@@ -1027,14 +1039,14 @@ namespace SwissBot
                     r = arg;
                 }
 
-                if (sList.ContainsKey(arg.Channel.Id))
-                {
-                    sList[arg.Channel.Id]++;
-                }
-                else
-                {
-                    sList.Add(arg.Channel.Id, 1);
-                }
+                //if (sList.ContainsKey(arg.Channel.Id))
+                //{
+                //    sList[arg.Channel.Id]++;
+                //}
+                //else
+                //{
+                //    sList.Add(arg.Channel.Id, 1);
+                //}
 
                 if (arg.Attachments.Count >= 1 || Regex.IsMatch(arg.Content, "(.*?://.*?)"))
                 {

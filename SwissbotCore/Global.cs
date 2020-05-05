@@ -11,7 +11,7 @@ using Discord;
 using System.Net.Http;
 using System.Net;
 
-namespace SwissBot
+namespace SwissbotCore
 {
     class Global
     {
@@ -61,6 +61,7 @@ namespace SwissBot
         public static ulong giveawayChanID { get; set; }
         public static ulong BotAiChanID { get; set; }
         public static ulong MutedRoleID { get; set; }
+        public static bool VerifyAlts { get; set; }
         public static string JabToken { get; set; }
         public static Dictionary<string, List<LogItem>> linkLogs { get; set; }
         public static Dictionary<string, List<LogItem>> messageLogs { get; set; }
@@ -129,6 +130,7 @@ namespace SwissBot
         }
         public static void SaveCensor()
         {
+            CensoredWords = CensoredWords.Distinct().ToList();
             string[] ar = CensoredWords.ToArray();
             string cont = string.Join('\n', ar);
             File.WriteAllText(CensorPath, cont);
@@ -179,7 +181,9 @@ namespace SwissBot
             SubmissionsLogChanID = data.SubmissionsLogChanID;
             MilestonechanID = data.MilestonechanID;
             BotAiChanID = data.BotAiChanID;
+            VerifyAlts = data.VerifyAlts;
             StatsTotChanID = data.StatsTotChanID;
+            MutedRoleID = data.MutedRoleID;
         }
         public static void SaveConfigPerms(Dictionary<string, bool> nConfigPerm)
         {
@@ -245,6 +249,8 @@ namespace SwissBot
             public ulong giveawayCreatorChanId { get; set; }
             public string ApiKey { get; set; }
             public int AutoSlowmodeTrigger { get; set; }
+            public bool VerifyAlts { get; set; }
+            public ulong MutedRoleID { get; set; }
         }
         public static void ConsoleLog(string ConsoleMessage, ConsoleColor FColor = ConsoleColor.Green, ConsoleColor BColor = ConsoleColor.Black)
         {

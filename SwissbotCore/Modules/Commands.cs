@@ -10,13 +10,14 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Linq.Dynamic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static SwissBot.Global;
+using static SwissbotCore.Global;
 using Discord.Audio;
 using System.Diagnostics;
 using static SwissbotCore.RedditHandler;
@@ -24,8 +25,7 @@ using SwissbotCore;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using Color = Discord.Color;
-
-namespace SwissBot.Modules
+namespace SwissbotCore.Modules
 {
     public class Commands : ModuleBase<SocketCommandContext>
     {
@@ -53,7 +53,8 @@ namespace SwissBot.Modules
                 $"```{Global.Preflix}unmuteusers```\n use this command in a voice channel to unserver mute all members in a voice channel\n **Does not mute/unmute staff**" +
                 $"```{Global.Preflix}autoslowmode```\n**Parameters**\n - `{Global.Preflix}autoslowmode set <NEWVALUE>`\n   Sets the current message limit, ex *5* would be 5 messages per second\n\n `{Global.Preflix}autoslowmode <on/off>`\n   Sets autoslowmode on or off\n\n" +
                 $"```{Global.Preflix}asking```\n If someone is asking alot just use this to flex image manipulation on them haterz xd rawr\n\n" + 
-                $"```{Global.Preflix}fate```\n**Parameters** - `{Global.Preflix}fate <@user>`\n Generates the council image with the mentioned users pfp in it!",
+                $"```{Global.Preflix}fate```\n**Parameters** - `{Global.Preflix}fate <@user>`\n Generates the council image with the mentioned users pfp in it!\n\n" +
+                $"```{Global.Preflix}altverify```\n**Parameters** - `{Global.Preflix}altverify <on/off/true/false>`\n If on or true alt accounts can verify and will still post an alert in <#665647956816429096>. if off or false it will post a verify msg in <#692909459831390268>\n",
                     Footer = new EmbedFooterBuilder()
                     {
                         IconUrl = Context.Client.CurrentUser.GetAvatarUrl(),
@@ -89,8 +90,52 @@ namespace SwissBot.Modules
                 await Context.Channel.SendMessageAsync("", false, eb.Build());
             }
         }
+        [Command("altverify")]
+        public async Task AltVerify(string param)
+        {
+            if (!await HasPerms(Context)) { await Context.Channel.SendMessageAsync("You do not have permission!"); return; }
+
+            bool setting;
+            switch (param.ToLower())
+            {
+                case "true":
+                    setting = true;
+                    break;
+                case "on":
+                    setting = true;
+                    break;
+                case "false":
+                    setting = false;
+                    break;
+                case "off":
+                    setting = false;
+                    break;
+                default:
+                    {
+                        await Context.Channel.SendMessageAsync($"Not a valid parameter, either use \"on/true\" or \"off/false\". see {Global.Preflix}help for help");
+                        return;
+                    }
+            }
+
+            Global.VerifyAlts = setting;
+            await Context.Channel.SendMessageAsync("Set the alt verification to " + param);
+        }
+        [Command("support", RunMode = RunMode.Async)]
+        public async Task b()
+        {
+            await PlaySoundFile(@"C:\Users\plynch\Downloads\I_am_once_again_asking_for_your_financial_support_Bernie_Sanders_Green_Screen.mp3");
+        }
         [Command("newvideo", RunMode = RunMode.Async)]
         public async Task nv()
+        {
+            await PlaySoundFile(@"C:\Users\plynch\Downloads\update.mp3");
+        }
+        [Command("alexa", RunMode = RunMode.Async)]
+        public async Task al()
+        {
+            await PlaySoundFile(@"C:\Users\plynch\Downloads\whip_a_cessna_1.mp3");
+        }
+        private async Task PlaySoundFile(string path)
         {
             var vc = Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel;
             if (vc != null)
@@ -98,7 +143,7 @@ namespace SwissBot.Modules
                 try
                 {
                     var audioClient = await vc.ConnectAsync();
-                    await SendAsync(audioClient, @"C:\Users\plynch\Downloads\Mega.mp3");
+                    await SendAsync(audioClient, path);
                     await audioClient.StopAsync();
                 }
                 catch (Exception ex)
@@ -408,7 +453,6 @@ namespace SwissBot.Modules
                         };
                         await Context.Channel.SendMessageAsync("", false, b.Build());
                     }
-
                 }
             }
 
@@ -535,13 +579,60 @@ namespace SwissBot.Modules
                 }
             }
         }
+        [Command("george")]
+        public async Task g()
+        {
+            //baseurl https://cdn.discordapp.com/attachments/592463507124125706/682686064229613593/george.jpg
+            WebClient wc = new WebClient();
+            byte[] bytes = wc.DownloadData("https://cdn.discordapp.com/attachments/592463507124125706/682686064229613593/george.jpg");
+            MemoryStream ms = new MemoryStream(bytes);
+            System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
 
+            //get profile
+            byte[] bytes2 = wc.DownloadData(Context.Message.Author.GetAvatarUrl());
+            MemoryStream ms2 = new MemoryStream(bytes2);
+            System.Drawing.Image img2 = System.Drawing.Image.FromStream(ms2);
+            
+            int width = img.Width;
+            int height = img.Height;
+
+            using (img)
+            {
+                using (var bitmap = new Bitmap(img.Width, img.Height))
+                {
+                    using (var canvas = Graphics.FromImage(bitmap))
+                    {
+                        canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        canvas.DrawImage(img,
+                                         new Rectangle(0,
+                                                       0,
+                                                       width,
+                                                       height),
+                                         new Rectangle(0,
+                                                       0,
+                                                       img.Width,
+                                                       img.Height),
+                                         GraphicsUnit.Pixel);
+                        canvas.DrawImage(img2, (img.Width / 2) - (img2.Width) + 27, (img.Height / 2) - (img2.Height + 33));
+                        canvas.Save();
+                    }
+                    try
+                    {
+                        bitmap.Save($"{Environment.CurrentDirectory}\\img.jpg",
+                                    System.Drawing.Imaging.ImageFormat.Jpeg);
+                        await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}\\img.jpg");
+                        //this.BackgroundImage = bitmap;
+                    }
+                    catch (Exception ex) { }
+                }
+            }
+        }
         [Command("fate")]
         public async Task fate(string user)
         {
             //baseurl https://cdn.discordapp.com/attachments/592807608499437665/678443510210363442/council.jpg
             WebClient wc = new WebClient();
-            byte[] bytes = wc.DownloadData("https://cdn.discordapp.com/attachments/592807608499437665/678443510210363442/council.jpg");
+            byte[] bytes = wc.DownloadData("https://cdn.discordapp.com/attachments/620673311122391040/682691076649517087/image0.png");
             MemoryStream ms = new MemoryStream(bytes);
             System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
             string purl = Context.Message.MentionedUsers.First().GetAvatarUrl();
@@ -615,6 +706,13 @@ namespace SwissBot.Modules
                 await Context.Channel.SendMessageAsync($"ive been a {rep} boi, input noted down for the future");
             }
         }
+        //[Command("find")]
+        //public async Task find(params string[] querry)
+        //{
+        //    string name = querry.First();
+        //    var users = Context.Guild.Users.Where(String.Join(" ", querry.Where(x => x != name)));
+        //    await Context.Channel.SendMessageAsync(string.Join("\n", users.Select(x => x.ToString())));
+        //}
         public static async Task<JsonGuildObj> GetGuildObj()
         {
             var guild = Client.GetGuild(Global.SwissGuildId);
@@ -809,9 +907,6 @@ namespace SwissBot.Modules
                     };
                     l.Add(c);
                 }
-
-
-
             }
             return l;
         }
@@ -856,6 +951,7 @@ namespace SwissBot.Modules
         [Command("vcmute")]
         public async Task muteusers()
         {
+            Global.MutedMembers = new List<ulong>();
             var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
             var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
             var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
@@ -872,12 +968,14 @@ namespace SwissBot.Modules
                         var rolepos2 = r2.FirstOrDefault(x => x.Position >= adminrolepos);
                         if (rolepos2 == null)
                         {
-                            await user.ModifyAsync(x => x.Mute = true);
-                            if(!MutedMembers.Contains(user.Id))
-                                Global.MutedMembers.Add(user.Id);
-                            u++;
+                            if (!user.IsMuted)
+                            {
+                                await user.ModifyAsync(x => x.Mute = true);
+                                if (!MutedMembers.Contains(user.Id))
+                                    Global.MutedMembers.Add(user.Id);
+                                u++;
+                            }
                         }
-                       
                     }
                     await Context.Channel.SendMessageAsync($"Muted {u} members");
                 }
@@ -886,33 +984,39 @@ namespace SwissBot.Modules
         [Command("vcunmute")]
         public async Task unmuteusers()
         {
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null)
+            try
             {
-                if (Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel != null)
+                var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
+                var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
+                var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
+                if (rolepos != null)
                 {
-                    await Context.Channel.SendMessageAsync($"Starting to Unmute members...");
-                    int u = 0;
-                    var vcusers = Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users;
-                    foreach (var item in Global.MutedMembers)
+                    if (Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel != null)
                     {
-                        SocketGuildUser user = null;
-                        if (vcusers.Any(x => x.Id == item))
-                            user = vcusers.FirstOrDefault(x => x.Id == item);
-                        else
-                        { user = Context.Guild.GetUser(item); }
-                        if (user.IsMuted)
+                        await Context.Channel.SendMessageAsync($"Starting to Unmute members...");
+                        int u = 0;
+                        var vcusers = Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users;
+                        foreach (var item in vcusers)
                         {
-                            await user.ModifyAsync(x => x.Mute = false);
-                            if (Global.MutedMembers.Contains(user.Id))
-                                MutedMembers.Remove(user.Id);
-                            u++;
+                            SocketGuildUser user = null;
+                            if (vcusers.Any(x => x.Id == item.Id))
+                                user = vcusers.FirstOrDefault(x => x.Id == item.Id);
+                            else
+                            { user = Context.Guild.GetUser(item.Id); }
+                            if (user.IsMuted)
+                            {
+                                await user.ModifyAsync(x => x.Mute = false);
+                                u++;
+                            }
                         }
+                        await Context.Channel.SendMessageAsync($"UnMuted {u} members");
                     }
-                    await Context.Channel.SendMessageAsync($"UnMuted {u} members");
                 }
+                Global.MutedMembers = null;
+            }
+            catch(Exception ex)
+            {
+
             }
         }
         static int rot = 0;
@@ -1077,43 +1181,43 @@ namespace SwissBot.Modules
                 await Context.Channel.SendMessageAsync($"50, 40, 30, 20, 10, **Butter** \n {link}");
             }
         }
-        [Command("ban")]
-        public async Task ban(string userstring)
-        {
-            var t = Global.GiveAwayGuilds.Where(x => x.giveawayguild.guildID.Equals(Context.Guild.Id));
-            if (t != null)
-            {
-                if (t.First().giveawayguild.bansActive)
-                {
-                    var reciv = Context.Client.GetGuild(t.First().giveawayguild.guildID).GetUser(Convert.ToUInt64(userstring.Trim('<', '>', '@')));
+        //[Command("ban")]
+        //public async Task ban(string userstring)
+        //{
+        //    var t = Global.GiveAwayGuilds.Where(x => x.giveawayguild.guildID.Equals(Context.Guild.Id));
+        //    if (t != null)
+        //    {
+        //        if (t.First().giveawayguild.bansActive)
+        //        {
+        //            var reciv = Context.Client.GetGuild(t.First().giveawayguild.guildID).GetUser(Convert.ToUInt64(userstring.Trim('<', '>', '@')));
 
-                    if (reciv.Roles.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Name == "Admins")))
-                    {
-                        await Context.Channel.SendMessageAsync("Cannot ban Admins!");
-                    }
-                    else if (reciv.Roles.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Name == "Contestants")))
-                    {
-                        var recGU = t.First().giveawayguild.giveawayEntryMembers.FirstOrDefault(x => x.id == reciv.Id);
-                        var sendGU = t.First().giveawayguild.giveawayEntryMembers.FirstOrDefault(x => x.id == Context.Message.Author.Id);
-                        if (recGU.bannedUsers != null && sendGU.bannedUsers != null)
-                        {
-                            await Context.Channel.SendMessageAsync($"{reciv.Mention} HAS BEEN ELIMINATED BY {Context.Message.Author.Mention}: {Context.Guild.Users.Count(x => x.Roles.Contains(Context.Guild.Roles.FirstOrDefault(r => r.Name == "Contestants")))} Contestants left");
+        //            if (reciv.Roles.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Name == "Admins")))
+        //            {
+        //                await Context.Channel.SendMessageAsync("Cannot ban Admins!");
+        //            }
+        //            else if (reciv.Roles.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Name == "Contestants")))
+        //            {
+        //                var recGU = t.First().giveawayguild.giveawayEntryMembers.FirstOrDefault(x => x.id == reciv.Id);
+        //                var sendGU = t.First().giveawayguild.giveawayEntryMembers.FirstOrDefault(x => x.id == Context.Message.Author.Id);
+        //                if (recGU.bannedUsers != null && sendGU.bannedUsers != null)
+        //                {
+        //                    await Context.Channel.SendMessageAsync($"{reciv.Mention} HAS BEEN ELIMINATED BY {Context.Message.Author.Mention}: {Context.Guild.Users.Count(x => x.Roles.Contains(Context.Guild.Roles.FirstOrDefault(r => r.Name == "Contestants")))} Contestants left");
 
-                            await Context.Guild.AddBanAsync(reciv);
-                        }
-                        else
-                        {
-                            await Context.Channel.SendMessageAsync($"Could not ban {recGU.DiscordName}! they were of the null type loser");
-                        }
-                    }
-                    else
-                    {
-                        await Context.Channel.SendMessageAsync($"Cannot ban {reciv.Mention} because there not a Contestant");
-                    }
-                }
-                else { await Context.Channel.SendMessageAsync($"Giveaway not ready.."); }
-            }
-        }
+        //                    await Context.Guild.AddBanAsync(reciv);
+        //                }
+        //                else
+        //                {
+        //                    await Context.Channel.SendMessageAsync($"Could not ban {recGU.DiscordName}! they were of the null type loser");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                await Context.Channel.SendMessageAsync($"Cannot ban {reciv.Mention} because there not a Contestant");
+        //            }
+        //        }
+        //        else { await Context.Channel.SendMessageAsync($"Giveaway not ready.."); }
+        //    }
+        //}
         static internal int giveawayStep = 0;
         static internal bool giveawayinProg;
         static internal GiveAway currGiveaway;
@@ -1671,6 +1775,41 @@ namespace SwissBot.Modules
             var pd = await c.PostAsync("http://27.253.119.180:3030/api/messages", cont);
             var res = await pd.Content.ReadAsStringAsync();
             Console.WriteLine(res);
+        }
+        [Command("modlogs")]
+        public async Task downloadmodlogs(string download, string id)
+        {
+            string url = "https://neoney.xyz/api/sqlite/";
+            ulong uid = 0;
+            if (download.ToLower() == "download")
+            {
+                if (id.Contains("<@"))
+                {
+                    string tid = id.Trim('<', '@', '!', '>');
+                    try
+                    {
+                        uid = Convert.ToUInt64(tid);
+                    }
+                    catch { await Context.Channel.SendMessageAsync("Invalad Parameter"); }
+                }
+                else
+                {
+                    try
+                    {
+                        uid = Convert.ToUInt64(id);
+                    }
+                    catch { await Context.Channel.SendMessageAsync("Invalad Parameter"); }
+                }
+                HttpClient c = new HttpClient();
+                c.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "ZNIc5Ct8PUjepHKOFlUvl6kI4zS7BQa0quBt7C8LIbv3euwCeZ45lhwyr81ZjdHV7fqfermlaSoY6GLO6p8Muv7b5bySAR5tu7CPAuxPeq3O6sSKo1ExWcjlQlFPCaB96PHMkkHm5R8WNf0cHGoQkCC4WiqUacMSVcXYAa0KX39lCICZiQbM735uWG2hwFxOnUeRwmSx");
+                var cont = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    {"statement", "SELECT json FROM json WHERE ID = '523762812678438913';"}
+                });
+                var post = await c.GetAsync(url);
+                var resp = await post.Content.ReadAsStringAsync();
+                Console.WriteLine(resp);
+            }
         }
         [Command("modactions")]
         public async Task modactions(params string[] args)

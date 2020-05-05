@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace SwissBot
+namespace SwissbotCore
 {
     class Program
     {
@@ -20,6 +20,7 @@ namespace SwissBot
             {
                 try
                 {
+                    //CustomCommandService s = new CustomCommandService(new CustomCommandService.Settings() { DefaultPrefix = '*'});
                     new Program().StartAsync().GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
@@ -30,7 +31,7 @@ namespace SwissBot
             }
         }
         private DiscordSocketClient _client;
-        private CommandService _commands;
+        private Discord.Commands.CommandService _commands;
         private CommandHandler _handler;
        
         public async Task StartAsync()
@@ -62,13 +63,13 @@ namespace SwissBot
 
             Global.Client = _client;
 
-            _commands = new CommandService();
+            _commands = new Discord.Commands.CommandService();
 
             _handler = new CommandHandler(_client);
 
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
            
-            await Task.Delay(-1);
+            await Task.Delay(-1);   
 
             //jabibot
 
@@ -77,6 +78,8 @@ namespace SwissBot
 
         private async Task Log(LogMessage msg)
         {
+            if (msg.Message == null)
+                return;
             if (!msg.Message.StartsWith("Received Dispatch"))
             {
                 Console.ForegroundColor = ConsoleColor.Green;
