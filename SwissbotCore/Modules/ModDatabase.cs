@@ -17,7 +17,8 @@ using RedditNet.Extensions;
 
 namespace SwissbotCore.Modules
 {
-    public class ModDatabase : ModuleBase<SocketCommandContext>
+    [DiscordCommandClass()]
+    public class ModDatabase : CommandModuleBase
     {
         static string ModLogsPath = $"{Environment.CurrentDirectory}\\Data\\Modlogs.json";
         static internal System.Timers.Timer autoSlowmode = new System.Timers.Timer() { Enabled = false, AutoReset = true, Interval = 1000 };
@@ -280,9 +281,9 @@ namespace SwissbotCore.Modules
                 }
                 await AddModlogs(id, type, curContext.Message.Author.Id, reason, usr.ToString());
 
-               
 
-                Embed b = new EmbedBuilder()
+
+                EmbedBuilder b = new EmbedBuilder()
                 {
                     Title = $"You have been **{typeName}** on **{curContext.Guild.Name}**",
                     Fields = new List<EmbedFieldBuilder>()
@@ -299,7 +300,15 @@ namespace SwissbotCore.Modules
                             IsInline = true
                         } }
                     }
-                }.Build();
+                };
+                if (type is Action.Banned)
+                {
+                    b.Footer = new EmbedFooterBuilder()
+                    {
+                        Text = "To appeal your ban, visit https://bans.swissdev.team/"
+                    };
+                }
+
                 Embed b2 = new EmbedBuilder()
                 {
                     Title = $"Successfully **{typeName}** user **{usr.ToString()}**",
@@ -321,12 +330,12 @@ namespace SwissbotCore.Modules
                 bool notif = true;
                 try
                 {
-                    await usr.SendMessageAsync("", false, b);
+                    await usr.SendMessageAsync("", false, b.Build());
                 }
                 catch(Exception ex)
                 {
                     notif = false;
-                    await Context.Channel.SendMessageAsync("Could'nt nodify " + usr.ToString() + " of there " +typeName);
+                    await Context.Channel.SendMessageAsync("Couldn't notify " + usr.ToString() + " that they were " + typeName);
                 }
                 await curContext.Channel.SendMessageAsync("", false, b2);
                 if (type is Action.Kicked)
@@ -356,11 +365,6 @@ namespace SwissbotCore.Modules
                             } },
                             {new EmbedFieldBuilder()
                             {
-                                Name = "Reason",
-                                Value = reason,
-                            } },
-                            {new EmbedFieldBuilder()
-                            {
                                 Name = "Notified in Dm's",
                                 Value = notif.ToString(),
                             } }
@@ -369,7 +373,7 @@ namespace SwissbotCore.Modules
                 }
             }
         }
-        [Command("clearlogs")]
+        [DiscordCommand("clearlogs", '?')]
         public async Task clearwarn(string user)
         {
             //check if user exists
@@ -440,7 +444,7 @@ namespace SwissbotCore.Modules
                 await Context.Channel.SendMessageAsync("", false, b.Build());
             }
         }
-        [Command("clearlogs")]
+        [DiscordCommand("clearlogs", '?')]
         public async Task clearwarn(string user, int number)
         {
             Regex r = new Regex("(\\d{18}|\\d{17})");
@@ -510,22 +514,22 @@ namespace SwissbotCore.Modules
 
         }
 
-        [Command("warn")]
+        [DiscordCommand("warn", new char[] { '?', '*'})]
         public async Task warn(params string[] args)
         {
-           await CreateAction(args, Action.Warned, Context);
+            await CreateAction(args, Action.Warned, Context);
         }
-        [Command("kick")]
+        [DiscordCommand("kick", '?')]
         public async Task kick(params string[] args)
         {
             await CreateAction(args, Action.Kicked, Context);
         }
-        [Command("ban")]
+        [DiscordCommand("ban", '?')]
         public async Task ban(params string[] args)
         {
             await CreateAction(args, Action.Banned, Context);
         }
-        [Command("mute")]
+        [DiscordCommand("mute", '?')]
         public async Task mute(params string[] args)
         {
             if (!HasPerms(Context.Guild.GetUser(Context.Message.Author.Id)).Result)
@@ -655,7 +659,7 @@ namespace SwissbotCore.Modules
                 tmr.Enabled = true;
             }
         }
-        [Command("modlogs")]
+        [DiscordCommand("modlogs", '?')]
         public async Task Modlogs(string mention)
         {
             if (!HasPerms(Context.Guild.GetUser(Context.Message.Author.Id)).Result)

@@ -1,25 +1,26 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace SwissbotCore
+namespace SwissbotCore 
 {
+    /// <summary>
+    /// The base class of <see cref="CustomCommandService"/>
+    /// </summary>
     public class CustomCommandService
     {
+        public List<char> UsedPrefixes { get; internal set; }
+
         private List<Command> CommandList = new List<Command>();
         private class Command
-        { 
+        {
             public string CommandName { get; set; }
-            public char Prefix { get; set; }
+            public char[] Prefixes { get; set; }
             public System.Reflection.ParameterInfo[] Paramaters { get; set; }
             public MethodInfo Method { get; set; }
             public DiscordCommand attribute { get; set; }
@@ -34,142 +35,380 @@ namespace SwissbotCore
             public object ClassInstance { get; set; }
 
         }
+        /// <summary>
+        /// The Commmand class attribute
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
         public class DiscordCommandClass : Attribute
         {
-            internal char prefix { get; set; }
+            /// <summary>
+            /// The prefix for all commands in this class
+            /// </summary>
+            public char prefix { get; set; }
+            /// <summary>
+            /// If <see langword="true"/> then only the property prefix will work on child commands, if <see langword="false"/> then the assigned prefix AND the prefix on the command are valid. Default is <see langword="true"/>
+            /// </summary>
+            public bool OverwritesPrefix { get; set; }
+            /// <summary>
+            /// Tells the command service that this class contains commands
+            /// </summary>
+            /// <param name="prefix">Prefix for the whole class, look at <see cref="OverwritesPrefix"/> for more options</param>
             public DiscordCommandClass(char prefix)
             {
                 this.prefix = prefix;
+                OverwritesPrefix = true;
             }
+            /// <summary>
+            /// Tells the command service that this class contains commands
+            /// </summary>
             public DiscordCommandClass()
             {
-                
+
             }
         }
+        /// <summary>
+        /// Discord command class
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
         public class DiscordCommand : Attribute
         {
             internal string commandName { get; set; }
-            internal char prefix { get; set; }
-            internal string description { get; set; }
-            internal string commandHelp { get; set; }
-
+            /// <summary>
+            /// The prefix for the command. this is optional, the command will work with the default prefix you passed or an overwrited one from the <see cref="DiscordCommandClass"/>
+            /// </summary>
+            public char[] prefixes { get; set; }
+            /// <summary>
+            /// Description of this command
+            /// </summary>
+            public string description { get; set; }
+            /// <summary>
+            /// Command help message, use this to create a generic help message
+            /// </summary>
+            public string commandHelp { get; set; }
+            /// <summary>
+            /// Tells the service that this method is a command
+            /// </summary>
+            /// <param name="commandName">the name of the command</param>
             public DiscordCommand(string commandName)
             {
                 this.commandName = commandName;
-                prefix = currentSettings.DefaultPrefix;
+                prefixes = new char[] { };
             }
-            public DiscordCommand(string commandName, string description)
+            /// <summary>
+            /// Tells the service that this method is a command
+            /// </summary>
+            /// <param name="commandName">the name of the command</param>
+            /// <param name="Prefix">A prefix to overwrite the default one</param>
+            public DiscordCommand(string commandName, char Prefix)
             {
                 this.commandName = commandName;
-                prefix = currentSettings.DefaultPrefix;
-                this.description = description;
+                prefixes = new char[] { Prefix };
             }
-            public DiscordCommand(string commandName, string description, string commandHelp)
+            /// <summary>
+            /// Tells the service that this method is a command
+            /// </summary>
+            /// <param name="commandName">the name of the command</param>
+            /// <param name="Prefixes">The Prefix(es) of the command, if this is empty it will use the default prefix</param>
+            public DiscordCommand(string commandName, params char[] Prefixes)
             {
                 this.commandName = commandName;
-                prefix = currentSettings.DefaultPrefix;
-                this.description = description;
-                this.commandHelp = commandHelp;
-            }
-            public DiscordCommand(string commandName, string description, string commandHelp, char prefix)
-            {
-                this.commandName = commandName;
-                this.prefix = prefix;
-                this.description = description;
-                this.commandHelp = commandHelp;
-            }
-            public DiscordCommand(string commandName, char prefix)
-            {
-                this.commandName = commandName;
-                this.prefix = prefix;
+                if (Prefixes.Length > 0)
+                    prefixes = Prefixes;
+                else
+                    prefixes = new char[] { };
             }
         }
-        public static Settings currentSettings;
+        private static Settings currentSettings;
         private List<Type> CommandClasses { get; set; }
+        /// <summary>
+        /// The settings for the Command Service
+        /// </summary>
         public class Settings
         {
+            /// <summary>
+            /// The Default prefix for the command service
+            /// </summary>
             public char DefaultPrefix { get; set; }
         }
+        /// <summary>
+        /// Creates a new command service instance
+        /// </summary>
+        /// <param name="s">the <see cref="Settings"/> for the command service</param>
         public CustomCommandService(Settings s)
         {
-            List<Type> CommandClasses = new List<Type>();
-            Dictionary<MethodInfo, Type> CommandMethods = new Dictionary<MethodInfo, Type>();
             currentSettings = s;
-            CommandClasses = Assembly.GetEntryAssembly().GetTypes().Where(x => x.GetCustomAttribute(typeof(DiscordCommandClass)) != null).ToList();
-            foreach (var t in CommandClasses)
+            CommandModuleBase.CommandDescriptions = new Dictionary<string, string>();
+            CommandModuleBase.CommandHelps = new Dictionary<string, string>();
+            CommandModuleBase.Commands = new List<ICommands>();
+            Dictionary<MethodInfo, Type> CommandMethods = new Dictionary<MethodInfo, Type>();
+            var Commandmethods = Assembly.GetEntryAssembly().GetTypes().SelectMany(x => x.GetMethods().Where(y => y.GetCustomAttributes(typeof(DiscordCommand), false).Length > 0).ToArray());
+            foreach (var t in Commandmethods)
             {
-                //check each method for attribute
-                var mths = t.GetMethods();
-                var cmths = mths.Where(x => x != null).Where(x =>  x.GetCustomAttribute(typeof(DiscordCommand)) != null ).ToList();
-                cmths.ForEach(x => CommandMethods.Add(x, t));
+                CommandMethods.Add(t, t.DeclaringType);
             }
             //add to base command list
-            foreach(var item in CommandMethods)
+            UsedPrefixes = new List<char>();
+            foreach (var item in CommandMethods)
             {
                 var cmdat = item.Key.GetCustomAttribute<DiscordCommand>();
                 var parat = item.Value.GetCustomAttribute<DiscordCommandClass>();
-                CommandList.Add(new Command()
+                if (cmdat.commandHelp != null)
+                    if(!CommandModuleBase.CommandHelps.ContainsKey(cmdat.commandName))
+                    {
+                        CommandModuleBase.CommandHelps.Add(cmdat.commandName, cmdat.commandHelp);
+                    }
+                    else
+                    {
+                        CommandModuleBase.CommandHelps[cmdat.commandName] += "\n" + cmdat.commandHelp;
+                    }
+                if (cmdat.description != null)
+                    if (!CommandModuleBase.CommandDescriptions.ContainsKey(cmdat.commandName))
+                    {
+                        CommandModuleBase.CommandDescriptions.Add(cmdat.commandName, cmdat.description);
+                    }
+                    else
+                    {
+                        CommandModuleBase.CommandDescriptions[cmdat.commandName] += "\n" + cmdat.description;
+                    }
+                
+                Command cmdobj = new Command()
                 {
                     CommandName = cmdat.commandName,
                     Method = item.Key,
-                    Prefix = cmdat.prefix == 0 ? currentSettings.DefaultPrefix : cmdat.prefix,
+                    Prefixes = cmdat.prefixes.Length == 0 ? new char[] { currentSettings.DefaultPrefix } : cmdat.prefixes,
                     attribute = cmdat,
                     parent = new CommandClassobj()
                     {
-                        Prefix = parat.prefix,
-                        ClassInstance = Activator.CreateInstance(item.Value)
+                        Prefix = parat == null ? currentSettings.DefaultPrefix : parat.prefix,
+                        ClassInstance = Activator.CreateInstance(item.Value),
+                        attribute = parat,
                     },
                     Paramaters = item.Key.GetParameters(),
+                };
+                CommandList.Add(cmdobj);
 
-                }); ;
+                var c = new Commands
+                {
+                    CommandName = cmdat.commandName,
+                    CommandDescription = cmdat.description == null ? null : cmdat.description.Replace("(PREFIX)", string.Join("\\|", cmdobj.Prefixes)),
+                    CommandHelpMessage = cmdat.commandHelp == null ? null : cmdat.commandHelp.Replace("(PREFIX)", string.Join("\\|", cmdobj.Prefixes)),
+                    Prefixes = parat.prefix =='\0' ? cmdobj.Prefixes : cmdobj.Prefixes.Append(parat.prefix).ToArray()
+                };
+                CommandModuleBase.Commands.Add(c);
+
+                foreach (var pr in cmdat.prefixes)
+                    if (!UsedPrefixes.Contains(pr))
+                        UsedPrefixes.Add(pr);
+                if (!UsedPrefixes.Contains(parat.prefix) && parat.prefix != '\0')
+                    UsedPrefixes.Add(parat.prefix);
             }
-            
-            
         }
+        /// <summary>
+        /// Status of the command
+        /// </summary>
         public enum CommandStatus
         {
+            /// <summary>
+            /// The command executed successfully
+            /// </summary>
             Success,
+            /// <summary>
+            /// There was an error with the execution, look at the exception in <see cref="CommandResult.Exception"/>
+            /// </summary>
             Error,
+            /// <summary>
+            /// Could not find a command, if this is a mistake check if you have the <see cref="DiscordCommand"/> attribute attached to the command
+            /// </summary>
             NotFound,
+            /// <summary>
+            /// The command was found but there was not enough parameters passed for the command to execute correctly
+            /// </summary>
             NotEnoughParams,
+            /// <summary>
+            /// The parameters were there but they were unable to be parsed to the correct type
+            /// </summary>
             InvalidParams,
+            /// <summary>
+            /// Somthing happend that shouldn't have, i dont know what to say here other than :/
+            /// </summary>
             Unknown
         }
-        public class CommandResult
+        /// <summary>
+        /// The command result object
+        /// </summary>
+        private class CommandResult : ICommandResult
         {
-            public CommandStatus Result;
-            public Exception Exception;
+            public bool IsSuccess { get; set; }
+            public CommandStatus Result { get; set; }
+            public Exception Exception { get; set; }
         }
-        public async Task<CommandResult> ExecuteAsync(ICommandContext context)
+        /// <summary>
+        /// The Command Result, this contains the <see cref="CommandStatus"/> enum and a <see cref="Exception"/> object if there was an error.
+        /// </summary>
+        public interface ICommandResult
+        {
+            /// <summary>
+            /// <see langword="true"/> the execution of the command is successful
+            /// </summary>
+            bool IsSuccess { get; }
+            /// <summary>
+            /// The status of the command
+            /// </summary>
+            CommandStatus Result { get; }
+            /// <summary>
+            /// Exception if there was an error
+            /// </summary>
+            Exception Exception { get; }
+        }
+        /// <summary>
+        /// This method will execute a command if there is one
+        /// </summary>
+        /// <param name="context">The current discord <see cref="ICommandContext"/></param>
+        /// <returns>The <see cref="ICommandResult"/> containing what the status of the execution is </returns>
+        public async Task<ICommandResult> ExecuteAsync(SocketCommandContext context)
         {
             string[] param = context.Message.Content.Split(' ');
             param = param.TakeLast(param.Length - 1).ToArray();
             string command = context.Message.Content.Split(' ').First().Remove(0, 1).ToLower();
             char prefix = context.Message.Content.Split(' ').First().ToCharArray().First();
-            SwissCommandModule.Context = context;
-
+            CommandModuleBase.Context = context;
             //check if the command exists
             if (!CommandList.Any(x => x.CommandName.ToLower() == command))
                 return new CommandResult()
                 {
-                    Result = CommandStatus.NotFound
+                    Result = CommandStatus.NotFound,
+                    IsSuccess = false
                 };
 
             //Command exists
 
             //if more than one command with the same name exists then try to execute both or find one that matches the params
-            var commandobj = CommandList.Where(x => x.CommandName.ToLower() == command).Where(x => x.Prefix == prefix || x.parent.Prefix == prefix).ToList();
-            bool cnt = false;
-            foreach (var cmd in commandobj)
-                if (cmd.Prefix == prefix)
-                    cnt = true;
-            if (!cnt)
-                return new CommandResult() { Result = CommandStatus.NotFound };
-            //find if we can match the params
+            var commandobj = CommandList.Where(x => x.CommandName.ToLower() == command);
+            foreach (var item in commandobj)
+                if (!item.Prefixes.Contains(prefix)) //prefix doesnt match, check the parent class
+                {
+                    if (item.parent.attribute.prefix == '\0') //if theres no prefix
+                        return new CommandResult() { Result = CommandStatus.NotFound, IsSuccess = false };
+                    else //there is a prefix
+                    {
+                        if (item.parent.Prefix == prefix)
+                            commandobj = commandobj.Where(x => x.parent.Prefix == prefix);
+                        else
+                            return new CommandResult() { Result = CommandStatus.NotFound, IsSuccess = false };
+                    }
+
+                }
+                else //prefix match for method
+                {
+                    if (item.parent.attribute.OverwritesPrefix)
+                    {
+                        if (item.parent.Prefix == prefix)
+                        {
+                            commandobj = commandobj.Where(x => x.parent.Prefix == prefix);
+                        }
+                        else
+                            return new CommandResult() { Result = CommandStatus.NotFound, IsSuccess = false };
+                    }
+                    else
+                    {
+                        commandobj = commandobj.Where(x => x.Prefixes.Contains(prefix));
+                    }
+                }
 
             //1 find if param counts match
             foreach (var cmd in commandobj)
             {
+                if (cmd.Paramaters.Length == 0 && param.Length == 0)
+                {
+                    try
+                    {
+                        var d = (Func<Task>)Delegate.CreateDelegate(typeof(Func<Task>), cmd.parent.ClassInstance, cmd.Method);
+                        await d();
+                        //cmd.Method.Invoke(cmd.parent.ClassInstance, null);
+                        return new CommandResult() { Result = CommandStatus.Success, IsSuccess = true };
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        return new CommandResult() { Exception = ex, Result = CommandStatus.Error, IsSuccess = false };
+                    }
+                }
+                else if (cmd.Paramaters.Length == 0 && param.Length > 0)
+                    return new CommandResult() { Result = CommandStatus.InvalidParams, IsSuccess = false };
+
+                if (cmd.Paramaters.Last().GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0)
+                {
+                    List<object> parsedparams = new List<object>();
+                    bool check = true;
+                    for (int i = 0; i != cmd.Paramaters.Length; i++)
+                    {
+                        var dp = cmd.Paramaters[i];
+                        if (dp.GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0)
+                        {
+                            string[] arr = param.Skip(i).Where(x => x != "").ToArray();
+                            if (arr.Length == 0)
+                            {
+                                ArrayList al = new ArrayList();
+                                Type destyp = dp.ParameterType.GetElementType();
+                                parsedparams.Add(al.ToArray(destyp));
+                            }
+                            else
+                            {
+                                ArrayList al = new ArrayList();
+                                Type destyp = dp.ParameterType.GetElementType();
+                                foreach (var item in arr)
+                                {
+                                    if (TypeDescriptor.GetConverter(destyp).IsValid(item))
+                                    {
+                                        //we can
+                                        var pparam = TypeDescriptor.GetConverter(destyp).ConvertFromString(item);
+                                        al.Add(pparam);
+                                    }
+                                    else
+                                        check = false;
+                                }
+                                if (check)
+                                    parsedparams.Add(al.ToArray(destyp));
+                            }
+                        }
+                        else
+                        {
+                            if (param.Length < cmd.Paramaters.Length - 1)
+                                return new CommandResult() { Result = CommandStatus.InvalidParams, IsSuccess = false };
+                            var p = param[i];
+                            if (TypeDescriptor.GetConverter(dp.ParameterType).IsValid(p))
+                            {
+                                //we can
+                                var pparam = TypeDescriptor.GetConverter(dp.ParameterType).ConvertFromString(p);
+                                parsedparams.Add(pparam);
+                            }
+                            else
+                                check = false;
+                        }
+                    }
+                    //if it worked
+                    if (check)
+                    {
+                        //invoke the method
+                        try
+                        {
+                            Task s = (Task)cmd.Method.Invoke(cmd.parent.ClassInstance, parsedparams.ToArray());
+                            if (s.Exception == null)
+                                return new CommandResult() { Result = CommandStatus.Success, IsSuccess = true };
+                            else
+                                return new CommandResult() { Exception = s.Exception.InnerException, Result = CommandStatus.Error, IsSuccess = false };
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            return new CommandResult() { Exception = ex, Result = CommandStatus.Error, IsSuccess = false };
+                        }
+
+                    }
+                    else
+                        return new CommandResult() { Result = CommandStatus.InvalidParams, IsSuccess = false };
+                }
                 if (cmd.Paramaters.Length == param.Length)
                 {
                     List<object> parsedparams = new List<object>();
@@ -197,36 +436,71 @@ namespace SwissbotCore
                         //invoke the method
                         try
                         {
-                            cmd.Method.Invoke(cmd.parent.ClassInstance, parsedparams.ToArray());
-                            return new CommandResult() { Result = CommandStatus.Success };
+                            Task s = (Task)cmd.Method.Invoke(cmd.parent.ClassInstance, parsedparams.ToArray());
+                            if (s.Exception == null)
+                                return new CommandResult() { Result = CommandStatus.Success, IsSuccess = true };
+                            else
+                                return new CommandResult() { Exception = s.Exception.InnerException, Result = CommandStatus.Error, IsSuccess = false };
+
                         }
                         catch (TargetInvocationException ex)
                         {
-                            Console.WriteLine(ex.InnerException);
-                            return new CommandResult() { Exception = ex.InnerException, Result = CommandStatus.Error };
+                            Console.WriteLine(ex);
+                            return new CommandResult() { Exception = ex, Result = CommandStatus.Error, IsSuccess = false };
                         }
 
                     }
                     else
-                        return new CommandResult() { Result = CommandStatus.InvalidParams };
+                        return new CommandResult() { Result = CommandStatus.InvalidParams, IsSuccess = false };
 
                 }
                 else
-                {
-                    if (cmd.Paramaters.Last().GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0)
-                    {
+                    return new CommandResult() { Result = CommandStatus.NotEnoughParams, IsSuccess = false };
 
-                    }
-                    else
-                        return new CommandResult() { Result = CommandStatus.NotEnoughParams };
-                }
             }
-            return new CommandResult() { Result = CommandStatus.Unknown };
+            return new CommandResult() { Result = CommandStatus.Unknown, IsSuccess = false };
         }
-        public class SwissCommandModule
+        private struct Commands : ICommands
         {
-            public static ICommandContext Context { get; internal set; }
+            public string CommandName { get; set; }
+            public string CommandDescription { get; set; }
+            public string CommandHelpMessage { get; set; }
+            public char[] Prefixes { get; set; }
         }
     }
+    
+    /// <summary>
+    /// The Class to interface from.
+    /// </summary>
+    /// <typeparam name="T">Type of context, use <see cref="ICommandContext"/></typeparam>
+    public class CommandModuleBase
+    {
+        /// <summary>
+        /// The Context of the current command
+        /// </summary>
+        public static SocketCommandContext Context { get; internal set; }
 
+        /// <summary>
+        /// Contains all the help messages. Key is the command name, Value is the help message
+        /// </summary>
+        public static Dictionary<string, string> CommandHelps { get; internal set; }
+
+        /// <summary>
+        /// Contains all the help messages. Key is the command name, Value is the Command Description
+        /// </summary>
+        public static Dictionary<string, string> CommandDescriptions { get; internal set; }
+        /// <summary>
+        /// The superlist with all the commands
+        /// </summary>
+        public static List<ICommands> Commands { get; internal set; }
+
+    }
+    public interface ICommands
+    {
+        string CommandName { get; }
+        string CommandDescription { get; }
+        string CommandHelpMessage { get; }
+        char[] Prefixes { get; }
+    }
+    
 }

@@ -31,7 +31,7 @@ namespace SwissbotCore
             }
         }
         private DiscordSocketClient _client;
-        private Discord.Commands.CommandService _commands;
+        private CustomCommandService _commands;
         private CommandHandler _handler;
        
         public async Task StartAsync()
@@ -63,9 +63,12 @@ namespace SwissbotCore
 
             Global.Client = _client;
 
-            _commands = new Discord.Commands.CommandService();
+            _commands = new CustomCommandService(new CustomCommandService.Settings() 
+            {
+                DefaultPrefix = Global.Preflix
+            });
 
-            _handler = new CommandHandler(_client);
+            _handler = new CommandHandler(_client, _commands);
 
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
            
@@ -83,7 +86,7 @@ namespace SwissbotCore
             if (!msg.Message.StartsWith("Received Dispatch"))
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + msg.Message);
+                Console.WriteLine($"[Svt: {msg.Severity} Src: {msg.Source} Ex: {msg.Exception}] - " + msg.Message);
             }
         }
     }

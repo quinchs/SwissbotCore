@@ -10,6 +10,7 @@ using Discord.Rest;
 using Discord;
 using System.Net.Http;
 using System.Net;
+using SwissbotCore.Handlers;
 
 namespace SwissbotCore
 {
@@ -63,6 +64,7 @@ namespace SwissbotCore
         public static ulong MutedRoleID { get; set; }
         public static bool VerifyAlts { get; set; }
         public static string JabToken { get; set; }
+        public static int AltVerificationHours { get; set; }
         public static Dictionary<string, List<LogItem>> linkLogs { get; set; }
         public static Dictionary<string, List<LogItem>> messageLogs { get; set; }
         public static Dictionary<string, List<LogItem>> commandLogs { get; set; }
@@ -142,6 +144,7 @@ namespace SwissbotCore
             if (!Directory.Exists(CommandLogsDir)) { Directory.CreateDirectory(CommandLogsDir); }
             if (!File.Exists(aiResponsePath)) { File.Create(aiResponsePath); }
             if (!File.Exists(CensorPath)) { File.Create(CensorPath); }
+            if (!File.Exists(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt")) { File.Create(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt").Close(); }
             foreach (var item in File.ReadAllLines(CensorPath))
                 CensoredWords.Add(item);
             var data = JsonConvert.DeserializeObject<JsonItems>(File.ReadAllText(ConfigPath));
@@ -182,6 +185,7 @@ namespace SwissbotCore
             MilestonechanID = data.MilestonechanID;
             BotAiChanID = data.BotAiChanID;
             VerifyAlts = data.VerifyAlts;
+            AltVerificationHours = data.AltVerificationHours;
             StatsTotChanID = data.StatsTotChanID;
             MutedRoleID = data.MutedRoleID;
         }
@@ -191,6 +195,27 @@ namespace SwissbotCore
             File.WriteAllText(ConfigSettingsPath, json);
             ConsoleLog("Saved New configPerm items. here is the new JSON \n " + json + "\n Saving...", ConsoleColor.Black, ConsoleColor.DarkYellow);
             ReadConfig();
+        }
+
+        public static void SaveAltCards()
+        {
+            string txt = "";
+            foreach(var item in VerificationHandler.FList)
+            {
+                txt += item.Key + "," + item.Value + "\n";
+            }
+            File.WriteAllText($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}AltVerifyCards.txt", txt);
+        }
+        public static Dictionary<ulong, ulong> ReadAltCards()
+        {
+            Dictionary<ulong, ulong> f = new Dictionary<ulong, ulong>();
+            var l = File.ReadAllLines($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}AltVerifyCards.txt");
+            foreach(var item in l)
+            {
+                var a = item.Split(',');
+                f.Add(ulong.Parse(a[0]), ulong.Parse(a[1]));
+            }
+            return f;
         }
         public static List<string> getUnvertCash()
         {
@@ -237,6 +262,7 @@ namespace SwissbotCore
             public string WelcomeMessageURL { get; set; }
             public ulong VerificationLogChanID { get; set; }
             public ulong ModeratorRoleID { get; set; }
+            public int AltVerificationHours { get; set; }
             public ulong MemberRoleID { get; set; }
             public ulong UnverifiedRoleID { get; set; }
             public ulong VerificationChanID { get; set; }
@@ -256,7 +282,7 @@ namespace SwissbotCore
         {
             Console.ForegroundColor = FColor;
             Console.BackgroundColor = BColor;
-            Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + ConsoleMessage);
+            Console.WriteLine("[ - Internal - ] - " + ConsoleMessage);
             Console.ForegroundColor = ConsoleColor.Green;
             Console.BackgroundColor = ConsoleColor.Black;
         }
@@ -286,69 +312,6 @@ namespace SwissbotCore
             public Emoji checkmark { get; set; }
             public Emoji Xmark { get; set; }
             public ulong SubmitterID { get; set; }
-        }
-        public struct ApiData
-        {
-            public string apiKey { get; set; }
-            public Modules.Commands.JsonGuildObj JsonGuildObj { get; set; }
-        }
-        public static async Task<string> SendJsontoNeoney()
-        {
-            const string url = "https://api.neoney.xyz/swiss/addBackup";
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url); request.KeepAlive = false;
-            request.ProtocolVersion = HttpVersion.Version10;
-            request.Method = "POST";
-
-            ApiData data = new ApiData()
-            {
-                apiKey = ApiKey,
-                JsonGuildObj = await Modules.Commands.GetGuildObj()
-            };
-
-
-            // turn our request string into a byte stream
-            byte[] postBytes = Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(data));
-
-            // this is important - make sure you specify type this way
-            request.ContentType = "application/json; charset=UTF-8";
-            request.Accept = "application/json";
-            request.ContentLength = postBytes.Length;
-            Stream requestStream = request.GetRequestStream();
-
-            // now send it
-            requestStream.Write(postBytes, 0, postBytes.Length);
-            requestStream.Close();
-
-            // grab te response and print it out to the console along with the status code
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            string result;
-            using (StreamReader rdr = new StreamReader(response.GetResponseStream()))
-            {
-                result = rdr.ReadToEnd();
-            }
-            return result;
-        }
-        public static async Task<string> getNeoneyStuff()
-        {
-            const string url = "https://api.neoney.xyz/swiss/listbackups";
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url); request.KeepAlive = false;
-            request.ProtocolVersion = HttpVersion.Version10;
-            request.Method = "GET";
-            request.Headers.Add("authorization", "Bearer AS89d8sjscnjZ)09=0-_+9aks309JjncaA014389");
-            // turn our request string into a byte stream
-
-            // this is important - make sure you specify type this way
-
-            // grab te response and print it out to the console along with the status code
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            string result;
-            using (StreamReader rdr = new StreamReader(response.GetResponseStream()))
-            {
-                result = rdr.ReadToEnd();
-            }
-            return result;
         }
     }
 }
