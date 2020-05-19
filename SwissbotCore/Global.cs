@@ -24,6 +24,7 @@ namespace SwissbotCore
         public static string aiResponsePath = $"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}Responses.AI";
         public static string LinksDirpath = $"{Environment.CurrentDirectory}{Global.systemSlash}LinkLogs";
         public static string CensorPath = $"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}Censor.txt";
+        public static string HelpMessagefilepath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}HelpCards.txt";
         public static string Status { get; set; }
         public static string Token { get; set; }
         public static DiscordSocketClient Client { get; set; }
@@ -145,6 +146,7 @@ namespace SwissbotCore
             if (!File.Exists(aiResponsePath)) { File.Create(aiResponsePath); }
             if (!File.Exists(CensorPath)) { File.Create(CensorPath); }
             if (!File.Exists(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt")) { File.Create(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt").Close(); }
+            if (!File.Exists(HelpMessagefilepath)) { File.Create(HelpMessagefilepath).Close(); }
             foreach (var item in File.ReadAllLines(CensorPath))
                 CensoredWords.Add(item);
             var data = JsonConvert.DeserializeObject<JsonItems>(File.ReadAllText(ConfigPath));
@@ -216,6 +218,24 @@ namespace SwissbotCore
                 f.Add(ulong.Parse(a[0]), ulong.Parse(a[1]));
             }
             return f;
+        }
+
+        public static void SaveHelpMessageCards()
+        {
+            string s = "";
+            foreach (var item in HelpMessageHandler.CurrentHelpMessages)
+                s += item.Key + "," + item.Value;
+            File.WriteAllText(HelpMessagefilepath, s);
+        }
+        public static Dictionary<ulong, ulong> LoadHelpMessageCards()
+        {
+            var t = File.ReadAllText(HelpMessagefilepath);
+            Dictionary<ulong, ulong> ulist = new Dictionary<ulong, ulong>();
+            if (t == "")
+                return ulist;
+            foreach (var i in t.Split("\n"))
+                ulist.Add(ulong.Parse(i.Split(",")[0]), ulong.Parse(i.Split(",")[1]));
+            return ulist;
         }
         public static List<string> getUnvertCash()
         {

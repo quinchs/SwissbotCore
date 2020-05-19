@@ -373,7 +373,7 @@ namespace SwissbotCore.Modules
                 }
             }
         }
-        [DiscordCommand("clearlogs", '?')]
+        [DiscordCommand("clearlogs", new char[] { '?', '*' }, RequiredPermission = true, description ="Clears the log of a user", commandHelp = "Use `(PREFIX)clearlogs <@user>` to view there modlogs\nUse `(PREFIX)clearlogs <@user> <lognumber>` to lear a log")]
         public async Task clearwarn(string user)
         {
             //check if user exists
@@ -444,7 +444,7 @@ namespace SwissbotCore.Modules
                 await Context.Channel.SendMessageAsync("", false, b.Build());
             }
         }
-        [DiscordCommand("clearlogs", '?')]
+        [DiscordCommand("clearlogs", new char[] { '?', '*' }, RequiredPermission = true)]
         public async Task clearwarn(string user, int number)
         {
             Regex r = new Regex("(\\d{18}|\\d{17})");
@@ -514,22 +514,22 @@ namespace SwissbotCore.Modules
 
         }
 
-        [DiscordCommand("warn", new char[] { '?', '*'})]
+        [DiscordCommand("warn", new char[] { '?', '*'}, RequiredPermission = true, description = "Warns a user", commandHelp = "Use `(PREFIX)warn <@user> <reason>` to warn a user")]
         public async Task warn(params string[] args)
         {
             await CreateAction(args, Action.Warned, Context);
         }
-        [DiscordCommand("kick", '?')]
+        [DiscordCommand("kick", new char[] { '?', '*' }, RequiredPermission = true, description = "Kicks a user", commandHelp = "Use `(PREFIX)kick <@user> <reason>` to kick a user")]
         public async Task kick(params string[] args)
         {
             await CreateAction(args, Action.Kicked, Context);
         }
-        [DiscordCommand("ban", '?')]
+        [DiscordCommand("ban", new char[] { '?', '*' }, RequiredPermission = true, description = "Bans a user", commandHelp = "Use `(PREFIX)ban <@user> <reason>` to ban a user")]
         public async Task ban(params string[] args)
         {
             await CreateAction(args, Action.Banned, Context);
         }
-        [DiscordCommand("mute", '?')]
+        [DiscordCommand("mute", new char[] { '?', '*' }, RequiredPermission = true, commandHelp = "Use `(PREFIX)mute <@user> <time> <reason>`\nTime formats are structured like this: `<x><H/D/M/S>`", description = "Mutes a user for x time")]
         public async Task mute(params string[] args)
         {
             if (!HasPerms(Context.Guild.GetUser(Context.Message.Author.Id)).Result)
@@ -659,7 +659,7 @@ namespace SwissbotCore.Modules
                 tmr.Enabled = true;
             }
         }
-        [DiscordCommand("modlogs", '?')]
+        [DiscordCommand("modlogs", new char[] { '?', '*' },RequiredPermission =true , commandHelp = "Use `(PREFIX)modlogs <@user>`", description = "view the logs of a user")]
         public async Task Modlogs(string mention)
         {
             if (!HasPerms(Context.Guild.GetUser(Context.Message.Author.Id)).Result)

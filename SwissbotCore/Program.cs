@@ -65,7 +65,8 @@ namespace SwissbotCore
 
             _commands = new CustomCommandService(new CustomCommandService.Settings() 
             {
-                DefaultPrefix = Global.Preflix
+                DefaultPrefix = Global.Preflix,
+                HasPermissionMethod = HasPerms
             });
 
             _handler = new CommandHandler(_client, _commands);
@@ -78,7 +79,15 @@ namespace SwissbotCore
 
             
         }
-
+        public static bool HasPerms(SocketCommandContext c)
+        {
+            if (c.Guild.Id == Global.SwissBotDevGuildID) { return true; }
+            var user = c.Guild.GetUser(c.Message.Author.Id);
+            if (user.Guild.GetRole(Global.ModeratorRoleID).Position <= user.Hierarchy)
+                return true;
+            else
+                return false;
+        }
         private async Task Log(LogMessage msg)
         {
             if (msg.Message == null)

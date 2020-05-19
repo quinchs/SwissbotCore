@@ -27,6 +27,7 @@ namespace SwissbotCore
         private CustomCommandService _service;
         private AltAccountHandler althandler;
         private VerificationHandler verificationHandler;
+        private HelpMessageHandler helpMessageHandler;
         internal System.Timers.Timer t = new System.Timers.Timer();
         
         Dictionary<ulong, int> ChannelPostitions = new Dictionary<ulong, int>();
@@ -45,6 +46,8 @@ namespace SwissbotCore
             althandler = new AltAccountHandler(client);
 
             verificationHandler = new VerificationHandler(client);
+
+            helpMessageHandler = new HelpMessageHandler(client);
 
             _client.MessageReceived += LogMessage;
 
@@ -346,6 +349,7 @@ namespace SwissbotCore
             {
                 await verificationHandler.CheckVerification(arg1, arg2, arg3);
                 await checkSub(arg1, arg2, arg3);
+                await helpMessageHandler.HandleHelpMessage(arg1, arg2, arg3);
             }
             catch (Exception ex)
             {
@@ -778,7 +782,7 @@ namespace SwissbotCore
                         if (msg.Content.StartsWith($"{Global.Preflix}echo")) { await EchoMessage(context); return; }
                         var result = await _service.ExecuteAsync(context);
                         Console.WriteLine(result.Result.ToString());
-                        if (result.Result != CommandStatus.Success && result.Result != CommandStatus.NotFound)
+                        if (result.Result == CommandStatus.Unknown || result.Result == CommandStatus.Error)
                         {
                             EmbedBuilder ce = new EmbedBuilder()
                             {
@@ -787,21 +791,10 @@ namespace SwissbotCore
                                 Color = Color.Red
                             };
                             await msg.Channel.SendMessageAsync("", false, ce.Build());
-                            EmbedBuilder r = new EmbedBuilder()
-                            {
-                                Color = Color.Red,
-                                Fields = new List<EmbedFieldBuilder>() 
-                                {
-                                    { new EmbedFieldBuilder() 
-                                    {
-                                        Name = "Command: " + msg.Content 
-                                    } }
-                                }
-
-                            };
-                            await _client.GetUser(259053800755691520).SendMessageAsync("", false, r.Build());
+                            
+                            await _client.GetGuild(Global.SwissGuildId).GetUser(259053800755691520).SendMessageAsync("Command: " + msg.Content);
                             File.WriteAllText(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "error.txt", result.Exception.ToString());
-                            await _client.GetUser(259053800755691520).SendFileAsync(Environment.CurrentDirectory + Path.DirectorySeparatorChar);
+                            await _client.GetUser(259053800755691520).SendFileAsync(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "error.txt");
 
                             EmbedBuilder b = new EmbedBuilder();
                             b.Color = Color.Red;

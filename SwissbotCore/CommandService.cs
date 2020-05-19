@@ -19,6 +19,7 @@ namespace SwissbotCore
         private List<Command> CommandList = new List<Command>();
         private class Command
         {
+            public bool RequirePermission { get; set; }
             public string CommandName { get; set; }
             public char[] Prefixes { get; set; }
             public System.Reflection.ParameterInfo[] Paramaters { get; set; }
@@ -72,7 +73,12 @@ namespace SwissbotCore
         [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
         public class DiscordCommand : Attribute
         {
-            internal string commandName { get; set; }
+            /// <summary>
+            /// if <see langword="true"/> then <see cref="Settings.HasPermissionMethod"/> will be called and checked if the user has permission to execute the command, this result will be in the <see cref="CommandModuleBase"/>
+            /// </summary>
+            public bool RequiredPermission { get; set; }
+
+            internal string commandName;
             /// <summary>
             /// The prefix for the command. this is optional, the command will work with the default prefix you passed or an overwrited one from the <see cref="DiscordCommandClass"/>
             /// </summary>
@@ -129,6 +135,10 @@ namespace SwissbotCore
             /// The Default prefix for the command service
             /// </summary>
             public char DefaultPrefix { get; set; }
+            /// <summary>
+            /// This method will be called and when a command is called and checkes if the user has permission to execute the command, this result will be in the <see cref="CommandModuleBase"/>
+            /// </summary>
+            public Func<SocketCommandContext, bool> HasPermissionMethod { get; set; }
         }
         /// <summary>
         /// Creates a new command service instance
@@ -137,6 +147,9 @@ namespace SwissbotCore
         public CustomCommandService(Settings s)
         {
             currentSettings = s;
+            if (currentSettings.HasPermissionMethod == null)
+                currentSettings.HasPermissionMethod = (SocketCommandContext s) => { return true; };
+
             CommandModuleBase.CommandDescriptions = new Dictionary<string, string>();
             CommandModuleBase.CommandHelps = new Dictionary<string, string>();
             CommandModuleBase.Commands = new List<ICommands>();
@@ -190,9 +203,10 @@ namespace SwissbotCore
                 var c = new Commands
                 {
                     CommandName = cmdat.commandName,
-                    CommandDescription = cmdat.description == null ? null : cmdat.description.Replace("(PREFIX)", string.Join("\\|", cmdobj.Prefixes)),
-                    CommandHelpMessage = cmdat.commandHelp == null ? null : cmdat.commandHelp.Replace("(PREFIX)", string.Join("\\|", cmdobj.Prefixes)),
-                    Prefixes = parat.prefix =='\0' ? cmdobj.Prefixes : cmdobj.Prefixes.Append(parat.prefix).ToArray()
+                    CommandDescription = cmdat.description == null ? null : cmdat.description.Replace("(PREFIX)", string.Join("|", cmdobj.Prefixes)),
+                    CommandHelpMessage = cmdat.commandHelp == null ? null : cmdat.commandHelp.Replace("(PREFIX)", string.Join("|", cmdobj.Prefixes)),
+                    Prefixes = parat.prefix == '\0' ? cmdobj.Prefixes : cmdobj.Prefixes.Append(parat.prefix).ToArray(),
+                    RequiresPermission = cmdat.RequiredPermission
                 };
                 CommandModuleBase.Commands.Add(c);
 
@@ -272,6 +286,7 @@ namespace SwissbotCore
             string command = context.Message.Content.Split(' ').First().Remove(0, 1).ToLower();
             char prefix = context.Message.Content.Split(' ').First().ToCharArray().First();
             CommandModuleBase.Context = context;
+            CommandModuleBase.HasExecutePermission = currentSettings.HasPermissionMethod(context);
             //check if the command exists
             if (!CommandList.Any(x => x.CommandName.ToLower() == command))
                 return new CommandResult()
@@ -314,6 +329,24 @@ namespace SwissbotCore
                         commandobj = commandobj.Where(x => x.Prefixes.Contains(prefix));
                     }
                 }
+            
+            if (commandobj.Any(x => x.Paramaters.Length == 0) && param.Length == 0)
+            {
+                try
+                {
+                    var cmd = commandobj.First(x => x.Paramaters.Length == 0);
+
+                    var d = (Func<Task>)Delegate.CreateDelegate(typeof(Func<Task>), cmd.parent.ClassInstance, cmd.Method);
+                    await d();
+                    //cmd.Method.Invoke(cmd.parent.ClassInstance, null);
+                    return new CommandResult() { Result = CommandStatus.Success, IsSuccess = true };
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    return new CommandResult() { Exception = ex, Result = CommandStatus.Error, IsSuccess = false };
+                }
+            }
 
             //1 find if param counts match
             foreach (var cmd in commandobj)
@@ -465,6 +498,7 @@ namespace SwissbotCore
             public string CommandName { get; set; }
             public string CommandDescription { get; set; }
             public string CommandHelpMessage { get; set; }
+            public bool RequiresPermission { get; set; }
             public char[] Prefixes { get; set; }
         }
     }
@@ -472,9 +506,12 @@ namespace SwissbotCore
     /// <summary>
     /// The Class to interface from.
     /// </summary>
-    /// <typeparam name="T">Type of context, use <see cref="ICommandContext"/></typeparam>
     public class CommandModuleBase
     {
+        /// <summary>
+        /// If the user has execute permission based on the <see cref="CustomCommandService.Settings.HasPermissionMethod"/>
+        /// </summary>
+        public static bool HasExecutePermission { get; set; }
         /// <summary>
         /// The Context of the current command
         /// </summary>
@@ -501,6 +538,7 @@ namespace SwissbotCore
         string CommandDescription { get; }
         string CommandHelpMessage { get; }
         char[] Prefixes { get; }
+        bool RequiresPermission { get; }
     }
     
 }

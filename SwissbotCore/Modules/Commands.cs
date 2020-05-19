@@ -27,6 +27,7 @@ using System.Drawing.Drawing2D;
 using Color = Discord.Color;
 using static SwissbotCore.CustomCommandService;
 using System.Security.Cryptography;
+using SwissbotCore.Handlers;
 
 namespace SwissbotCore.Modules
 {
@@ -35,51 +36,16 @@ namespace SwissbotCore.Modules
     {
         [DiscordCommand("help")]
         public async Task help()
-        {
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == 593106382111113232).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-
-            EmbedBuilder eb = new EmbedBuilder()
-            {
-                Color = Color.Green,
-                Title = "Swissbot Help",
-                Description = "Here are all the commands",
-                Fields = new List<EmbedFieldBuilder>()
-                {
-
-                },
-            };
-            foreach (var item in Commands)
-            {
-                if (item.CommandHelpMessage == null && item.CommandDescription == null)
-                    continue;
-                var fb = new EmbedFieldBuilder();
-                string n = "";
-                foreach (var pfl in item.Prefixes)
-                {
-                    n += $"`{pfl}{item.CommandName}`, ";
-                }
-                n = n.Remove(n.Length - 2);
-                fb.Name = n;
-                string tmp = "";
-                if (item.CommandDescription != null)
-                {
-                    tmp += $"{item.CommandDescription}";
-                }
-                if (item.CommandHelpMessage != null)
-                {
-                    if (tmp.ToString() == "")
-                        tmp += $"**Help**\n{item.CommandHelpMessage}";
-                    else
-                        tmp += $"\n\n**Help**\n{item.CommandHelpMessage}";
-                }
-                fb.Value = tmp;
-                eb.Fields.Add(fb);
-            }
-            await Context.Channel.SendMessageAsync("", false, eb.Build());
+        {   
+            var msg = await Context.Channel.SendMessageAsync("", false, HelpMessageHandler.HelpEmbedBuilder(1, HelpMessageHandler.CalcHelpPage(Context.Guild.GetUser(Context.Message.Author.Id))));
+            var emote1 = new Emoji("\U000027A1");
+            var emote2 = new Emoji("\U00002B05");
+            await msg.AddReactionAsync(emote2);
+            await msg.AddReactionAsync(emote1);
+            HelpMessageHandler.CurrentHelpMessages.Add(msg.Id, Context.Message.Author.Id);
+            Global.SaveHelpMessageCards();
         }
-        [DiscordCommand("altverify", commandHelp = "Parameters - `(PREFIX)altverify <on/off/true/false>`\n If on or true alt accounts can verify and will still post an alert in <#665647956816429096>. if off or false it will post a verify msg in <#692909459831390268>")]
+        [DiscordCommand("altverify", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)altverify <on/off/true/false>`\n If on or true alt accounts can verify and will still post an alert in <#665647956816429096>. if off or false it will post a verify msg in <#692909459831390268>")]
         public async Task AltVerify(string param)
         {
             if (!await HasPerms(Context)) { await Context.Channel.SendMessageAsync("You do not have permission!"); return; }
@@ -222,7 +188,7 @@ namespace SwissbotCore.Modules
 
         }
 
-        [DiscordCommand("censor", commandHelp = "`(PREFIX)censor list` will show you the current censored words\nTo add a censored word type `(PREFIX)censor add <word/sentence>`\nTo remove a censored word type `(PREFIX)censor remove <word/sentence>`", description = "adds, removes, or lists the current censor")]
+        [DiscordCommand("censor", RequiredPermission = true, commandHelp = "`(PREFIX)censor list` will show you the current censored words\nTo add a censored word type `(PREFIX)censor add <word/sentence>`\nTo remove a censored word type `(PREFIX)censor remove <word/sentence>`", description = "adds, removes, or lists the current censor")]
         public async Task Censer(params string[] inp)
         {
             var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
@@ -342,7 +308,7 @@ namespace SwissbotCore.Modules
             }
         }
 
-        [DiscordCommand("purge", commandHelp = "Parameters - `(PREFIX)purge <ammount>`", description = "Deletes `x` ammount of messages")]
+        [DiscordCommand("purge", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)purge <ammount>`", description = "Deletes `x` ammount of messages")]
         public async Task purge(uint amount)
         {
             var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
@@ -533,7 +499,7 @@ namespace SwissbotCore.Modules
             await Context.Channel.SendMessageAsync($"Pong: {Context.Client.Latency}ms!");
         }
         
-        [DiscordCommand("vcmute", description = "Mutes all memebrs in vc")]
+        [DiscordCommand("vcmute", RequiredPermission = true, description = "Mutes all memebrs in vc")]
         public async Task muteusers()
         {
             Global.MutedMembers = new List<ulong>();
@@ -566,7 +532,7 @@ namespace SwissbotCore.Modules
                 }
             }
         }
-        [DiscordCommand("vcunmute", description = "Unmutes all members in vc")]
+        [DiscordCommand("vcunmute", RequiredPermission = true, description = "Unmutes all members in vc")]
         public async Task unmuteusers()
         {
             try
@@ -928,7 +894,7 @@ namespace SwissbotCore.Modules
                 }
             }
         }
-        [DiscordCommand("autoslowmode", description = "Toggles autoslowmode and sets it to `x` ammount of messages per second", commandHelp = "Parameters - `(PREFIX)autoslowmode <on|off>` or `(PREFIX)autoslowmode set <numberOfMessagesPerSecond>`")]
+        [DiscordCommand("autoslowmode", RequiredPermission = true, description = "Toggles autoslowmode and sets it to `x` ammount of messages per second", commandHelp = "Parameters - `(PREFIX)autoslowmode <on|off>` or `(PREFIX)autoslowmode set <numberOfMessagesPerSecond>`")]
         public async Task aSlow(params string[] args)
         {
             var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
@@ -967,7 +933,7 @@ namespace SwissbotCore.Modules
             }
 
         }
-        [DiscordCommand("slowmode", commandHelp = "Parameters - `(PREFIX)slowmode <Seconds>`\nTo disable slowmode just type `slowmode off`", description = "This command sets the slowmode")]
+        [DiscordCommand("slowmode", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)slowmode <Seconds>`\nTo disable slowmode just type `slowmode off`", description = "This command sets the slowmode")]
         public async Task slowmode(string value)
         {
             //check user perms
