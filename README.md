@@ -1,5 +1,5 @@
 # SwissbotCore
-### Discord bot for [Swiss001 Official Discord Server](discord.gg/swiss001). 
+### Discord bot for [Swiss001 Official Discord Server](https://discord.gg/swiss001). 
 
 ---
 
