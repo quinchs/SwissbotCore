@@ -3,4 +3,4 @@
 
 ---
 
-This bot is modular based with a full dynamic command service and event handlers. I plan to release the command service on nuget.org very soon. if you have any sort of questions or concerns, want to colaborate with me, or want to report a vulnerability please message me on discord: quin#3017
+This bot has been created using a custom-made, fully dynamic command service and event handlers. I plan to release the command service on https://nuget.org in the near future. If you have any queries or concerns, want to collaborate with me on the project, or report a vulnerability, please send me a message on Discord at `quin#3017`.
