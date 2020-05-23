@@ -21,47 +21,47 @@ namespace SwissbotCore.Modules
 
         internal async Task createguild(GiveAway currGiveaway)
         {
-            try
-            {
-                var newguild = await _client.CreateGuildAsync($"{currGiveaway.GiveAwayItem} Giveaway", _client.VoiceRegions.FirstOrDefault(n => n.Name == "US East"));
-                GiveawayGuildObj g = new GiveawayGuildObj();
-                g.create(newguild);
-                currgiveaway = currGiveaway;
-                currgiveaway.giveawayguild = g;
-                GuildPermissions adminguildperms = new GuildPermissions(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
-                GuildPermissions Contestantperms = new GuildPermissions(false, false, false, false, false, false, true, false, true, true, false, false, true, true, true, false, true, true, true, false, false, false, true, false, true, false, false, false, false);
+            //try
+            //{
+            //    var newguild = await _client.CreateGuildAsync($"{currGiveaway.GiveAwayItem} Giveaway", _client.VoiceRegions.FirstOrDefault(n => n.Name == "US East"));
+            //    GiveawayGuildObj g = new GiveawayGuildObj();
+            //    g.create(newguild);
+            //    currgiveaway = currGiveaway;
+            //    currgiveaway.giveawayguild = g;
+            //    GuildPermissions adminguildperms = new GuildPermissions(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+            //    GuildPermissions Contestantperms = new GuildPermissions(false, false, false, false, false, false, true, false, true, true, false, false, true, true, true, false, true, true, true, false, false, false, true, false, true, false, false, false, false);
 
-                await newguild.CreateRoleAsync("Admins", adminguildperms, Color.Red, true);
-                await newguild.CreateRoleAsync("Contestants", Contestantperms, Color.Blue, false);
+            //    await newguild.CreateRoleAsync("Admins", adminguildperms, Color.Red, true);
+            //    await newguild.CreateRoleAsync("Contestants", Contestantperms, Color.Blue, false);
 
-                var chanContestants = await newguild.CreateTextChannelAsync("Contestants", x => x.Topic = "talk in here till bans are unleashed >:)");
-                var chanInfo = await newguild.CreateTextChannelAsync("Info", x => x.Topic = "Rules and info");
-                var chanCount = await newguild.CreateVoiceChannelAsync("Time: xxx");
-                chantimer = chanCount;
+            //    var chanContestants = await newguild.CreateTextChannelAsync("Contestants", x => x.Topic = "talk in here till bans are unleashed >:)");
+            //    var chanInfo = await newguild.CreateTextChannelAsync("Info", x => x.Topic = "Rules and info");
+            //    var chanCount = await newguild.CreateVoiceChannelAsync("Time: xxx");
+            //    chantimer = chanCount;
 
-                EmbedBuilder eb = new EmbedBuilder();
-                eb.Title = "***INFO***";
-                eb.Color = Color.Gold;
-                eb.Description = $"Welcome to the giveaway guild! the prize for this giveaway is {currGiveaway.GiveAwayItem}!\n\n **How to play** once the timer reaches 0 everyone with the `Contesters` role will be givin access to the \"ban command, its a FFA to the death! the last player(s) remaining will get the prize! this is a fun interactive competative giveaway where users can decide who wins!";
-                eb.Footer = new EmbedFooterBuilder();
+            //    EmbedBuilder eb = new EmbedBuilder();
+            //    eb.Title = "***INFO***";
+            //    eb.Color = Color.Gold;
+            //    eb.Description = $"Welcome to the giveaway guild! the prize for this giveaway is {currGiveaway.GiveAwayItem}!\n\n **How to play** once the timer reaches 0 everyone with the `Contesters` role will be givin access to the \"ban command, its a FFA to the death! the last player(s) remaining will get the prize! this is a fun interactive competative giveaway where users can decide who wins!";
+            //    eb.Footer = new EmbedFooterBuilder();
 
-                var username = CommandHandler._client.GetGuild(SwissGuildId).Users.FirstOrDefault(x => x.Id == currgiveaway.GiveAwayUser);
-                eb.Footer.Text = $"Giveaway by {username.ToString()}";
-                eb.Footer.IconUrl = _client.GetGuild(Global.SwissGuildId).GetUser(currGiveaway.GiveAwayUser).GetAvatarUrl();
-                await chanInfo.SendMessageAsync("", false, eb.Build());
+            //    var username = CommandHandler._client.GetGuild(SwissGuildId).Users.FirstOrDefault(x => x.Id == currgiveaway.GiveAwayUser);
+            //    eb.Footer.Text = $"Giveaway by {username.ToString()}";
+            //    eb.Footer.IconUrl = _client.GetGuild(Global.SwissGuildId).GetUser(currGiveaway.GiveAwayUser).GetAvatarUrl();
+            //    await chanInfo.SendMessageAsync("", false, eb.Build());
 
-                OverwritePermissions adminperms = new OverwritePermissions(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow);
-                await chanInfo.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(r => r.Name == "Admins"), adminperms);
-                OverwritePermissions contesterperms = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Deny, PermValue.Deny);
-                await chanInfo.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(r => r.Name == "Contestants"), contesterperms);
-                var url = chanInfo.CreateInviteAsync(null, null, false, false);
-                _client.UserJoined += userjoinGiveaway;
-                inviteURL = url.Result.Url;
-            }
-            catch (Exception ex)
-            {
+            //    OverwritePermissions adminperms = new OverwritePermissions(PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Allow);
+            //    await chanInfo.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(r => r.Name == "Admins"), adminperms);
+            //    OverwritePermissions contesterperms = new OverwritePermissions(PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Allow, PermValue.Deny, PermValue.Deny, PermValue.Deny, PermValue.Allow, PermValue.Deny, PermValue.Deny);
+            //    await chanInfo.AddPermissionOverwriteAsync(newguild.Roles.FirstOrDefault(r => r.Name == "Contestants"), contesterperms);
+            //    var url = chanInfo.CreateInviteAsync(null, null, false, false);
+            //    _client.UserJoined += userjoinGiveaway;
+            //    inviteURL = url.Result.Url;
+            //}
+            //catch (Exception ex)
+            //{
 
-            }
+            //}
         }
 
         private async Task userjoinGiveaway(SocketGuildUser arg)

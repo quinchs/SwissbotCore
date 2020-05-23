@@ -28,6 +28,8 @@ namespace SwissbotCore
         private AltAccountHandler althandler;
         private VerificationHandler verificationHandler;
         private HelpMessageHandler helpMessageHandler;
+        private RoleAssignerHandler roleAssignerHandler;
+        private SupportTicketHandler supportTicketHandler;
         internal System.Timers.Timer t = new System.Timers.Timer();
         
         Dictionary<ulong, int> ChannelPostitions = new Dictionary<ulong, int>();
@@ -48,6 +50,10 @@ namespace SwissbotCore
             verificationHandler = new VerificationHandler(client);
 
             helpMessageHandler = new HelpMessageHandler(client);
+
+            roleAssignerHandler = new RoleAssignerHandler(client);
+
+            supportTicketHandler = new SupportTicketHandler(client);
 
             _client.MessageReceived += LogMessage;
 
@@ -634,6 +640,8 @@ namespace SwissbotCore
                     return;
                 var users = g.Users;
 
+                Global.UserCount = users.Count + 2;
+
                 Global.ConsoleLog($"Ucount {users.Count - 20}, usersSCount{users.Count}");
                 await _client.GetGuild(Global.SwissGuildId).GetVoiceChannel(Global.StatsTotChanID).ModifyAsync(x =>
                 {
@@ -782,7 +790,39 @@ namespace SwissbotCore
                         if (msg.Content.StartsWith($"{Global.Preflix}echo")) { await EchoMessage(context); return; }
                         var result = await _service.ExecuteAsync(context);
                         Console.WriteLine(result.Result.ToString());
-                        if (result.Result == CommandStatus.Unknown || result.Result == CommandStatus.Error)
+                        if (result.MultipleResults)
+                        {
+                            foreach(var r in result.Results)
+                            {
+                                if (r.Result == CommandStatus.Unknown || r.Result == CommandStatus.Error)
+                                {
+                                    EmbedBuilder ce = new EmbedBuilder()
+                                    {
+                                        Title = "Uh oh... :(",
+                                        Description = "Looks like the command didnt work :/ ive dm'ed quin the errors and he should be fixing it soon.",
+                                        Color = Color.Red
+                                    };
+                                    await msg.Channel.SendMessageAsync("", false, ce.Build());
+
+                                    await _client.GetGuild(Global.SwissGuildId).GetUser(259053800755691520).SendMessageAsync("Command: " + msg.Content);
+                                    File.WriteAllText(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "error.txt", r.Exception.ToString());
+                                    await _client.GetUser(259053800755691520).SendFileAsync(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "error.txt");
+
+                                    EmbedBuilder b = new EmbedBuilder();
+                                    b.Color = Color.Red;
+                                    b.Description = $"The following info is the Command error info, `{msg.Author.Username}#{msg.Author.Discriminator}` tried to use the `{msg}` Command in {msg.Channel}: \n \n **COMMAND ERROR REASON**: ```{r.Exception.Message}```";
+                                    b.Author = new EmbedAuthorBuilder();
+                                    b.Author.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
+                                    b.Author.IconUrl = msg.Author.GetAvatarUrl();
+                                    b.Footer = new EmbedFooterBuilder();
+                                    b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
+                                    b.Title = "Bot Command Error!";
+                                    await _client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.DebugChanID).SendMessageAsync("", false, b.Build());
+                                    await _client.GetGuild(Global.SwissBotDevGuildID).GetTextChannel(622164033902084145).SendMessageAsync("", false, b.Build());
+                                }
+                            }
+                        }
+                        else if (result.Result == CommandStatus.Unknown || result.Result == CommandStatus.Error)
                         {
                             EmbedBuilder ce = new EmbedBuilder()
                             {
@@ -798,7 +838,7 @@ namespace SwissbotCore
 
                             EmbedBuilder b = new EmbedBuilder();
                             b.Color = Color.Red;
-                            b.Description = $"The following info is the Command error info, `{msg.Author.Username}#{msg.Author.Discriminator}` tried to use the `{msg}` Command in {msg.Channel}: \n \n **COMMAND ERROR**: ```{result.Exception}``` \n \n **COMMAND ERROR REASON**: ```{result.Exception.Message}```";
+                            b.Description = $"The following info is the Command error info, `{msg.Author.Username}#{msg.Author.Discriminator}` tried to use the `{msg}` Command in {msg.Channel}: \n \n **COMMAND ERROR REASON**: ```{result.Exception.Message}```";
                             b.Author = new EmbedAuthorBuilder();
                             b.Author.Name = msg.Author.Username + "#" + msg.Author.Discriminator;
                             b.Author.IconUrl = msg.Author.GetAvatarUrl();
@@ -859,30 +899,30 @@ namespace SwissbotCore
 
         internal async Task HandleCommandresult(ICommandResult result, SocketUserMessage msg)
         {
-            string logMsg = "";
-            logMsg += $"[UTC TIME - {DateTime.UtcNow.ToLongDateString() + " : " + DateTime.UtcNow.ToLongTimeString()}] ";
+            //string logMsg = "";
+            //logMsg += $"[UTC TIME - {DateTime.UtcNow.ToLongDateString() + " : " + DateTime.UtcNow.ToLongTimeString()}] ";
             string completed = resultformat(result.IsSuccess);
-            if (!result.IsSuccess)
-                logMsg += $"COMMAND: {msg.Content} USER: {msg.Author.Username + "#" + msg.Author.Discriminator} COMMAND RESULT: {completed} ERROR TYPE: EXCEPTION: {result.Exception}";
-            else
-                logMsg += $"COMMAND: {msg.Content} USER: {msg.Author.Username + "#" + msg.Author.Discriminator} COMMAND RESULT: {completed}";
-            var name = DateTime.Now.Day + "_" + DateTime.Now.Month + "_" + DateTime.Now.Year;
-            if (File.Exists(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt"))
-            {
-                string curr = File.ReadAllText(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt");
-                File.WriteAllText(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt", $"{curr}\n{logMsg}");
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                Console.WriteLine($"Logged Command (from {msg.Author.Username})");
-                Console.ForegroundColor = ConsoleColor.DarkGreen;
-            }
-            else
-            {
-                File.Create(Global.MessageLogsDir + $"{Global.systemSlash}{name}.txt").Close();
-                File.WriteAllText(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt", $"{logMsg}");
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine($"Logged Command (from {msg.Author.Username}) and created new logfile");
-                Console.ForegroundColor = ConsoleColor.DarkGreen;
-            }
+            //if (!result.IsSuccess)
+            //    logMsg += $"COMMAND: {msg.Content} USER: {msg.Author.Username + "#" + msg.Author.Discriminator} COMMAND RESULT: {completed} ERROR TYPE: EXCEPTION: {result.Exception}";
+            //else
+            //    logMsg += $"COMMAND: {msg.Content} USER: {msg.Author.Username + "#" + msg.Author.Discriminator} COMMAND RESULT: {completed}";
+            //var name = DateTime.Now.Day + "_" + DateTime.Now.Month + "_" + DateTime.Now.Year;
+            //if (File.Exists(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt"))
+            //{
+            //    string curr = File.ReadAllText(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt");
+            //    File.WriteAllText(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt", $"{curr}\n{logMsg}");
+            //    Console.ForegroundColor = ConsoleColor.Magenta;
+            //    Console.WriteLine($"Logged Command (from {msg.Author.Username})");
+            //    Console.ForegroundColor = ConsoleColor.DarkGreen;
+            //}
+            //else
+            //{
+            //    File.Create(Global.MessageLogsDir + $"{Global.systemSlash}{name}.txt").Close();
+            //    File.WriteAllText(Global.CommandLogsDir + $"{Global.systemSlash}{name}.txt", $"{logMsg}");
+            //    Console.ForegroundColor = ConsoleColor.Cyan;
+            //    Console.WriteLine($"Logged Command (from {msg.Author.Username}) and created new logfile");
+            //    Console.ForegroundColor = ConsoleColor.DarkGreen;
+            //}
             if (result.IsSuccess)
             {
                 EmbedBuilder eb = new EmbedBuilder();

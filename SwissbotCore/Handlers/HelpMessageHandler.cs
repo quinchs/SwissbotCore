@@ -37,6 +37,8 @@ namespace SwissbotCore.Handlers
         {
             if (arg3.User.Value.IsBot)
                 return;
+            if (!CurrentHelpMessages.Keys.Any(x => x == arg3.MessageId))
+                return;
             var msg = (RestUserMessage)client.GetGuild(Global.SwissGuildId).GetTextChannel(arg3.Channel.Id).GetMessageAsync(arg3.MessageId).Result;
             if (CurrentHelpMessages.Keys.Contains(arg3.MessageId) && msg != null)
             {

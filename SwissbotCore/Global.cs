@@ -11,6 +11,7 @@ using Discord;
 using System.Net.Http;
 using System.Net;
 using SwissbotCore.Handlers;
+using static SwissbotCore.Handlers.SupportTicketHandler;
 
 namespace SwissbotCore
 {
@@ -25,6 +26,11 @@ namespace SwissbotCore
         public static string LinksDirpath = $"{Environment.CurrentDirectory}{Global.systemSlash}LinkLogs";
         public static string CensorPath = $"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}Censor.txt";
         public static string HelpMessagefilepath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}HelpCards.txt";
+        public static string RoleCardFilepath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}RoleCard.json";
+        public static string SnipsFilePath = $"{Environment.CurrentDirectory}\\Data\\Snippets.json";
+        public static string SupportTicketJsonPath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}SupportTickets.json";
+        public static string SnippetsFilePath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}Snippets.json";
+        public static string BlockedUsersPath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}BlockedUsers.json";
         public static string Status { get; set; }
         public static string Token { get; set; }
         public static DiscordSocketClient Client { get; set; }
@@ -66,6 +72,8 @@ namespace SwissbotCore
         public static bool VerifyAlts { get; set; }
         public static string JabToken { get; set; }
         public static int AltVerificationHours { get; set; }
+        public static ulong TicketCategoryID { get; set; }
+        public static Dictionary<string,string> TicketSnippets { get; set; }
         public static Dictionary<string, List<LogItem>> linkLogs { get; set; }
         public static Dictionary<string, List<LogItem>> messageLogs { get; set; }
         public static Dictionary<string, List<LogItem>> commandLogs { get; set; }
@@ -147,6 +155,10 @@ namespace SwissbotCore
             if (!File.Exists(CensorPath)) { File.Create(CensorPath); }
             if (!File.Exists(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt")) { File.Create(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt").Close(); }
             if (!File.Exists(HelpMessagefilepath)) { File.Create(HelpMessagefilepath).Close(); }
+            if (!File.Exists(RoleCardFilepath)) { File.Create(RoleCardFilepath).Close(); }
+            if (!File.Exists(SupportTicketJsonPath)) { File.Create(SupportTicketJsonPath).Close(); }
+            if (!File.Exists(SnippetsFilePath)) { File.Create(SnippetsFilePath).Close(); }
+            if (!File.Exists(BlockedUsersPath)) { File.Create(BlockedUsersPath).Close(); }
             foreach (var item in File.ReadAllLines(CensorPath))
                 CensoredWords.Add(item);
             var data = JsonConvert.DeserializeObject<JsonItems>(File.ReadAllText(ConfigPath));
@@ -190,6 +202,11 @@ namespace SwissbotCore
             AltVerificationHours = data.AltVerificationHours;
             StatsTotChanID = data.StatsTotChanID;
             MutedRoleID = data.MutedRoleID;
+            TicketCategoryID = data.TicketCategoryID;
+            TicketSnippets = data.TicketSnippets;
+            ConsoleLog("Read New configPerm items. here is the new JSON \n " + File.ReadAllText(ConfigPath) + "\n", ConsoleColor.DarkYellow, ConsoleColor.Black);
+
+
         }
         public static void SaveConfigPerms(Dictionary<string, bool> nConfigPerm)
         {
@@ -224,7 +241,7 @@ namespace SwissbotCore
         {
             string s = "";
             foreach (var item in HelpMessageHandler.CurrentHelpMessages)
-                s += item.Key + "," + item.Value;
+                s += item.Key + "," + item.Value + "\n";
             File.WriteAllText(HelpMessagefilepath, s);
         }
         public static Dictionary<ulong, ulong> LoadHelpMessageCards()
@@ -234,7 +251,14 @@ namespace SwissbotCore
             if (t == "")
                 return ulist;
             foreach (var i in t.Split("\n"))
-                ulist.Add(ulong.Parse(i.Split(",")[0]), ulong.Parse(i.Split(",")[1]));
+            {
+                if(i != "")
+                {
+                    var spl = i.Split(",");
+                    ulist.Add(ulong.Parse(spl[0]), ulong.Parse(spl[1]));
+                }
+            }    
+                
             return ulist;
         }
         public static List<string> getUnvertCash()
@@ -266,9 +290,9 @@ namespace SwissbotCore
         public class JsonItems
         {
             public string Token { get; set; }
-            public string JabToken { get; set; }
             public string Status { get; set; }
             public char Preflix { get; set; }
+            public Dictionary<string, string> TicketSnippets { get; set; }
             public ulong SwissGuildID { get; set; }
             public ulong SwissTestingGuildID { get; set; }
             public ulong TestingCatigoryID { get; set; }
@@ -297,6 +321,7 @@ namespace SwissbotCore
             public int AutoSlowmodeTrigger { get; set; }
             public bool VerifyAlts { get; set; }
             public ulong MutedRoleID { get; set; }
+            public ulong TicketCategoryID { get; set; }
         }
         public static void ConsoleLog(string ConsoleMessage, ConsoleColor FColor = ConsoleColor.Green, ConsoleColor BColor = ConsoleColor.Black)
         {
@@ -323,6 +348,57 @@ namespace SwissbotCore
             {
                 Console.WriteLine(excp);
             }
+        }
+
+        internal static RoleAssignerHandler.RoleCard ReadRoleCard()
+        {
+            return File.ReadAllText(RoleCardFilepath) != "" ? JsonConvert.DeserializeObject<RoleAssignerHandler.RoleCard>(File.ReadAllText(RoleCardFilepath)) : null;
+        }
+        public static void SaveRoleCard()
+        {
+            string json = JsonConvert.SerializeObject(RoleAssignerHandler.Rolecard, Formatting.Indented);
+            File.WriteAllText(RoleCardFilepath, json);
+        }
+        public static List<SupportTicket> ReadSupportTickets()
+        {
+            var json =  File.ReadAllText(SupportTicketJsonPath);
+            if (json == "")
+                return new List<SupportTicket>();
+            else
+                return JsonConvert.DeserializeObject<List<SupportTicket>>(json);
+        }
+        public static void SaveSupportTickets()
+        {
+            var ticks = SupportTicketHandler.CurrentTickets;
+            ticks.ForEach(x => x.DmTyping.TypingObject = null);
+            string json = JsonConvert.SerializeObject(ticks, Formatting.Indented);
+            File.WriteAllText(SupportTicketJsonPath, json);
+        }
+        public static Dictionary<string, string> LoadSnippets()
+        {
+            string json = File.ReadAllText(SnippetsFilePath);
+            if (json == "")
+                return new Dictionary<string, string>();
+            else
+                return JsonConvert.DeserializeObject<Dictionary<string,string>>(json);
+        }
+        public static void SaveSnippets()
+        {
+            string json = JsonConvert.SerializeObject(SupportTicketHandler.Snippets);
+            File.WriteAllText(SnippetsFilePath, json);
+        }
+        public static List<ulong> LoadBlockedUsers()
+        {
+            string json = File.ReadAllText(BlockedUsersPath);
+            if (json == "")
+                return new List<ulong>();
+            else
+                return JsonConvert.DeserializeObject<List<ulong>>(json);
+        }
+        public static void SaveBlockedUsers()
+        {
+            string json = JsonConvert.SerializeObject(SupportTicketHandler.BlockedUsers);
+            File.WriteAllText(BlockedUsersPath, json);
         }
         public struct UnnaprovedSubs
         {

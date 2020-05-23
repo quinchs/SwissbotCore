@@ -571,7 +571,7 @@ namespace SwissbotCore.Modules
             }
         }
         static int rot = 0;
-        [DiscordCommand("r", description = "Pulls a random reddit post from the r/swissbot reddit")]
+        [DiscordCommand("reddit", description = "Pulls a random reddit post from the r/swissbot reddit")]
         public async Task r()
         {
             HttpClient c = new HttpClient();

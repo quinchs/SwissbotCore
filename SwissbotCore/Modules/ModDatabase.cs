@@ -20,9 +20,9 @@ namespace SwissbotCore.Modules
     [DiscordCommandClass()]
     public class ModDatabase : CommandModuleBase
     {
-        static string ModLogsPath = $"{Environment.CurrentDirectory}\\Data\\Modlogs.json";
+        static string ModLogsPath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}Modlogs.json";
         static internal System.Timers.Timer autoSlowmode = new System.Timers.Timer() { Enabled = false, AutoReset = true, Interval = 1000 };
-        static ModlogsJson currentLogs { get; set; }
+        public static ModlogsJson currentLogs { get; set; }
         static Dictionary<ulong, int> sList = new Dictionary<ulong, int>();
         static DiscordSocketClient _client;
         static Dictionary<ulong, int> currentSlowmodeList = new Dictionary<ulong, int>();
@@ -258,6 +258,16 @@ namespace SwissbotCore.Modules
                     return;
                 }
                 var usr = curContext.Guild.GetUser(id);
+                if(usr == null)
+                {
+                    await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                    {
+                        Title = "Thats an invalid user, they might now be in the discord server",
+                        Description = "we cant use commands on people who are not here :/",
+                        Color = Color.Red
+                    }.Build());
+                    return;
+                }
                 if (usr.Hierarchy >= _client.GetGuild(Global.SwissGuildId).GetUser(Context.Message.Author.Id).Hierarchy)
                 {
                     await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
@@ -311,10 +321,12 @@ namespace SwissbotCore.Modules
 
                 Embed b2 = new EmbedBuilder()
                 {
-                    Title = $"Successfully **{typeName}** user **{usr.ToString()}**",
+                    Title = $"Successfully **{typeName}** {usr.ToString()} ({usr.Id})",
+                    Description = $"The user {usr.Mention} has been successfully **{typeName}**",
                     Fields = new List<EmbedFieldBuilder>()
                     {
-                        { new EmbedFieldBuilder(){
+                        { new EmbedFieldBuilder()
+                        {
                             Name = "Moderator",
                             Value = curContext.Message.Author.ToString(),
                             IsInline = true
@@ -379,8 +391,18 @@ namespace SwissbotCore.Modules
             //check if user exists
             //check logs -> if has logs show
             //prompt for log number
+            if (!HasExecutePermission)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "You do not have permission to execute this command",
+                    Description = "You do not have the valid permission to execute this command",
+                    Color = Color.Red
+                }.Build());
+                return;
 
-            Regex r = new Regex("(\\d{18}|\\d{17})");
+            }
+                Regex r = new Regex("(\\d{18}|\\d{17})");
             if (!r.IsMatch(user))
             {
                 await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()

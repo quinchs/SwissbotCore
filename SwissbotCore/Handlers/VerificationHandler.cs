@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
@@ -174,8 +175,11 @@ namespace SwissbotCore.Handlers
         {
             var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
             var userRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.MemberRoleID);
+            Global.ConsoleLog("GUID: " + Global.SwissGuildId + ". vcuid: " + Global.VerificationChanID);
 
-            IUserMessage sMessage = (IUserMessage)await _client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.VerificationChanID).GetMessageAsync(627680940155469844);
+            var tpm = await _client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.VerificationChanID).GetMessageAsync(627680940155469844);
+            var sMessage = (IUserMessage)tpm;
+
             var emote = new Emoji("✅");
             var reActs = await sMessage.GetReactionUsersAsync(emote, 7500).FlattenAsync();
             foreach (var rUsers in reActs.ToList())

@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -63,10 +62,15 @@ namespace SwissbotCore
 
             Global.Client = _client;
 
-            _commands = new CustomCommandService(new CustomCommandService.Settings() 
+            _commands = new CustomCommandService(new Settings() 
             {
                 DefaultPrefix = Global.Preflix,
-                HasPermissionMethod = HasPerms
+                HasPermissionMethod = HasPerms,
+                CustomGuildPermissionMethod = new Dictionary<ulong, Func<SocketCommandContext, bool>>()
+                {
+                    { 592458779006730264, HasPerms},
+                    { 622150031092350976, (SocketCommandContext c) => { return true; } }
+                }
             });
 
             _handler = new CommandHandler(_client, _commands);
