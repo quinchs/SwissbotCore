@@ -17,7 +17,10 @@ namespace SwissbotCore.Handlers
         public VerificationHandler(DiscordSocketClient client)
         {
             FList = Global.ReadAltCards();
+
             _client = client;
+            try { CheckVerts().GetAwaiter().GetResult(); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
+
         }
         public  async Task CheckVerification(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {

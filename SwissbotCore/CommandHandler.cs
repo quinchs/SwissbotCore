@@ -25,11 +25,11 @@ namespace SwissbotCore
     {
         public static DiscordSocketClient _client;
         private CustomCommandService _service;
-        private AltAccountHandler althandler;
-        private VerificationHandler verificationHandler;
-        private HelpMessageHandler helpMessageHandler;
-        private RoleAssignerHandler roleAssignerHandler;
-        private SupportTicketHandler supportTicketHandler;
+        public static AltAccountHandler althandler;
+        public static VerificationHandler verificationHandler;
+        public static HelpMessageHandler helpMessageHandler;
+        public static RoleAssignerHandler roleAssignerHandler;
+        public static SupportTicketHandler supportTicketHandler;
         internal System.Timers.Timer t = new System.Timers.Timer();
         
         Dictionary<ulong, int> ChannelPostitions = new Dictionary<ulong, int>();
@@ -45,16 +45,6 @@ namespace SwissbotCore
 
             //create /handlers
 
-            althandler = new AltAccountHandler(client);
-
-            verificationHandler = new VerificationHandler(client);
-
-            helpMessageHandler = new HelpMessageHandler(client);
-
-            roleAssignerHandler = new RoleAssignerHandler(client);
-
-            supportTicketHandler = new SupportTicketHandler(client);
-
             _client.MessageReceived += LogMessage;
 
             _client.MessageReceived += HandleCommandAsync;
@@ -62,8 +52,6 @@ namespace SwissbotCore
             _client.UserJoined += UpdateUserCount;
 
             _client.UserJoined += WelcomeMessage;
-
-            _client.UserJoined += althandler.CheckAlt;
 
             _client.MessageReceived += responce;
 
@@ -220,7 +208,7 @@ namespace SwissbotCore
                         var sortedDict = from entry in query orderby entry.Count descending select entry;
                         string rMsg = sortedDict.First().Word;
                         var s = sortedDict.Where(x => x.Count >= 1);
-                        dbugmsg += $"FOund common phrase based off of {s.Count()} results: {rMsg}\n";
+                        dbugmsg += $"Found common phrase based off of {s.Count()} results: {rMsg}\n";
                         var reslt = filecontUn.Select((b, i) => b == rMsg ? i : -1).Where(i => i != -1).ToArray();
                         if (reslt.Length != 0)
                         {
@@ -479,15 +467,14 @@ namespace SwissbotCore
         }
         private async Task Init()
         {
+            Global.ConsoleLog("Starting Init... \n\n Updating UserCounts...", ConsoleColor.DarkCyan);
+
             try
             {
-
-                Global.ConsoleLog("Starting Init... \n\n Updating UserCounts...", ConsoleColor.DarkCyan);
                 Global.UserCount = _client.GetGuild(Global.SwissGuildId).Users.Count;
                 try { await UpdateUserCount(null); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
                 Global.ConsoleLog("Finnished UserCount", ConsoleColor.Cyan);
                 try { await AddUnVert(); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
-                try { await verificationHandler.CheckVerts(); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
                 foreach (var arg in _client.Guilds)
                 {
                     if (arg.Id != Global.SwissBotDevGuildID && arg.Id != Global.SwissGuildId)
@@ -635,6 +622,8 @@ namespace SwissbotCore
         {
             try
             {
+                if (arg == null)
+                    return;
                 var g = _client.GetGuild(Global.SwissGuildId);
                 if (g == null)
                     return;
@@ -783,7 +772,7 @@ namespace SwissbotCore
                 var ca = msg.Content.ToCharArray();
                 if (ca.Length == 0)
                     return;
-                if (_service.UsedPrefixes.Contains(ca[0]))
+                if (_service.ContainsUsedPrefix(msg.Content))
                 {
                     new Thread(async ()  => 
                     {

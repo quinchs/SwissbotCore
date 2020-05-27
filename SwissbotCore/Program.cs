@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using SwissbotCore.Handlers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,10 +71,25 @@ namespace SwissbotCore
                 {
                     { 592458779006730264, HasPerms},
                     { 622150031092350976, (SocketCommandContext c) => { return true; } }
-                }
+                },
+                AllowCommandExecutionOnInvalidPermissions = true,
+                DMCommands = false
             });
 
             _handler = new CommandHandler(_client, _commands);
+
+            await Task.Delay(5000);
+
+            CommandHandler.althandler = new AltAccountHandler(_client);
+
+            CommandHandler.verificationHandler = new VerificationHandler(_client);
+
+            CommandHandler.helpMessageHandler = new HelpMessageHandler(_client);
+
+            CommandHandler.roleAssignerHandler = new RoleAssignerHandler(_client);
+
+            CommandHandler.supportTicketHandler = new SupportTicketHandler(_client);
+
 
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
            

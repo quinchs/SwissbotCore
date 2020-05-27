@@ -14,6 +14,8 @@ namespace SwissbotCore.Handlers
         public AltAccountHandler(DiscordSocketClient client)
         {
             _client = client;
+
+            _client.UserJoined += CheckAlt;
         }
         public async Task CheckAlt(SocketGuildUser arg)
         {

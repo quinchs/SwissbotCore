@@ -75,7 +75,6 @@ namespace SwissbotCore.Handlers
 
             var usr = client.GetGuild(Rolecard.ServerID).GetUser(arg3.UserId);
             var guild = client.GetGuild(Rolecard.ServerID);
-
             var msg = await guild.GetTextChannel(Rolecard.ChannelID).GetMessageAsync(Rolecard.MessageID);
             if (arg3.MessageId != msg.Id)
                 return;

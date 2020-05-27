@@ -469,6 +469,16 @@ namespace SwissbotCore.Modules
         [DiscordCommand("clearlogs", new char[] { '?', '*' }, RequiredPermission = true)]
         public async Task clearwarn(string user, int number)
         {
+            if (!HasExecutePermission)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "You do not have permission to execute this command",
+                    Description = "You do not have the valid permission to execute this command",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
             Regex r = new Regex("(\\d{18}|\\d{17})");
             if (!r.IsMatch(user))
             {
@@ -637,7 +647,11 @@ namespace SwissbotCore.Modules
                     {
                         Console.WriteLine(ex);
                     }
-                    await usr.SendMessageAsync($"**You have been unmuted on {guildName}**");
+                    try
+                    {
+                        await usr.SendMessageAsync($"**You have been unmuted on {guildName}**");
+                    }
+                    catch { }
                 };
                 Embed b = new EmbedBuilder()
                 {
@@ -676,7 +690,14 @@ namespace SwissbotCore.Modules
                     }
                 }.Build();
                 await Context.Channel.SendMessageAsync("", false, b2);
-                await usr.SendMessageAsync("", false, b);
+                try
+                {
+                    await usr.SendMessageAsync("", false, b);
+                }
+                catch
+                {
+                    await Context.Channel.SendMessageAsync($"Couldn't notify **{usr.ToString()}** of their mute");
+                }
                 await AddModlogs(id, Action.Muted, Context.Message.Author.Id, reason, usr.ToString());
                 tmr.Enabled = true;
             }

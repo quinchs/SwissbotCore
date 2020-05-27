@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Discord.WebSocket;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -126,6 +127,10 @@ namespace SwissbotCore
         /// </summary>
         [DefaultValue(false)]
         public bool DMCommands { get; set; }
+        /// <summary>
+        /// If the user has invalid permissions to execute the command and this bool is <see langword="true"/> then the command will still execute with the <see cref="CommandModuleBase.HasExecutePermission"/> set to <see langword="false"/>. Default is <see langword="false"/>
+        /// </summary>
+        public bool AllowCommandExecutionOnInvalidPermissions { get; set; }
     }
     /// <summary>
     /// Status of the command
@@ -167,6 +172,11 @@ namespace SwissbotCore
     public class CustomCommandService
     {
         public List<char> UsedPrefixes { get; internal set; }
+
+        public bool ContainsUsedPrefix(string msg)
+        {
+            return UsedPrefixes.Any(x => msg.StartsWith(x));
+        }
 
         private List<Command> CommandList = new List<Command>();
         private class Command
@@ -364,7 +374,10 @@ namespace SwissbotCore
                         commandobj = commandobj.Where(x => x.Prefixes.Contains(prefix));
                     }
                 }
-            
+
+            if (context.Channel.GetType() == typeof(SocketDMChannel) && !currentSettings.DMCommands)
+                return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidPermissions };
+
             if (commandobj.Any(x => x.Paramaters.Length == 0) && param.Length == 0)
             {
                 try
@@ -406,6 +419,9 @@ namespace SwissbotCore
                     = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
                     ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
                     : currentSettings.HasPermissionMethod(context);
+
+                    if (!currentSettings.AllowCommandExecutionOnInvalidPermissions && !CommandModuleBase.HasExecutePermission)
+                        return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidParams };
 
                     cmd.parent.ClassInstance.GetType().GetProperty("Context").SetValue(cmd.parent.ClassInstance, context);
 
@@ -484,6 +500,9 @@ namespace SwissbotCore
                         ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
                         : currentSettings.HasPermissionMethod(context);
 
+                        if (!currentSettings.AllowCommandExecutionOnInvalidPermissions && !CommandModuleBase.HasExecutePermission)
+                            return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidParams };
+
                         cmd.parent.ClassInstance.GetType().GetProperty("Context").SetValue(cmd.parent.ClassInstance, context);
 
                         Task s = (Task)cmd.Method.Invoke(cmd.parent.ClassInstance, parsedparams.ToArray());
@@ -535,6 +554,9 @@ namespace SwissbotCore
                         = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
                         ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
                         : currentSettings.HasPermissionMethod(context);
+
+                        if (!currentSettings.AllowCommandExecutionOnInvalidPermissions && !CommandModuleBase.HasExecutePermission)
+                            return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidParams };
 
                         cmd.parent.ClassInstance.GetType().GetProperty("Context").SetValue(cmd.parent.ClassInstance, context);
 
