@@ -74,7 +74,7 @@ namespace SwissbotCore
         public static string JabToken { get; set; }
         public static int AltVerificationHours { get; set; }
         public static ulong TicketCategoryID { get; set; }
-        public static Dictionary<string,string> TicketSnippets { get; set; }
+        public static Dictionary<string, string> TicketSnippets { get; set; }
         public static Dictionary<string, List<LogItem>> linkLogs { get; set; }
         public static Dictionary<string, List<LogItem>> messageLogs { get; set; }
         public static Dictionary<string, List<LogItem>> commandLogs { get; set; }
@@ -238,13 +238,13 @@ namespace SwissbotCore
                 return ulist;
             foreach (var i in t.Split("\n"))
             {
-                if(i != "")
+                if (i != "")
                 {
                     var spl = i.Split(",");
                     ulist.Add(ulong.Parse(spl[0]), ulong.Parse(spl[1]));
                 }
-            }    
-                
+            }
+
             return ulist;
         }
         public static List<string> getUnvertCash()
@@ -331,7 +331,7 @@ namespace SwissbotCore
                 await Client.GetGuild(Global.SwissGuildId).GetTextChannel(Global.DebugChanID).SendMessageAsync("", false, b.Build());
                 await Client.GetGuild(Global.SwissBotDevGuildID).GetTextChannel(622164033902084145).SendMessageAsync("", false, b.Build());
             }
-            catch(Exception excp)
+            catch (Exception excp)
             {
                 Console.WriteLine(excp);
             }
@@ -361,7 +361,7 @@ namespace SwissbotCore
         public static void SaveSupportTickets()
         {
             var ticks = SupportTicketHandler.CurrentTickets;
-            ticks.ForEach(x => x.DmTyping.TypingObject = null);
+            //ticks.ForEach(x => x.DmTyping.TypingObject = null);
             //string json = JsonConvert.SerializeObject(ticks, Formatting.Indented);
             //File.WriteAllText(SupportTicketJsonPath, json);
             SwissbotStateHandler.SaveObject("Tickets.json", ticks);

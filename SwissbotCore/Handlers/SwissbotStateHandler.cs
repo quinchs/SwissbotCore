@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Linq.Dynamic;
 using System.Linq;
+using System.Net.Http.Headers;
 
 namespace SwissbotCore.Handlers
 {
@@ -31,18 +32,11 @@ namespace SwissbotCore.Handlers
         {
             HttpClient c = new HttpClient();
             c.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(APIKey);
-            Data d = new Data()
-            {
-                data = data
-            };
-            string json = JsonConvert.SerializeObject(d);
+            
+            string json = JsonConvert.SerializeObject(data);
             var postdata = new StringContent(json, Encoding.UTF8, "application/json");
             var res = await c.PostAsync(Url + name, postdata);
             LogStateUpdate($"Saved {name} with {res.StatusCode}", ConsoleColor.Cyan);
-        }
-        private class Data
-        {
-            public object data { get; set; }
         }
         
         public static async Task<T> LoadObject<T>(string name)

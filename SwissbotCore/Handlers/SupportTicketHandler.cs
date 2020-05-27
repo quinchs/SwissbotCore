@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using SwissbotCore.Modules;
 using System.Net;
 using System.Timers;
+using Discord.Net;
+using System.IO;
 
 namespace SwissbotCore.Handlers
 {
@@ -22,21 +24,19 @@ namespace SwissbotCore.Handlers
         public static List<SupportTicket> CurrentTickets { get; set; }
         public static List<ulong> BlockedUsers = Global.LoadBlockedUsers();
         public static Dictionary<string, string> Snippets = Global.LoadSnippets();
-
+        public static Dictionary<ulong, TypingState> tTyping = new Dictionary<ulong, TypingState>();
         public class SupportTicket
         {
             public ulong UserID { get; set; }
             public ulong DMChannelID { get; set; }
             public ulong TicketChannel { get; set; }
-            public TypingState DmTyping { get; set; }
-            public TypingState TicketTyping { get; set; }
-            public class TypingState
-            {
-                public bool Typing { get; set; }
-                public IDisposable TypingObject { get; set; }
-            }
+            
         }
-
+        public class TypingState
+        {
+            public bool Typing { get; set; }
+            public IDisposable TypingObject { get; set; }
+        }
         public SupportTicketHandler(DiscordSocketClient client)
         {
             this.client = client;
@@ -61,13 +61,13 @@ namespace SwissbotCore.Handlers
                 var ticket = CurrentTickets.Find(x => x.DMChannelID == arg2.Id);
 
                 var tchan = client.GetGuild(Global.SwissGuildId).GetTextChannel(ticket.TicketChannel);
-                if (ticket.DmTyping.Typing)
+                if (tTyping[arg2.Id].Typing)
                 {
-                    ticket.DmTyping.TypingObject.Dispose();
-                    ticket.DmTyping.Typing = false;
+                    tTyping[arg2.Id].TypingObject.Dispose();
+                    tTyping[arg2.Id].Typing = false;
                 }
-                ticket.DmTyping.Typing = true;
-                ticket.DmTyping.TypingObject = tchan.EnterTypingState();
+                tTyping[arg2.Id].Typing = true;
+                tTyping[arg2.Id].TypingObject = tchan.EnterTypingState();
             }
             //else if(CurrentTickets.Any(x => x.TicketChannel == arg2.Id))
             //{
@@ -162,8 +162,6 @@ namespace SwissbotCore.Handlers
             {
                 DMChannelID = chan.Id,
                 UserID = user.Id,
-                DmTyping = new SupportTicket.TypingState() { Typing = false },
-                TicketTyping = new SupportTicket.TypingState() { Typing = false }
             };
             var guilduser = client.GetGuild(Global.SwissGuildId).GetUser(user.Id);
             //create new ticket channel
@@ -231,9 +229,9 @@ namespace SwissbotCore.Handlers
                 if (CurrentTickets.Any(x => x.DMChannelID == arg.Channel.Id))
                 {
                     var ticket = CurrentTickets.Find(x => x.DMChannelID == arg.Channel.Id);
-                    ticket.DmTyping.Typing = false;
-                    if (ticket.DmTyping.TypingObject != null)
-                        ticket.DmTyping.TypingObject.Dispose();
+                    tTyping[arg.Channel.Id].Typing = false;
+                    if (tTyping[arg.Channel.Id].TypingObject != null)
+                        tTyping[arg.Channel.Id].TypingObject.Dispose();
                     string msg = $"**[Ticketer] {arg.Author}** - {arg.Content}";
                     if (arg.Attachments.Count > 0)
                     {
@@ -290,6 +288,7 @@ namespace SwissbotCore.Handlers
                 //}.Build());
             }
         }
+        
         [DiscordCommandClass()]
         public class SupportCommandModule : CommandModuleBase
         {
@@ -308,18 +307,26 @@ namespace SwissbotCore.Handlers
                 {
                     var ticket = CurrentTickets.Find(x => x.TicketChannel == Context.Channel.Id);
                     var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
-                    await Context.Message.DeleteAsync();
                     var usr = Context.Guild.GetUser(Context.Message.Author.Id);
                     string msg = $"**[Staff] {(usr.Nickname == null ? usr.ToString() : usr.Nickname)}** - {string.Join(" ", args)}";
+
+                    
                     if (Context.Message.Attachments.Count > 0)
                     {
                         foreach (var attc in Context.Message.Attachments)
                         {
-                            msg += $"\n**Attachment** - {attc.Url}";
+                            var bt = new WebClient().DownloadData(new Uri(attc.ProxyUrl));
+                            File.WriteAllBytes(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", bt);
+                            await dmchan.SendFileAsync(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", msg);
+                            await Context.Channel.SendFileAsync(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", msg);
                         }
                     }
-                    await dmchan.SendMessageAsync(msg);
-                    await Context.Channel.SendMessageAsync(msg);
+                    else
+                    {
+                        await dmchan.SendMessageAsync(msg);
+                        await Context.Channel.SendMessageAsync(msg);
+                    }
+                    await Context.Message.DeleteAsync();
                 }
             }
             [DiscordCommand("ar",
@@ -337,17 +344,23 @@ namespace SwissbotCore.Handlers
                 {
                     var ticket = CurrentTickets.Find(x => x.TicketChannel == Context.Channel.Id);
                     var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
-                    await Context.Message.DeleteAsync();
                     string msg = $"**Staff** - {string.Join(" ", args)}";
                     if (Context.Message.Attachments.Count > 0)
                     {
                         foreach (var attc in Context.Message.Attachments)
                         {
-                            msg += $"\n**Attachment** - {attc.Url}";
+                            var bt = new WebClient().DownloadData(new Uri(attc.ProxyUrl));
+                            File.WriteAllBytes(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", bt);
+                            await dmchan.SendFileAsync(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", $"**[Staff]**");
+                            await Context.Channel.SendFileAsync(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", $"**[Staff]**");
                         }
                     }
-                    await dmchan.SendMessageAsync(msg);
-                    await Context.Channel.SendMessageAsync(msg);
+                    else
+                    {
+                        await dmchan.SendMessageAsync(msg);
+                        await Context.Channel.SendMessageAsync(msg);
+                    }
+                    await Context.Message.DeleteAsync();
                 }
             }
             [DiscordCommand("close",
