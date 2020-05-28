@@ -339,11 +339,14 @@ namespace SwissbotCore
 
         private async Task ReactionHandler(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
+               
             try
             {
-                await verificationHandler.CheckVerification(arg1, arg2, arg3);
+                if (verificationHandler != null)
+                    await verificationHandler.CheckVerification(arg1, arg2, arg3);
                 await checkSub(arg1, arg2, arg3);
-                await helpMessageHandler.HandleHelpMessage(arg1, arg2, arg3);
+                if (helpMessageHandler != null)
+                    await helpMessageHandler.HandleHelpMessage(arg1, arg2, arg3);
             }
             catch (Exception ex)
             {

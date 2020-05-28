@@ -14,6 +14,7 @@ using SwissbotCore;
 using static SwissbotCore.CustomCommandService;
 using System.Runtime.InteropServices.ComTypes;
 using RedditNet.Extensions;
+using SwissbotCore.Handlers;
 
 namespace SwissbotCore.Modules
 {
@@ -402,7 +403,7 @@ namespace SwissbotCore.Modules
                 return;
 
             }
-                Regex r = new Regex("(\\d{18}|\\d{17})");
+            Regex r = new Regex("(\\d{18}|\\d{17})");
             if (!r.IsMatch(user))
             {
                 await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
@@ -561,6 +562,113 @@ namespace SwissbotCore.Modules
         {
             await CreateAction(args, Action.Banned, Context);
         }
+
+        [DiscordCommand("unmute",
+            prefixes =  new char[] { '?', '*'},
+            RequiredPermission = true,
+            description =  "Unmutes a member", 
+            BotCanExecute = false,
+            commandHelp = "Use `(PREFIX)unmute <@user>`")]
+        public async Task Unmute(params string[] args)
+        {
+            if(args.Length == 0)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "Who..?",
+                    Description = "Who do you want me to unmute",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            if (args.Length >= 2)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "W-w-wh-what?",
+                    Description = "thats way to many arguments buddy....",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            if (!HasExecutePermission)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "You do not have permission to execute this command",
+                    Description = "You do not have the valid permission to execute this command",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }    
+            Regex r = new Regex("(\\d{18}|\\d{17})");
+            if (!r.IsMatch(args.First()))
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "Invalid ID",
+                    Description = "The ID you provided is invalid!",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            ulong id;
+            try
+            {
+                id = Convert.ToUInt64(r.Match(args.First()).Groups[1].Value);
+            }
+            catch
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "Invalid ID",
+                    Description = "The ID you provided is invalid!",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            var usr = Context.Guild.GetUser(id);
+            if(usr == null)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "That user isnt in the server :/",
+                    Description = "who? i cant get there details lol...",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            if (usr.Roles.Any(x => x.Id == Global.MutedRoleID))
+            {
+                var role = Context.Guild.GetRole(Global.MutedRoleID);
+                await usr.RemoveRoleAsync(role);
+                MutedHandler.CurrentMuted.Remove(usr.Id);
+                Global.SaveMutedUsers();
+                Embed b2 = new EmbedBuilder()
+                {
+                    Title = $"Successfully **Unmuted** user **{usr.ToString()}**",
+                    Fields = new List<EmbedFieldBuilder>()
+                    {
+                        { new EmbedFieldBuilder(){
+                            Name = "Moderator",
+                            Value = Context.Message.Author.ToString(),
+                            IsInline = true
+                        } }
+                    }
+                }.Build();
+                await Context.Channel.SendMessageAsync("", false, b2);
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "That user isnt muted",
+                    Description = "There not muted lol. dont know what else you want me to say",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+        }
         [DiscordCommand("mute", new char[] { '?', '*' }, RequiredPermission = true, commandHelp = "Use `(PREFIX)mute <@user> <time> <reason>`\nTime formats are structured like this: `<x><H/D/M/S>`", description = "Mutes a user for x time")]
         public async Task mute(params string[] args)
         {
@@ -627,32 +735,43 @@ namespace SwissbotCore.Modules
                     return;
                 }
                 var usr = Context.Guild.GetUser(id);
+                if(usr.Roles.Any(x => x.Id == Global.MutedRoleID))
+                {
+                    await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                    {
+                        Title = "That user is muted!",
+                        Description = "There already muted lol <3",
+                        Color = Color.Red
+                    }.Build());
+                    return;
+                }
                 reason = string.Join(' ', args).Replace($"{user} {time} ", "");
                 TimeSpan t = TimeSpan.ParseExact(time, formats, null);
-                Timer tmr = new Timer()
-                {
-                    AutoReset = false,
-                    Interval = t.TotalMilliseconds
-                };
+                var dt = DateTime.UtcNow.Add(t);
+                //Timer tmr = new Timer()
+                //{
+                //    AutoReset = false,
+                //    Interval = t.TotalMilliseconds
+                //};
                 string guildName = Context.Guild.Name;
                 await usr.AddRoleAsync(Context.Guild.GetRole(Global.MutedRoleID));
 
-                tmr.Elapsed += async (object send, ElapsedEventArgs arg) =>
-                {
-                    try
-                    {
-                        await usr.RemoveRoleAsync(Context.Guild.GetRole(Global.MutedRoleID));
-                    }
-                    catch(Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
-                    try
-                    {
-                        await usr.SendMessageAsync($"**You have been unmuted on {guildName}**");
-                    }
-                    catch { }
-                };
+                //tmr.Elapsed += async (object send, ElapsedEventArgs arg) =>
+                //{
+                //    try
+                //    {
+                //        await usr.RemoveRoleAsync(Context.Guild.GetRole(Global.MutedRoleID));
+                //    }
+                //    catch(Exception ex)
+                //    {
+                //        Console.WriteLine(ex);
+                //    }
+                //    try
+                //    {
+                //        await usr.SendMessageAsync($"**You have been unmuted on {guildName}**");
+                //    }
+                //    catch { }
+                //};
                 Embed b = new EmbedBuilder()
                 {
                     Title = $"You have been **Muted** on **{guildName}** for **{t.ToString()}",
@@ -699,7 +818,8 @@ namespace SwissbotCore.Modules
                     await Context.Channel.SendMessageAsync($"Couldn't notify **{usr.ToString()}** of their mute");
                 }
                 await AddModlogs(id, Action.Muted, Context.Message.Author.Id, reason, usr.ToString());
-                tmr.Enabled = true;
+                MutedHandler.AddNewMuted(usr.Id, dt);
+                //tmr.Enabled = true;
             }
         }
         [DiscordCommand("modlogs", new char[] { '?', '*' },RequiredPermission =true , commandHelp = "Use `(PREFIX)modlogs <@user>`", description = "view the logs of a user")]

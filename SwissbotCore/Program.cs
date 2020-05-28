@@ -78,7 +78,7 @@ namespace SwissbotCore
 
             _handler = new CommandHandler(_client, _commands);
 
-            await Task.Delay(5000);
+            await Task.Delay(7500);
 
             CommandHandler.althandler = new AltAccountHandler(_client);
 
@@ -90,6 +90,7 @@ namespace SwissbotCore
 
             CommandHandler.supportTicketHandler = new SupportTicketHandler(_client);
 
+            var mutedHandler = new MutedHandler(_client);
 
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
            

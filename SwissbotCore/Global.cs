@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Net;
 using SwissbotCore.Handlers;
 using static SwissbotCore.Handlers.SupportTicketHandler;
+using SwissbotCore.Modules;
 
 namespace SwissbotCore
 {
@@ -361,6 +362,7 @@ namespace SwissbotCore
         public static void SaveSupportTickets()
         {
             var ticks = SupportTicketHandler.CurrentTickets;
+            ticks.ForEach(x => x.DMTyping.TypingObject = null);
             //ticks.ForEach(x => x.DmTyping.TypingObject = null);
             //string json = JsonConvert.SerializeObject(ticks, Formatting.Indented);
             //File.WriteAllText(SupportTicketJsonPath, json);
@@ -392,6 +394,22 @@ namespace SwissbotCore
         public static void SaveBlockedUsers()
         {
             SwissbotStateHandler.SaveObject("BlockedUsers.json", SupportTicketHandler.BlockedUsers);
+        }
+        public static Dictionary<ulong, DateTime> LoadMuted()
+        {
+            try
+            {
+                return SwissbotStateHandler.LoadObject<Dictionary<ulong, DateTime>>("MutedUsers.json").GetAwaiter().GetResult();
+            }
+            catch(Exception x)
+            {
+                return new Dictionary<ulong, DateTime>();
+            }
+             
+        }
+        public static void SaveMutedUsers()
+        {
+            SwissbotStateHandler.SaveObject("MutedUsers.json", MutedHandler.CurrentMuted);
         }
         public struct UnnaprovedSubs
         {

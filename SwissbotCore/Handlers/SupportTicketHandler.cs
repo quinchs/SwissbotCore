@@ -24,13 +24,12 @@ namespace SwissbotCore.Handlers
         public static List<SupportTicket> CurrentTickets { get; set; }
         public static List<ulong> BlockedUsers = Global.LoadBlockedUsers();
         public static Dictionary<string, string> Snippets = Global.LoadSnippets();
-        public static Dictionary<ulong, TypingState> tTyping = new Dictionary<ulong, TypingState>();
         public class SupportTicket
         {
             public ulong UserID { get; set; }
             public ulong DMChannelID { get; set; }
             public ulong TicketChannel { get; set; }
-            
+            public TypingState DMTyping { get; set; }
         }
         public class TypingState
         {
@@ -61,13 +60,13 @@ namespace SwissbotCore.Handlers
                 var ticket = CurrentTickets.Find(x => x.DMChannelID == arg2.Id);
 
                 var tchan = client.GetGuild(Global.SwissGuildId).GetTextChannel(ticket.TicketChannel);
-                if (tTyping[arg2.Id].Typing)
+                if (ticket.DMTyping.Typing)
                 {
-                    tTyping[arg2.Id].TypingObject.Dispose();
-                    tTyping[arg2.Id].Typing = false;
+                    ticket.DMTyping.TypingObject.Dispose();
+                    ticket.DMTyping.Typing = false;
                 }
-                tTyping[arg2.Id].Typing = true;
-                tTyping[arg2.Id].TypingObject = tchan.EnterTypingState();
+                ticket.DMTyping.Typing = true;
+                ticket.DMTyping.TypingObject = tchan.EnterTypingState();
             }
             //else if(CurrentTickets.Any(x => x.TicketChannel == arg2.Id))
             //{
@@ -162,6 +161,11 @@ namespace SwissbotCore.Handlers
             {
                 DMChannelID = chan.Id,
                 UserID = user.Id,
+                DMTyping = new TypingState()
+                {
+                    Typing = false,
+                    TypingObject = null
+                }
             };
             var guilduser = client.GetGuild(Global.SwissGuildId).GetUser(user.Id);
             //create new ticket channel
@@ -229,18 +233,22 @@ namespace SwissbotCore.Handlers
                 if (CurrentTickets.Any(x => x.DMChannelID == arg.Channel.Id))
                 {
                     var ticket = CurrentTickets.Find(x => x.DMChannelID == arg.Channel.Id);
-                    tTyping[arg.Channel.Id].Typing = false;
-                    if (tTyping[arg.Channel.Id].TypingObject != null)
-                        tTyping[arg.Channel.Id].TypingObject.Dispose();
+                    ticket.DMTyping.Typing = false;
+                    if (ticket.DMTyping.TypingObject != null)
+                        ticket.DMTyping.TypingObject.Dispose();
                     string msg = $"**[Ticketer] {arg.Author}** - {arg.Content}";
+                    var tkchan = client.GetGuild(Global.SwissGuildId).GetTextChannel(ticket.TicketChannel);
+                    await tkchan.SendMessageAsync(msg);
                     if (arg.Attachments.Count > 0)
                     {
                         foreach (var attc in arg.Attachments)
                         {
-                            msg += $"\n**Attachment** - {attc.Url}";
+                            var bt = new WebClient().DownloadData(new Uri(attc.ProxyUrl));
+                            File.WriteAllBytes(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", bt);
+                            await tkchan.SendFileAsync(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}{attc.Filename}", $"**[Ticketer]**");
                         }
                     }
-                    await client.GetGuild(Global.SwissGuildId).GetTextChannel(ticket.TicketChannel).SendMessageAsync(msg);
+                    
             
                 }
                 else if (!Setups.ContainsKey(arg.Author.Id))
