@@ -13,6 +13,7 @@ using System.Net;
 using SwissbotCore.Handlers;
 using static SwissbotCore.Handlers.SupportTicketHandler;
 using SwissbotCore.Modules;
+using static SwissbotCore.Modules.ModDatabase;
 
 namespace SwissbotCore
 {
@@ -72,9 +73,9 @@ namespace SwissbotCore
         public static ulong BotAiChanID { get; set; }
         public static ulong MutedRoleID { get; set; }
         public static bool VerifyAlts { get; set; }
-        public static string JabToken { get; set; }
         public static int AltVerificationHours { get; set; }
         public static ulong TicketCategoryID { get; set; }
+        public static ulong SuggestionChannelID { get; set; }
         public static Dictionary<string, string> TicketSnippets { get; set; }
         public static Dictionary<string, List<LogItem>> linkLogs { get; set; }
         public static Dictionary<string, List<LogItem>> messageLogs { get; set; }
@@ -201,6 +202,7 @@ namespace SwissbotCore
             StatsTotChanID = data.StatsTotChanID;
             MutedRoleID = data.MutedRoleID;
             TicketCategoryID = data.TicketCategoryID;
+            SuggestionChannelID = data.SuggestionChannelID;
             TicketSnippets = data.TicketSnippets;
             CensoredWords = SwissbotStateHandler.LoadObject<List<string>>("Censor.json").Result;
             ConsoleLog("Read New configPerm items. here is the new JSON \n " + File.ReadAllText(ConfigPath) + "\n", ConsoleColor.DarkYellow, ConsoleColor.Black);
@@ -298,6 +300,7 @@ namespace SwissbotCore
             public ulong UnverifiedRoleID { get; set; }
             public ulong VerificationChanID { get; set; }
             public ulong SubmissionsLogChanID { get; set; }
+            public ulong SuggestionChannelID { get; set; }
             public ulong MilestonechanID { get; set; }
             public bool AutoSlowmodeToggle { get; set; }
             public ulong BotAiChanID { get; set; }
@@ -410,6 +413,37 @@ namespace SwissbotCore
         public static void SaveMutedUsers()
         {
             SwissbotStateHandler.SaveObject("MutedUsers.json", MutedHandler.CurrentMuted);
+        }
+        //public static ModlogsJson LoadModlogs()
+        //{
+        //    try
+        //    {
+        //        return SwissbotStateHandler.LoadObject<ModlogsJson>("Modlogs.json").GetAwaiter().GetResult();
+        //    }
+        //    catch (Exception x)
+        //    {
+        //        return new ModlogsJson();
+        //    }
+
+        //}
+        //public static void SaveModlogs()
+        //{
+        //    SwissbotStateHandler.SaveObject("Modlogs.json", ModDatabase.currentLogs);
+        //}
+        public static List<SuggestionHandler.Suggestion> LoadSuggestions()
+        {
+            try
+            {
+                return SwissbotStateHandler.LoadObject<List<SuggestionHandler.Suggestion>>("Suggestions.json").GetAwaiter().GetResult();
+            }
+            catch
+            {
+                return new List<SuggestionHandler.Suggestion>();
+            }
+        }
+        public static void SaveSuggestions()
+        {
+            SwissbotStateHandler.SaveObject("Suggestions.json", SuggestionHandler.CurrentSuggestions);
         }
         public struct UnnaprovedSubs
         {

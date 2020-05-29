@@ -18,6 +18,7 @@ using SwissbotCore;
 using SwissbotCore.Modules;
 using static SwissbotCore.CustomCommandService;
 using SwissbotCore.Handlers;
+using System.Runtime.CompilerServices;
 
 namespace SwissbotCore
 {
@@ -49,13 +50,13 @@ namespace SwissbotCore
 
             _client.MessageReceived += HandleCommandAsync;
 
-            _client.UserJoined += UpdateUserCount;
+            //_client.UserJoined += _client_UserLeft;
 
             _client.UserJoined += WelcomeMessage;
 
             _client.MessageReceived += responce;
 
-            _client.UserLeft += UpdateUserCount;
+            //_client.UserLeft += _client_UserLeft; 
 
             _client.JoinedGuild += _client_JoinedGuild;
 
@@ -76,6 +77,11 @@ namespace SwissbotCore
             SwissbotCore.Modules.ModDatabase.Start(_client);
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Services loaded, update init");
 
+        }
+
+        private async Task _client_UserLeft(SocketGuildUser arg)
+        {
+            UpdateUserCount(arg);
         }
 
         private async Task mork(SocketUser arg1, SocketUser arg2)
@@ -415,6 +421,8 @@ namespace SwissbotCore
 
         private async Task _client_LatencyUpdated(int arg1, int arg2)
         {
+            Global.ConsoleLog("Latency Updated");
+            //Console.WriteLine("Latency")
             //string usern = "Binzo - Moderator";
             //var user = _client.GetGuild(Global.SwissGuildId).GetUser(364839544279007234);
             //if (user.Nickname != usern)
@@ -424,6 +432,8 @@ namespace SwissbotCore
             //{
             //    await _client.GetGuild(Global.SwissGuildId).GetUser(_client.CurrentUser.Id).ModifyAsync(x => x.Nickname = "SwissBot ( * )");
             //}
+            Global.ConsoleLog("Latency Finnished");
+
         }
 
         private async Task WelcomeMessage(SocketGuildUser arg)
@@ -625,8 +635,6 @@ namespace SwissbotCore
         {
             try
             {
-                if (arg == null)
-                    return;
                 var g = _client.GetGuild(Global.SwissGuildId);
                 if (g == null)
                     return;
@@ -635,10 +643,13 @@ namespace SwissbotCore
                 Global.UserCount = users.Count + 2;
 
                 Global.ConsoleLog($"Ucount {users.Count - 20}, usersSCount{users.Count}");
-                await _client.GetGuild(Global.SwissGuildId).GetVoiceChannel(Global.StatsTotChanID).ModifyAsync(x =>
+                var chan =  g.GetVoiceChannel(Global.StatsTotChanID);
+                Global.ConsoleLog("Modifying..");
+                await chan.ModifyAsync(x =>
                 {
                     x.Name = $"Total Users: {users.Count + 2}";
                 });
+                Global.ConsoleLog("Completed mod..");
             }
             catch (Exception ex)
             {

@@ -34,6 +34,7 @@ namespace SwissbotCore.Modules
             if (!File.Exists(ModLogsPath)) { File.Create(ModLogsPath).Close(); }
             //load logs
             currentLogs = LoadModLogs();
+
             //create muted role if it doesnt exist
             //change text channel perms for muted role if not set
             //client.MessageReceived += AutoSlowmode;
@@ -122,7 +123,7 @@ namespace SwissbotCore.Modules
         }
         static public void SaveModLogs()
         {
-            string json = JsonConvert.SerializeObject(currentLogs, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(currentLogs);
             File.WriteAllText(ModLogsPath, json);
         }
         public class ModlogsJson
@@ -433,11 +434,12 @@ namespace SwissbotCore.Modules
             if(currentLogs.Users.Any(x => x.userId == id))
             {
                 var usrlogs = currentLogs.Users[currentLogs.Users.FindIndex(x => x.userId == id)];
+                string usrnm = Context.Guild.GetUser(usrlogs.userId) == null ? usrlogs.username : Context.Guild.GetUser(usrlogs.userId).ToString();
                 EmbedBuilder b = new EmbedBuilder()
                 {
                     Title = $"{usrlogs.username} logs",
                     Color = Color.DarkMagenta,
-                    Description = $"Modlogs for {usrlogs.username},\nTo remove a log type `{Global.Preflix}clearlog <user> <log number>`\n",
+                    Description = $"Modlogs for {usrnm},\nTo remove a log type `{Global.Preflix}clearlogs <user> <log number>`\n",
                     Fields = new List<EmbedFieldBuilder>()
                 };
                 for(int i = 0; i != usrlogs.Logs.Count; i++)
@@ -511,9 +513,10 @@ namespace SwissbotCore.Modules
             {
                 var usrlogs = currentLogs.Users[currentLogs.Users.FindIndex(x => x.userId == id)];
                 usrlogs.Logs.RemoveAt(number - 1);
+                string usrnm = Context.Guild.GetUser(usrlogs.userId) == null ? usrlogs.username : Context.Guild.GetUser(usrlogs.userId).ToString();
                 EmbedBuilder b = new EmbedBuilder()
                 {
-                    Title = $"Successfully cleared a log for **{usrlogs.username}**",
+                    Title = $"Successfully cleared a log for **{usrnm}**",
                     Color = Color.DarkMagenta,
                     Description = $"Modlogs for {usrlogs.username},\nTo remove a log type `{Global.Preflix}clearlog <user> <log number>`\n",
                     Fields = new List<EmbedFieldBuilder>()
@@ -866,9 +869,11 @@ namespace SwissbotCore.Modules
             {
                 var user = currentLogs.Users[currentLogs.Users.FindIndex(x => x.userId == id)];
                 var logs = user.Logs;
+                string usrnm = Context.Guild.GetUser(user.userId) == null ? user.username : Context.Guild.GetUser(user.userId).ToString();
                 EmbedBuilder b = new EmbedBuilder()
                 {
-                    Title = $"Modlogs for **{user.username}** ({id})",
+                    Title = $"Modlogs for **{usrnm}** ({id})",
+                    Description = $"To remove a log type `*clearlog <user> <log number>` or `?clearlog <user> <log number>`",
                     Color = Color.Green,
                     Fields = new List<EmbedFieldBuilder>()
                 };

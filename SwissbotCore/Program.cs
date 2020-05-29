@@ -92,6 +92,8 @@ namespace SwissbotCore
 
             var mutedHandler = new MutedHandler(_client);
 
+            var SuggestionHandler = new SuggestionHandler(_client);
+
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
            
             await Task.Delay(-1);   
