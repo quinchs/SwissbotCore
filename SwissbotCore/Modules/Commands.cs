@@ -308,26 +308,7 @@ namespace SwissbotCore.Modules
             }
         }
 
-        [DiscordCommand("purge", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)purge <ammount>`", description = "Deletes `x` ammount of messages")]
-        public async Task purge(uint amount)
-        {
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.ModeratorRoleID).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
-            {
-                var messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
-                await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
-                const int delay = 2000;
-                var m = await Context.Channel.SendMessageAsync($"Purge completed!");
-                await Task.Delay(delay);
-                await m.DeleteAsync();
-            }
-            else
-            {
-                await Context.Channel.SendMessageAsync("You do not have permission to use this command!");
-            }
-        }
+
         [DiscordCommand("quinasking", description ="*loads gun*")]
         public async Task quinasking()
         {
@@ -1089,10 +1070,22 @@ namespace SwissbotCore.Modules
                         b.Title = "Dev Config List";
                         string list = "**Here is the current config file** \n";
                         foreach (var item in Global.JsonItemsListDevOps) { list += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
-                        b.Description = list;
+                        string[] flist = Global.SplitDescriptions(list, 2040).ToArray();
+                        //b.Description = list;
                         b.Color = Color.Green;
                         b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
                         await Context.Channel.SendMessageAsync("", false, b.Build());
+                        int page = 1;
+                        foreach (var item in flist)
+                        {
+                            await Context.Channel.SendMessageAsync("", false, new EmbedBuilder() 
+                            {
+                                Title = $"Page {page}",
+                                Description = item,
+                                Color = Color.Green
+                            }.Build());
+                            page++;
+                        }
                     }
                     else
                     {
@@ -1107,10 +1100,21 @@ namespace SwissbotCore.Modules
                             string itemsL = "";
                             foreach (var item in Global.jsonItemsList) { itemsL += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
                             if (itemsL == "") { list = "**Sorry but there is nothing here or you do not have permission to change anything yet :/**"; }
-                            b.Description = list + itemsL;
+                            string[] flist = Global.SplitDescriptions(itemsL, 2040).ToArray();
+                            b.Description = list;
                             b.Color = Color.Green;
                             b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
                             await Context.Channel.SendMessageAsync("", false, b.Build());
+                            int page = 1;
+                            foreach (var item in flist)
+                            {
+                                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                                {
+                                    Title = $"Page {page}",
+                                    Description = item,
+                                    Color = Color.Green
+                                }.Build());
+                            }
                         }
                     }
                 }
@@ -1133,16 +1137,7 @@ namespace SwissbotCore.Modules
                         {
                             Global.SaveConfig(data);
                             await Context.Channel.SendMessageAsync($"Sucessfuly modified the config, Updated the item {configItem} with the new value of {value}");
-                            EmbedBuilder b = new EmbedBuilder();
-                            b.Footer = new EmbedFooterBuilder();
-                            b.Footer.Text = "**Dev Config**";
-                            b.Title = "Dev Config List";
-                            string list = "**Here is the current config file** \n";
-                            foreach (var item in Global.JsonItemsListDevOps) { list += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
-                            b.Description = list;
-                            b.Color = Color.Green;
-                            b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
-                            await Context.Channel.SendMessageAsync("", false, b.Build());
+                            
                         }
 
                     }
@@ -1160,16 +1155,7 @@ namespace SwissbotCore.Modules
                             {
                                 Global.SaveConfig(data);
                                 await Context.Channel.SendMessageAsync($"Sucessfuly modified the config, Updated the item {configItem} with the new value of {value}");
-                                EmbedBuilder b = new EmbedBuilder();
-                                b.Footer = new EmbedFooterBuilder();
-                                b.Footer.Text = "**Admin Config**";
-                                b.Title = "Admin Config List";
-                                string list = "**Here is the current config file** \n";
-                                foreach (var item in Global.jsonItemsList) { list += $"```json\n \"{item.Key}\" : \"{item.Value}\"```\n"; }
-                                b.Description = list;
-                                b.Color = Color.Green;
-                                b.Footer.Text = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " ZULU";
-                                await Context.Channel.SendMessageAsync("", false, b.Build());
+                                
                             }
                         }
                         else

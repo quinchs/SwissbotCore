@@ -147,6 +147,10 @@ namespace SwissbotCore
             SwissbotStateHandler.SaveObject("Censor.json", CensoredWords);
 
         }
+        public static IEnumerable<string> SplitDescriptions(string str, int chunkSize)
+        {
+            return Enumerable.Range(0, str.Length / chunkSize).Select(i => str.Substring(i * chunkSize, chunkSize));
+        }
         public static void ReadConfig()
         {
             if (!Directory.Exists(MessageLogsDir)) { Directory.CreateDirectory(MessageLogsDir); }

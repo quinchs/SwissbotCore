@@ -25,8 +25,10 @@ namespace SwissbotCore.Handlers
             public string SuggestionText { get; set; }
             public ulong MessageID { get; set; }
             public State ReviewType { get; set; } 
+            public Status CurrentStatus { get; set; }
             public string ReviewText { get; set; }
             public ulong AuthorID { get; set; }
+            public List<Updaters> Updaters { get; set; }
             public ulong ReviewerID { get; set; }
             public DateTime UTCTime { get; set; }
         }
@@ -36,6 +38,21 @@ namespace SwissbotCore.Handlers
             Denied,
             NotReviewed
         }
+        public enum Status
+        {
+            InTheWorks,
+            Completed,
+            NeedsStaffReview,
+            NeedsApproval,
+            NotReviewed
+        }
+        public class Updaters
+        {
+            public Status status { get; set; }
+            public ulong updaterID { get; set; }
+            public DateTime Time { get; set; }
+        }
+        //<InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed>
         [DiscordCommandClass()]
         public class SuggestionCommands : CommandModuleBase
         {
@@ -66,6 +83,7 @@ namespace SwissbotCore.Handlers
                 string suggestmsg = string.Join(' ', args);
                 Suggestion s = new Suggestion();
                 s.AuthorID = Context.Message.Author.Id;
+                s.Updaters = new List<Updaters>();
                 s.SuggestionText = suggestmsg;
                 s.UTCTime = DateTime.UtcNow;
                 s.ReviewType = State.NotReviewed;
@@ -94,6 +112,11 @@ namespace SwissbotCore.Handlers
                         },
                         new EmbedFieldBuilder()
                         {
+                            Name = "Status",
+                            Value = Status.NotReviewed,
+                        },
+                        new EmbedFieldBuilder()
+                        {
                             Name = "Message ID",
                             Value = msg.Id,
                         }
@@ -106,11 +129,12 @@ namespace SwissbotCore.Handlers
                 Global.SaveSuggestions();
                 await Context.Channel.SendMessageAsync($"Congrats {Context.Message.Author.Mention}, We added your suggestion! We'll DM you when a staff reviews it!");
             }
+            
             [DiscordCommand("suggestion",
                 RequiredPermission = true,
                 description = "Admins use this command to accept or deny suggestions",
                 BotCanExecute = false,
-                commandHelp = "Usage - `(PREFIX)suggestion <accept/deny/delete> <MessageID> <Reason>`")]
+                commandHelp = "Usage - `(PREFIX)suggestion <accept/deny/delete/update> <MessageID> <Reason>` or `(PREFIX)suggestion status <MessageID> <InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed> <Reason>`")]
             public async Task suggestions(params string[] args)
             {
                 if (!HasExecutePermission)
@@ -146,7 +170,10 @@ namespace SwissbotCore.Handlers
                     return;
                 }
                 State state = State.NotReviewed;
+                Status status = Status.NotReviewed;
                 bool dlt = false;
+                bool isUpdate = false;
+                bool isStatus = false;
                 switch (args[0].ToLower())
                 {
                     case "accept":
@@ -157,6 +184,44 @@ namespace SwissbotCore.Handlers
                         break;
                     case "delete":
                         dlt = true;
+                        break;
+                    case "update":
+                        isUpdate = true;
+                        break;
+                    case "status":
+                        {
+                            isStatus = true;
+                            //<InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed>
+                            switch (args[2].ToLower())
+                            {
+                                case "InTheWorks":
+                                    status = Status.InTheWorks;
+                                    break;
+                                case "Completed":
+                                    status = Status.Completed;
+                                    break;
+                                case "NeedsStaffReview":
+                                    status = Status.NeedsStaffReview;
+                                    break;
+                                case "NeedsApproval":
+                                    status = Status.NeedsApproval;
+                                    break;
+                                case "NotReviewed":
+                                    status = Status.NotReviewed;
+                                    break;
+                                default:
+                                    {
+                                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                                        {
+                                            Title = "What?",
+                                            Color = Color.Red,
+                                            Description = $"Sorry but you need to follow this format `*suggestion status <MessageID> <InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed> <Reason>",
+                                            ImageUrl = "https://i.chzbgr.com/full/6113771776/hEF22755C/dafuk-was-that"
+                                        }.Build());
+                                        return;
+                                    }
+                            }
+                        }
                         break;
                     default:
                         {
@@ -218,39 +283,60 @@ namespace SwissbotCore.Handlers
                     return;
                 }
                 var suggestion = CurrentSuggestions.Find(x => x.MessageID == id);
-                int inx = CurrentSuggestions.IndexOf(suggestion);
-                suggestion.ReviewText = reason == null ? "" : reason;
-                suggestion.ReviewType = state;
-                suggestion.ReviewerID = Context.Message.Author.Id;
-                CurrentSuggestions[inx] = suggestion;
-                Global.SaveSuggestions();
-                //try to get message
-                RestUserMessage msg = (RestUserMessage)await Context.Guild.GetTextChannel(Global.SuggestionChannelID).GetMessageAsync(suggestion.MessageID);
-                if(msg == null)
+                if(suggestion.ReviewType != State.NotReviewed && !isUpdate && !isStatus)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
                     {
-                        Title = "Sorry, I can't find that Message :/",
+                        Title = $"Sorry, you cant {state} that :/",
                         Color = Color.Red,
-                        Description = "looks like that message is either deleted or is too old",
+                        Description = $"Someones already {suggestion.ReviewType} that suggestion, try updating it or changing the status",
                     }.Build());
                     return;
                 }
-                if(dlt)
+                if (isUpdate)
                 {
-                    await msg.DeleteAsync();
-                    await Context.Channel.SendMessageAsync("Deleted!");
-                    CurrentSuggestions.Remove(suggestion);
-                    Global.SaveSuggestions();
-                    return;
+                    //update card
+
                 }
-                await msg.ModifyAsync(x => x.Embed = new EmbedBuilder() 
+                else if (isStatus)
                 {
-                    Title = "User Suggestion!",
-                    Color = state == State.Accepted ? Color.Green : state == State.Denied ? Color.Red : Color.Red,
-                    Description = suggestion.SuggestionText + 
-                    $"\n\n-----------**{state}**-----------\n\n**{state} For:** {reason}",
-                    Fields = new List<EmbedFieldBuilder>()
+                    //update status
+                }
+                else
+                {
+                    int inx = CurrentSuggestions.IndexOf(suggestion);
+                    suggestion.ReviewText = reason == null ? "" : reason;
+                    suggestion.ReviewType = state;
+                    suggestion.ReviewerID = Context.Message.Author.Id;
+                    CurrentSuggestions[inx] = suggestion;
+                    Global.SaveSuggestions();
+                    //try to get message
+                    RestUserMessage msg = (RestUserMessage)await Context.Guild.GetTextChannel(Global.SuggestionChannelID).GetMessageAsync(suggestion.MessageID);
+                    if (msg == null)
+                    {
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "Sorry, I can't find that Message :/",
+                            Color = Color.Red,
+                            Description = "looks like that message is either deleted or is too old",
+                        }.Build());
+                        return;
+                    }
+                    if (dlt)
+                    {
+                        await msg.DeleteAsync();
+                        await Context.Channel.SendMessageAsync("Deleted!");
+                        CurrentSuggestions.Remove(suggestion);
+                        Global.SaveSuggestions();
+                        return;
+                    }
+                    await msg.ModifyAsync(x => x.Embed = new EmbedBuilder()
+                    {
+                        Title = "User Suggestion!",
+                        Color = state == State.Accepted ? Color.Green : state == State.Denied ? Color.Red : Color.Red,
+                        Description = suggestion.SuggestionText +
+                        $"\n\n-----------**{state}**-----------\n\n**{state} For:** {reason}",
+                        Fields = new List<EmbedFieldBuilder>()
                     {
                         new EmbedFieldBuilder()
                         {
@@ -270,15 +356,16 @@ namespace SwissbotCore.Handlers
                             Value = msg.Id,
                         }
                     }
-                }.Build());
+                    }.Build());
 
-                try
-                {
-                    //dm user
-                    var usr = Context.Guild.GetUser(suggestion.AuthorID).SendMessageAsync($"Your Suggestion \"{suggestion.SuggestionText}\" was **{state}** by <@{suggestion.ReviewerID}>");
+                    try
+                    {
+                        //dm user
+                        var usr = Context.Guild.GetUser(suggestion.AuthorID).SendMessageAsync($"Your Suggestion \"{suggestion.SuggestionText}\" was **{state}** by <@{suggestion.ReviewerID}>");
+                    }
+                    catch { }
+                    await Context.Channel.SendMessageAsync("Success <3");
                 }
-                catch { }
-                await Context.Channel.SendMessageAsync("Success <3");
             }
         }
     }

@@ -51,6 +51,26 @@ namespace SwissbotCore.Handlers
             client.ReactionAdded += CheckInitThread;
 
             client.UserIsTyping += CheckTicketTyping;
+
+            client.ChannelDestroyed += CheckSupportChannel;
+        }
+
+        private async Task CheckSupportChannel(SocketChannel arg)
+        {
+            if(CurrentTickets.Any(x => x.TicketChannel == arg.Id))
+            {
+                var ticket = CurrentTickets.Find(x => x.TicketChannel == arg.Id);
+                var usr = client.GetGuild(Global.SwissGuildId).GetUser(ticket.UserID);
+                CurrentTickets.Remove(ticket);
+                if(usr != null)
+                {
+                    try
+                    {
+                        await usr.SendMessageAsync("Your ticket with the staff team is now closed. If you wish to open another ticket, please send a message.");
+                    }
+                    catch { };
+                }
+            }
         }
 
         private async Task CheckTicketTyping(SocketUser arg1, ISocketMessageChannel arg2)
@@ -315,6 +335,15 @@ namespace SwissbotCore.Handlers
                 {
                     var ticket = CurrentTickets.Find(x => x.TicketChannel == Context.Channel.Id);
                     var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
+                    if(dmchan == null)
+                    {
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = $"Looks like we cant slide into <@{ticket.UserID}> dm's",
+                            Description = "They either blocked us or have left the server :("
+                        }.Build());
+                        return;
+                    }
                     var usr = Context.Guild.GetUser(Context.Message.Author.Id);
                     string msg = $"**[Staff] {(usr.Nickname == null ? usr.ToString() : usr.Nickname)}** - {string.Join(" ", args)}";
 
@@ -331,7 +360,19 @@ namespace SwissbotCore.Handlers
                     }
                     else
                     {
-                        await dmchan.SendMessageAsync(msg);
+                        try
+                        {
+                            await dmchan.SendMessageAsync(msg);
+                        }
+                        catch (Exception e)
+                        {
+                            await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                            {
+                                Title = $"Looks like we cant slide into <@{ticket.UserID}> dm's",
+                                Description = "They either blocked us or have left the server :("
+                            }.Build());
+                            return;
+                        }
                         await Context.Channel.SendMessageAsync(msg);
                     }
                     await Context.Message.DeleteAsync();
@@ -352,6 +393,15 @@ namespace SwissbotCore.Handlers
                 {
                     var ticket = CurrentTickets.Find(x => x.TicketChannel == Context.Channel.Id);
                     var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
+                    if (dmchan == null)
+                    {
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = $"Looks like we cant slide into <@{ticket.UserID}> dm's",
+                            Description = "They either blocked us or have left the server :("
+                        }.Build());
+                        return;
+                    }
                     string msg = $"**Staff** - {string.Join(" ", args)}";
                     if (Context.Message.Attachments.Count > 0)
                     {
@@ -365,7 +415,19 @@ namespace SwissbotCore.Handlers
                     }
                     else
                     {
-                        await dmchan.SendMessageAsync(msg);
+                        try
+                        {
+                            await dmchan.SendMessageAsync(msg);
+                        }
+                        catch (Exception e)
+                        {
+                            await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                            {
+                                Title = $"Looks like we cant slide into <@{ticket.UserID}> dm's",
+                                Description = "They either blocked us or have left the server :("
+                            }.Build());
+                            return;
+                        }
                         await Context.Channel.SendMessageAsync(msg);
                     }
                     await Context.Message.DeleteAsync();
@@ -396,10 +458,11 @@ namespace SwissbotCore.Handlers
                     t.Elapsed += async (object s, ElapsedEventArgs a) =>
                     {
                         var chan = Context.Channel as SocketTextChannel;
+                        closingState.Remove(closingState.Keys.First(x => x.Key == chan.Id));
+                        CurrentTickets.Remove(ticket);
                         await chan.DeleteAsync(new RequestOptions() { AuditLogReason = "Ticket Closed" });
                         var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
                         await dmchan.SendMessageAsync("Your ticket with the staff team is now closed. If you wish to open another ticket, please send a message.");
-                        CurrentTickets.Remove(ticket);
                         Global.SaveSupportTickets();
                     };
                     closingState.Add(new KeyValuePair<ulong, ulong>(Context.Channel.Id, cmsg.Id), t);

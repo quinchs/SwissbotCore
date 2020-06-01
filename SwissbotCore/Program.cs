@@ -77,24 +77,6 @@ namespace SwissbotCore
             });
 
             _handler = new CommandHandler(_client, _commands);
-
-            await Task.Delay(7500);
-
-            CommandHandler.althandler = new AltAccountHandler(_client);
-
-            CommandHandler.verificationHandler = new VerificationHandler(_client);
-
-            CommandHandler.helpMessageHandler = new HelpMessageHandler(_client);
-
-            CommandHandler.roleAssignerHandler = new RoleAssignerHandler(_client);
-
-            CommandHandler.supportTicketHandler = new SupportTicketHandler(_client);
-
-            var mutedHandler = new MutedHandler(_client);
-
-            var SuggestionHandler = new SuggestionHandler(_client);
-
-            Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
            
             await Task.Delay(-1);   
 

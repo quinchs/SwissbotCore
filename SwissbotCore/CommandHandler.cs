@@ -19,6 +19,7 @@ using SwissbotCore.Modules;
 using static SwissbotCore.CustomCommandService;
 using SwissbotCore.Handlers;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SwissbotCore
 {
@@ -62,11 +63,7 @@ namespace SwissbotCore
 
             _client.ReactionAdded += ReactionHandler;
 
-            _client.LatencyUpdated += _client_LatencyUpdated;
-
             _client.Ready += Init;
-
-            _client.UserUpdated += mork;
 
             t.Elapsed += DCRS;
             t.Enabled = true;
@@ -78,17 +75,6 @@ namespace SwissbotCore
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Services loaded, update init");
 
         }
-
-        private async Task _client_UserLeft(SocketGuildUser arg)
-        {
-            UpdateUserCount(arg);
-        }
-
-        private async Task mork(SocketUser arg1, SocketUser arg2)
-        {
-            //dothing();
-        }
-       
 
         SocketMessage r;
         private async void aiTrd()
@@ -418,33 +404,15 @@ namespace SwissbotCore
                 }
             }
         }
-
-        private async Task _client_LatencyUpdated(int arg1, int arg2)
-        {
-            Global.ConsoleLog("Latency Updated");
-            //Console.WriteLine("Latency")
-            //string usern = "Binzo - Moderator";
-            //var user = _client.GetGuild(Global.SwissGuildId).GetUser(364839544279007234);
-            //if (user.Nickname != usern)
-            //    await user.ModifyAsync(x => x.Nickname = usern);
-            await UpdateUserCount(null);
-            //if (_client.GetGuild(Global.SwissGuildId).GetUser(_client.CurrentUser.Id).Nickname != "SwissBot ( * )")
-            //{
-            //    await _client.GetGuild(Global.SwissGuildId).GetUser(_client.CurrentUser.Id).ModifyAsync(x => x.Nickname = "SwissBot ( * )");
-            //}
-            Global.ConsoleLog("Latency Finnished");
-
-        }
-
         private async Task WelcomeMessage(SocketGuildUser arg)
         {
             //george
-            if (arg.Id == 370660333783613441)
-            {
-                await arg.BanAsync();
-                _client.GetGuild(Global.SwissGuildId).GetTextChannel(592768337407115264).SendMessageAsync("@everyone BLACK ALERT: George has tried to join the server and has been banned! ");
-                return;
-            }
+            //if (arg.Id == 370660333783613441)
+            //{
+            //    await arg.BanAsync();
+            //    _client.GetGuild(Global.SwissGuildId).GetTextChannel(592768337407115264).SendMessageAsync("@everyone BLACK ALERT: George has tried to join the server and has been banned! ");
+            //    return;
+            //}
             var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
             await arg.AddRoleAsync(unVertRole);
             Console.WriteLine($"The member {arg.Username}#{arg.Discriminator} joined the guild");
@@ -484,9 +452,9 @@ namespace SwissbotCore
 
             try
             {
+                Console.WriteLine("Starting handler loading...");
+                await StartHandlers();
                 Global.UserCount = _client.GetGuild(Global.SwissGuildId).Users.Count;
-                try { await UpdateUserCount(null); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
-                Global.ConsoleLog("Finnished UserCount", ConsoleColor.Cyan);
                 try { await AddUnVert(); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
                 foreach (var arg in _client.Guilds)
                 {
@@ -507,14 +475,31 @@ namespace SwissbotCore
                 {
                     ChannelPostitions.Add(chan.Id, chan.Position);
                 }
-               
+                Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
+
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
         }
-       
+        public bool FirstPass = false;
+        public async Task StartHandlers()
+        {
+            if(!FirstPass)
+            {
+                CommandHandler.althandler = new AltAccountHandler(_client);
+                CommandHandler.helpMessageHandler = new HelpMessageHandler(_client);
+                CommandHandler.roleAssignerHandler = new RoleAssignerHandler(_client);
+                CommandHandler.supportTicketHandler = new SupportTicketHandler(_client);
+                var SuggestionHandler = new SuggestionHandler(_client);
+                var mutedHandler = new MutedHandler(_client);
+                var memberhandler = new MemberCountHandler(_client);
+                CommandHandler.verificationHandler = new VerificationHandler(_client);
+                FirstPass = true;
+            }
+        }
         private async Task LoadLLogs()
         {
             Global.linkLogs = new Dictionary<string, List<Global.LogItem>>();
@@ -631,32 +616,6 @@ namespace SwissbotCore
                 }
             }
         }
-        private async Task UpdateUserCount(SocketGuildUser arg)
-        {
-            try
-            {
-                var g = _client.GetGuild(Global.SwissGuildId);
-                if (g == null)
-                    return;
-                var users = g.Users;
-
-                Global.UserCount = users.Count + 2;
-
-                Global.ConsoleLog($"Ucount {users.Count - 20}, usersSCount{users.Count}");
-                var chan =  g.GetVoiceChannel(Global.StatsTotChanID);
-                Global.ConsoleLog("Modifying..");
-                await chan.ModifyAsync(x =>
-                {
-                    x.Name = $"Total Users: {users.Count + 2}";
-                });
-                Global.ConsoleLog("Completed mod..");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-        }
-
         private async Task LogMessage(SocketMessage arg)
         {
             Global.ConsoleLog("Message from: " + arg.Author, ConsoleColor.Magenta);
@@ -792,7 +751,7 @@ namespace SwissbotCore
                     {
                         if (msg.Content.StartsWith($"{Global.Preflix}echo")) { await EchoMessage(context); return; }
                         var result = await _service.ExecuteAsync(context);
-                        Console.WriteLine(result.Result.ToString());
+                        Global.ConsoleLog($"Executed {context.Message.Content} with a result of {result.Result}!", ConsoleColor.Cyan);
                         if (result.MultipleResults)
                         {
                             foreach(var r in result.Results)

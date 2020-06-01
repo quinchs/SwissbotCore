@@ -903,5 +903,84 @@ namespace SwissbotCore.Modules
                 return;
             }
         }
+        [DiscordCommand("purge", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)purge <ammount>`", description = "Deletes `x` ammount of messages")]
+        public async Task purge(uint amount)
+        {
+            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
+            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.ModeratorRoleID).Position;
+            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
+            if (rolepos != null || r.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
+            {
+                var messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
+                await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
+                const int delay = 2000;
+                var m = await Context.Channel.SendMessageAsync($"Purge completed!");
+                await Task.Delay(delay);
+                await m.DeleteAsync();
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync("You do not have permission to use this command!");
+            }
+        }
+        [DiscordCommand("purge")]
+        public async Task purge(string usr, uint ammount)
+        {
+            if(!HasExecutePermission)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "What are you tryna do? hack earth?",
+                    Description = "you do **NOT** have permission!",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            Regex r = new Regex("(\\d{18})");
+            ulong id;
+            try
+            {
+                id = Convert.ToUInt64(r.Match(usr).Groups[1].Value);
+            }
+            catch (Exception ex)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "Invalid ID",
+                    Description = "The ID you provided is invalid!",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            var user = Context.Guild.GetUser(id);
+            if(user == null)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "Invalid ID",
+                    Description = "The user is not in the server or the ID is invalid!",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            var tmp = await Context.Channel.GetMessagesAsync(100).FlattenAsync();
+            if(!tmp.Any(x => x.Author.Id == id))
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "Unable to find messages",
+                    Description = $"we cant find messages from <@{id}>!",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+            var messages = tmp.Where(x => x.Author.Id == id).Take((int)ammount);
+            await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
+            const int delay = 2000;
+            var m = await Context.Channel.SendMessageAsync($"Purge completed!");
+            await Task.Delay(delay);
+            await m.DeleteAsync();
+
+        }
     }
 }
