@@ -137,7 +137,7 @@ namespace SwissbotCore.Handlers
                 commandHelp = "Usage - `(PREFIX)suggestion <accept/deny/delete/update> <MessageID> <Reason>` or `(PREFIX)suggestion status <MessageID> <InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed> <Reason>`")]
             public async Task suggestions(params string[] args)
             {
-                if (!HasExecutePermission)
+                if (!HasExecutePermission || Context.User.Id == 221204198287605770)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
                     {

@@ -22,11 +22,11 @@ namespace SwissbotCore.Handlers
         public static RoleCard Rolecard = Global.ReadRoleCard();
         public RoleAssignerHandler(DiscordSocketClient c)
         {
-            //client = c;
+            client = c;
 
-            //client.ReactionAdded += CheckReactAdd;
+            client.ReactionAdded += CheckReactAdd;
 
-            //client.ReactionRemoved += CheckReactRemove;
+            client.ReactionRemoved += CheckReactRemove;
         }
         
         private async Task CheckReactRemove(Discord.Cacheable<Discord.IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
@@ -148,13 +148,13 @@ namespace SwissbotCore.Handlers
             )]
             public async Task CreateRoleCard(params string[] args)
             {
-                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                {
-                    Title = "Sorry bud",
-                    Description = $"This has been disabled bucko",
-                    Color = Color.Red
-                }.Build());
-                return;
+                //await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                //{
+                //    Title = "Sorry bud",
+                //    Description = $"This has been disabled bucko",
+                //    Color = Color.Red
+                //}.Build());
+                //return;
                 if (!HasExecutePermission)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
@@ -189,6 +189,7 @@ namespace SwissbotCore.Handlers
                 var channel = Context.Message.MentionedChannels.First();
                 var redargs = args.Skip(1).ToArray();
                 var tmpRolecard = new RoleCard();
+                tmpRolecard.ChannelID = channel.Id;
                 tmpRolecard.RoleEmojiIDs = new List<RoleCard.RoleEmoteDesc>();
                 if (redargs.Any(x => x.Contains(",")))//multiple
                 {
@@ -343,7 +344,7 @@ namespace SwissbotCore.Handlers
                         em.Add(new Emoji(r.Emote));
                 }
                 eb.Description = des;
-                var msg = await Context.Channel.SendMessageAsync("", false, eb.Build());
+                var msg = await Context.Guild.GetTextChannel(c.ChannelID).SendMessageAsync("", false, eb.Build());
                 await msg.AddReactionsAsync(em.ToArray());
                 c.ServerID = Context.Guild.Id;
                 c.MessageID = msg.Id;
@@ -359,13 +360,13 @@ namespace SwissbotCore.Handlers
             
             public async Task AddRoleToCard(params string[] args)
             {
-                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                {
-                    Title = "Sorry bud",
-                    Description = $"This has been disabled bucko",
-                    Color = Color.Red
-                }.Build());
-                return;
+                //await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                //{
+                //    Title = "Sorry bud",
+                //    Description = $"This has been disabled bucko",
+                //    Color = Color.Red
+                //}.Build());
+                //return;
                 if (!HasExecutePermission)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
@@ -473,13 +474,13 @@ namespace SwissbotCore.Handlers
             )]
             public async Task RemoveRoleFromCard(string r)
             {
-                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                {
-                    Title = "Sorry bud",
-                    Description = $"This has been disabled bucko",
-                    Color = Color.Red
-                }.Build());
-                return;
+                //await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                //{
+                //    Title = "Sorry bud",
+                //    Description = $"This has been disabled bucko",
+                //    Color = Color.Red
+                //}.Build());
+                //return;
                 if (!HasExecutePermission)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()

@@ -264,7 +264,7 @@ namespace SwissbotCore.Modules
                 {
                     await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
                     {
-                        Title = "Thats an invalid user, they might now be in the discord server",
+                        Title = "Thats an invalid user, they might not be in the discord server",
                         Description = "we cant use commands on people who are not here :/",
                         Color = Color.Red
                     }.Build());

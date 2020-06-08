@@ -307,7 +307,55 @@ namespace SwissbotCore.Modules
                 await CommandHandler.SendMilestone(Convert.ToInt32(count), Context.Channel.Id);
             }
         }
-
+        [DiscordCommand("owo", BotCanExecute = false, commandHelp = "`(PREFIX)owo <msg>`", description ="turn your message into a cursed mess" )]
+        public async Task Owo(params string[] arg)
+        {
+            if (Context.Message.MentionedRoles.Count > 0)
+            {
+                await Context.Channel.SendMessageAsync("sowwy but yu cant mentwion woles :(");
+                return;
+            }
+            if (Context.Message.MentionedUsers.Count > 0)
+            {
+                await Context.Channel.SendMessageAsync("sowwy but yu cant mentwion usewrs :(");
+                return;
+            }
+            if (arg.Length != 0)
+                await Context.Channel.SendMessageAsync(oWoTextLmao(string.Join(' ', arg)));
+            else
+                await Context.Channel.SendMessageAsync(oWoTextLmao("What do you want me to owo? please do ") + "`*owo <msg>`");
+        }
+        [DiscordCommand("uwu", BotCanExecute = false, commandHelp = "`(PREFIX)uwu <msg>`", description = "turn your message into a cursed mess")]
+        public async Task uwu(params string[] arg)
+        {
+            if(Context.Message.MentionedRoles.Count > 0)
+            {
+                await Context.Channel.SendMessageAsync("sowwy but yu cant mentwion woles :(");
+                return;
+            }
+            if(Context.Message.MentionedUsers.Count > 0)
+            {
+                await Context.Channel.SendMessageAsync("sowwy but yu cant mentwion usewrs :(");
+                return;
+            }
+            if (arg.Length != 0)
+                await Context.Channel.SendMessageAsync(oWoTextLmao(string.Join(' ', arg)));
+            else
+                await Context.Channel.SendMessageAsync(oWoTextLmao("What do you want me to uwu? please do ") + "`*uwu <msg>`");
+        }
+        public string oWoTextLmao(string text)
+        {
+            string final = Regex.Replace(text, "(?:r|l)", "w");
+            final = Regex.Replace(final, "(?:R|L)", "W");
+            final = Regex.Replace(final, "n([aeiou])", "ny");
+            final = Regex.Replace(final, "N([aeiou])", "Ny");
+            final = Regex.Replace(final, "N([AEIOU])", "Ny");
+            final = Regex.Replace(final, "ove", "uv");
+            final = final.Replace("@here", "@h3re");
+            final = final.Replace("@everyone", "@every0ne");
+            //final = Regex.Replace(final, @"/\!+/g", "");
+            return final;
+        }
 
         [DiscordCommand("quinasking", description ="*loads gun*")]
         public async Task quinasking()

@@ -348,8 +348,14 @@ namespace SwissbotCore
         internal static RoleAssignerHandler.RoleCard ReadRoleCard()
         {
             //return File.ReadAllText(RoleCardFilepath) != "" ? JsonConvert.DeserializeObject<RoleAssignerHandler.RoleCard>(File.ReadAllText(RoleCardFilepath)) : null;
-            return SwissbotStateHandler.LoadObject<RoleAssignerHandler.RoleCard>("RoleCards.json").GetAwaiter().GetResult();
-
+            try
+            {
+                return SwissbotStateHandler.LoadObject<RoleAssignerHandler.RoleCard>("RoleCards.json").GetAwaiter().GetResult();
+            }
+            catch(Exception ex)
+            {
+                return new RoleAssignerHandler.RoleCard();
+            }
         }
         public static void SaveRoleCard()
         {
@@ -448,6 +454,21 @@ namespace SwissbotCore
         public static void SaveSuggestions()
         {
             SwissbotStateHandler.SaveObject("Suggestions.json", SuggestionHandler.CurrentSuggestions);
+        }
+        public static void SaveAutoSlowmode()
+        {
+            SwissbotStateHandler.SaveObject("AutoSlowmode.json", AutoModHandler.CurrentSlowmodes);
+        }
+        public static List<AutoModHandler.SlowmodeChannel> LoadAutoSlowmode()
+        {
+            try
+            {
+                return SwissbotStateHandler.LoadObject<List<AutoModHandler.SlowmodeChannel>>("AutoSlowmode.json").GetAwaiter().GetResult();
+            }
+            catch
+            {
+                return new List<AutoModHandler.SlowmodeChannel>();
+            }
         }
         public struct UnnaprovedSubs
         {

@@ -35,6 +35,14 @@ namespace SwissbotCore.Handlers
                 if (arg3.Emote.Name == emote.Name)
                 {
                     if (user == null) { user = _client.GetGuild(Global.SwissGuildId).GetUser(arg1.Value.Author.Id); }
+                    if(user == null) 
+                    {
+                        await arg2.SendMessageAsync("users not in server");
+                        var msg = await arg2.GetMessageAsync(arg3.MessageId);
+                        await msg.DeleteAsync();
+                        FList.Remove(arg3.MessageId);
+                        return;
+                    }
                     string nick = "";
                     if (user.Nickname != null)
                         nick = user.Nickname;
