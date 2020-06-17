@@ -377,25 +377,6 @@ namespace SwissbotCore
 
             if (context.Channel.GetType() == typeof(SocketDMChannel) && !currentSettings.DMCommands)
                 return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidPermissions };
-
-            if (commandobj.Any(x => x.Paramaters.Length == 0) && param.Length == 0)
-            {
-                try
-                {
-                    var cmd = commandobj.First(x => x.Paramaters.Length == 0);
-                    cmd.parent.ClassInstance.GetType().GetProperty("Context").SetValue(cmd.parent.ClassInstance, context);
-
-                    var d = (Func<Task>)Delegate.CreateDelegate(typeof(Func<Task>), cmd.parent.ClassInstance, cmd.Method);
-                    await d();
-                    //cmd.Method.Invoke(cmd.parent.ClassInstance, null);
-                    return new CommandResult() { Result = CommandStatus.Success, IsSuccess = true };
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                    return new CommandResult() { Exception = ex, Result = CommandStatus.Error, IsSuccess = false };
-                }
-            }
             List<CommandResult> results = new List<CommandResult>();
             //1 find if param counts match
             foreach (var cmd in commandobj)

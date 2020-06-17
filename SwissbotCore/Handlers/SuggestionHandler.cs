@@ -137,7 +137,7 @@ namespace SwissbotCore.Handlers
                 commandHelp = "Usage - `(PREFIX)suggestion <accept/deny/delete/update> <MessageID> <Reason>` or `(PREFIX)suggestion status <MessageID> <InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed> <Reason>`")]
             public async Task suggestions(params string[] args)
             {
-                if (!HasExecutePermission || Context.User.Id == 221204198287605770)
+                if (!HasExecutePermission)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
                     {
@@ -147,7 +147,7 @@ namespace SwissbotCore.Handlers
                     }.Build());
                     return;
                 }
-                if(Context.Guild.GetUser(Context.Message.Author.Id).Hierarchy < Context.Guild.GetRole(592464345322094593).Position)
+                if(Context.Guild.GetUser(Context.Message.Author.Id).Hierarchy < Context.Guild.GetRole(592755793808588840).Position)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
                     {

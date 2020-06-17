@@ -59,53 +59,42 @@ namespace SwissbotCore.Modules
             await typingChannel.TriggerTypingAsync();
             await Context.Channel.SendMessageAsync($"Number: {ans}");
         }
-
-        [DiscordCommand("userinfo", commandHelp = "(PREFIX)userinfo <user>", description = "Shows information about a user such as when they joined")]
-        //[Command("userinfo")]
-        public async Task Userinfo([Optional] string inputUser)
+        public async Task<Embed> GetUserInfo(SocketUser user)
         {
-            if (!Context.Message.MentionedUsers.Any())
-            {
-                await Context.Channel.SendMessageAsync("Can't give you any information if you don't specify a member");
-            }
-
-            var user = Context.Message.MentionedUsers.First();
-            SocketGuildUser SGU = (SocketGuildUser)Context.Message.MentionedUsers.First();
-            var GuildUser = Context.Guild.GetUser(Context.User.Id);
-            var typingChannel = Context.Channel;
-            await typingChannel.TriggerTypingAsync();
-            string nickState = "";
-
-            if (SGU.Nickname == null)
-            {
-                await Context.Channel.SendMessageAsync($"null");
-                string nul = "null";
-                nickState = nul;
-            }
-
-            else
-            {
-                await Context.Channel.SendMessageAsync(SGU.Nickname);
+            SocketGuildUser SGU = (SocketGuildUser)user;
+              string nickState = "";
+            if (SGU.Nickname != null)
                 nickState = SGU.Nickname;
-
-            }
-
             EmbedBuilder eb = new EmbedBuilder()
             {
                 Title = "I am a title!",
-                Description = "I am a description set by initializer.",
+                Description = $"if you see this, somthings wrong",
             };
-            eb.AddField($"Roles:[{SGU.Roles.Count}]", $"{String.Join(separator: ", @", values: SGU.Roles.Select(r => r.ToString()))}");
+            eb.AddField($"Roles: [{SGU.Roles.Count}]", $"<@&{String.Join(separator: ">,\n <@&", values: SGU.Roles.Select(r => r.Id))}>");
             eb.AddField("ID:", $"{user.Id}")
-                .WithAuthor(Context.Client.CurrentUser)
+                .AddField("Username", user)
+                .AddField("Nickname?", nickState == "" ? "None" : nickState)
+                .AddField("Status", user.Status)
+                .AddField("Created at UTC", user.CreatedAt.UtcDateTime.ToString("r"))
+                .AddField("Joined at UTC?", SGU.JoinedAt.HasValue ? SGU.JoinedAt.Value.UtcDateTime.ToString("r") : "No value :/")
+                .WithAuthor(SGU)
                 .WithColor(Color.DarkPurple)
-                .WithTitle($"***{user.Username}***")
-                .WithDescription($"{user.Username}#{user.Discriminator}\n Nickname: {nickState}\n status: {user.Status}\n Account created at date: {user.CreatedAt}\nJoined server at: {SGU.JoinedAt}")// +
+                .WithTitle($"{user.Username}")
+                .WithDescription($"Heres some stats for {user} <3")
 
-            .WithCurrentTimestamp()
-            .Build();
+            .WithCurrentTimestamp();
 
-            await Context.Channel.SendMessageAsync("", false, eb.Build());
+            return eb.Build();
+        }
+        [DiscordCommand("userinfo", commandHelp = "(PREFIX)userinfo <user>", description = "Shows information about a user such as when they joined")]
+        //[Command("userinfo")]
+        public async Task Userinfo(params string[] arg)
+        {
+            if (arg.Length == 0)
+                await Context.Channel.SendMessageAsync("", false, await GetUserInfo(Context.Message.Author));
+            else
+                if(Context.Message.MentionedUsers.Any())
+                    await Context.Channel.SendMessageAsync("", false, await GetUserInfo(Context.Message.MentionedUsers.First()));
         }
     }
 }

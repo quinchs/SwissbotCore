@@ -442,15 +442,19 @@ namespace SwissbotCore.Handlers
             )]
             public async Task Close()
             {
+                Global.ConsoleLog("Has Permission: " + HasExecutePermission);
                 if (!HasExecutePermission)
                     return;
-                if(CurrentTickets.Any(x => x.TicketChannel == Context.Channel.Id))
+                if (CurrentTickets.Any(x => x.TicketChannel == Context.Channel.Id))
                 {
                     var ticket = CurrentTickets.Find(x => x.TicketChannel == Context.Channel.Id);
 
                     if (closingState.Keys.Any(x => x.Key == Context.Channel.Id))
+                    {
+                        Global.ConsoleLog("No Closing state");
+
                         return;
-                    
+                    }
                     var cmsg = await Context.Channel.SendMessageAsync("This thread will be closed in 5 seconds. If you wish to cancel this, please click the X mark.");
 
                     await cmsg.AddReactionAsync(new Emoji("❌"));
@@ -462,12 +466,15 @@ namespace SwissbotCore.Handlers
                         CurrentTickets.Remove(ticket);
                         await chan.DeleteAsync(new RequestOptions() { AuditLogReason = "Ticket Closed" });
                         var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
-                        await dmchan.SendMessageAsync("Your ticket with the staff team is now closed. If you wish to open another ticket, please send a message.");
+                        if (dmchan != null) 
+                            await dmchan.SendMessageAsync("Your ticket with the staff team is now closed. If you wish to open another ticket, please send a message.");
                         Global.SaveSupportTickets();
                     };
                     closingState.Add(new KeyValuePair<ulong, ulong>(Context.Channel.Id, cmsg.Id), t);
-                    
+
                 }
+                else
+                    Global.ConsoleLog("cant find chan for close");
             }
             [DiscordCommand("snippets",
             description = "View the ticket snippets *only works in thread channels*",
