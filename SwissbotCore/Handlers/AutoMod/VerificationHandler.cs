@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     class VerificationHandler
     {
         public static Dictionary<ulong, ulong> FList =new Dictionary<ulong, ulong>();
@@ -19,6 +20,8 @@ namespace SwissbotCore.Handlers
             FList = Global.ReadAltCards();
 
             _client = client;
+
+            _client.ReactionAdded += CheckVerification;
             try { CheckVerts().GetAwaiter().GetResult(); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
 
         }

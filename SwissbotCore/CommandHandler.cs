@@ -27,15 +27,16 @@ namespace SwissbotCore
     {
         public static DiscordSocketClient _client;
         private CustomCommandService _service;
-        public static AltAccountHandler althandler;
-        public static VerificationHandler verificationHandler;
-        public static HelpMessageHandler helpMessageHandler;
-        public static RoleAssignerHandler roleAssignerHandler;
-        public static SupportTicketHandler supportTicketHandler;
+        private HandlerService handlerService;
+        //public static AltAccountHandler althandler;
+        //public static VerificationHandler verificationHandler;
+        //public static HelpMessageHandler helpMessageHandler;
+        //public static RoleAssignerHandler roleAssignerHandler;
+        //public static SupportTicketHandler supportTicketHandler;
         internal System.Timers.Timer t = new System.Timers.Timer();
         
         Dictionary<ulong, int> ChannelPostitions = new Dictionary<ulong, int>();
-        public CommandHandler(DiscordSocketClient client, CustomCommandService service)
+        public CommandHandler(DiscordSocketClient client, CustomCommandService service, HandlerService s)
         {
             _client = client;
 
@@ -45,7 +46,7 @@ namespace SwissbotCore
 
             _service = service;
 
-            //create /handlers
+            handlerService = s;
 
             _client.MessageReceived += LogMessage;
 
@@ -334,11 +335,7 @@ namespace SwissbotCore
                
             try
             {
-                if (verificationHandler != null)
-                    await verificationHandler.CheckVerification(arg1, arg2, arg3);
                 await checkSub(arg1, arg2, arg3);
-                if (helpMessageHandler != null)
-                    await helpMessageHandler.HandleHelpMessage(arg1, arg2, arg3);
             }
             catch (Exception ex)
             {
@@ -487,18 +484,7 @@ namespace SwissbotCore
         public bool FirstPass = false;
         public async Task StartHandlers()
         {
-            if(!FirstPass)
-            {
-                CommandHandler.althandler = new AltAccountHandler(_client);
-                CommandHandler.helpMessageHandler = new HelpMessageHandler(_client);
-                CommandHandler.roleAssignerHandler = new RoleAssignerHandler(_client);
-                CommandHandler.supportTicketHandler = new SupportTicketHandler(_client);
-                var SuggestionHandler = new SuggestionHandler(_client);
-                var mutedHandler = new MutedHandler(_client);
-                var memberhandler = new MemberCountHandler(_client);
-                CommandHandler.verificationHandler = new VerificationHandler(_client);
-                FirstPass = true;
-            }
+            handlerService.CreateHandlers();
         }
         private async Task LoadLLogs()
         {

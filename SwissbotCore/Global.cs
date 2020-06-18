@@ -208,7 +208,14 @@ namespace SwissbotCore
             TicketCategoryID = data.TicketCategoryID;
             SuggestionChannelID = data.SuggestionChannelID;
             TicketSnippets = data.TicketSnippets;
-            CensoredWords = SwissbotStateHandler.LoadObject<List<string>>("Censor.json").Result;
+            try
+            {
+                CensoredWords = SwissbotStateHandler.LoadObject<List<string>>("Censor.json").Result;
+            }
+            catch
+            {
+                CensoredWords = new List<string>(); 
+            }
             ConsoleLog("Read New configPerm items. here is the new JSON \n " + File.ReadAllText(ConfigPath) + "\n", ConsoleColor.DarkYellow, ConsoleColor.Black);
 
 

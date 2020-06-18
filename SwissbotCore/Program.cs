@@ -33,6 +33,7 @@ namespace SwissbotCore
         private DiscordSocketClient _client;
         private CustomCommandService _commands;
         private CommandHandler _handler;
+        private HandlerService handlerService;
        
         public async Task StartAsync()
         {
@@ -75,8 +76,9 @@ namespace SwissbotCore
                 AllowCommandExecutionOnInvalidPermissions = true,
                 DMCommands = false
             });
+            handlerService = new HandlerService(_client);
 
-            _handler = new CommandHandler(_client, _commands);
+            _handler = new CommandHandler(_client, _commands, handlerService);
            
             await Task.Delay(-1);   
 

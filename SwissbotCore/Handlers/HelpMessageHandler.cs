@@ -11,6 +11,7 @@ using Discord.Commands;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     public class HelpMessageHandler
     {
         public static int HelpmsgPerPage = 8;
@@ -28,6 +29,7 @@ namespace SwissbotCore.Handlers
         {
             this.client = client;
             BuildHelpPages();
+            client.ReactionAdded += HandleHelpMessage;
             HelpPagesPublicCount = (int)Math.Ceiling((double)HelpPagesPublic.Count / (double)HelpmsgPerPage);
             HelpPagesStaffCount = (int)Math.Ceiling((double)HelpPagesStaff.Count / (double)HelpmsgPerPage);
             HelpPagesDevCount = (int)Math.Ceiling((double)HelpPagesDev.Count / (double)HelpmsgPerPage);

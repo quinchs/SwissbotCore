@@ -16,6 +16,7 @@ using System.Timers;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     class RoleAssignerHandler
     {
         public static DiscordSocketClient client;

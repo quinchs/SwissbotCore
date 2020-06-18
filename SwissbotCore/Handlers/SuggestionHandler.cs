@@ -10,6 +10,7 @@ using Discord.Rest;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     class SuggestionHandler
     {
         public static DiscordSocketClient client { get; set; }

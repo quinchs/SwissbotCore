@@ -72,7 +72,11 @@ namespace SwissbotCore.Modules
                     }
             }
 
-            Global.VerifyAlts = setting;
+            //Global.VerifyAlts = setting;
+
+            var data = modifyJsonData(Global.CurrentJsonData, "VerifyAlts", setting);
+            Global.SaveConfig(data);
+            Global.ReadConfig();
             await Context.Channel.SendMessageAsync("Set the alt verification to " + param);
         }
         [DiscordCommand("support", description = "i am once again asking for you financial support")]

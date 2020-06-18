@@ -226,6 +226,7 @@ namespace SwissbotCore
             UsedPrefixes = new List<char>();
             foreach (var item in CommandMethods)
             {
+                var x = item.Key.GetCustomAttributes();
                 var cmdat = item.Key.GetCustomAttribute<DiscordCommand>();
                 var parat = item.Value.GetCustomAttribute<DiscordCommandClass>();
                 if (cmdat.commandHelp != null)

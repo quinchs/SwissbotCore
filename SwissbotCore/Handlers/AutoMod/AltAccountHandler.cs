@@ -8,6 +8,7 @@ using static SwissbotCore.Handlers.VerificationHandler;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     class AltAccountHandler
     {
         public DiscordSocketClient _client;

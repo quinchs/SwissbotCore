@@ -10,6 +10,7 @@ using System.Timers;
 
 namespace SwissbotCore.Handlers
 {
+    //[DiscordHandler]
     class AutoModHandler
     {
         public DiscordSocketClient client { get; set; }

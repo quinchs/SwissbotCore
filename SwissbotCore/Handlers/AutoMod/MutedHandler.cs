@@ -10,6 +10,7 @@ using System.Timers;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     public class MutedHandler
     {
         public static Dictionary<ulong, DateTime> CurrentMuted = Global.LoadMuted();

@@ -982,5 +982,115 @@ namespace SwissbotCore.Modules
             await m.DeleteAsync();
 
         }
+        [DiscordCommand("rule", 
+            BotCanExecute = false, 
+            commandHelp = "`(PREIFX)rule <rule_number>`", 
+            description = "Fetches a rule.", 
+            RequiredPermission = false)]
+        public async Task rules(params string[] args)
+        {
+            if(args.Length == 0)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "What rule?",
+                    Description = "You didnt provide a rule number, please provide one like this! `*rule 16a`"
+
+                }.Build());
+                return;
+            }
+            Regex r = new Regex(@".*?(\d{1,2}\w|\d{1,2}|\d{1,2}\w\*\*\.|\d{1,2}\*\*\.)\.*\**\**(.*?)(\n|$)");
+            var rulesChan = Context.Guild.GetTextChannel(593154693459476480);
+            if(rulesChan == null)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Uh oh...",
+                    Description = "looks like the rule channel was unable to be read, please contact quin."
+
+                }.Build());
+                return;
+            }
+            var accountRules = await rulesChan.GetMessageAsync(665346271044698133);
+            var serverRules = await rulesChan.GetMessageAsync(665346469074567178);
+            var contentRules = await rulesChan.GetMessageAsync(665346492403417096);
+            var vcRules = await rulesChan.GetMessageAsync(665346512544595968);
+
+            var mths1 = r.Matches(accountRules.Content);
+            var mths2 = r.Matches(serverRules.Content);
+            var mths3 = r.Matches(contentRules.Content);
+            var mths4 = r.Matches(vcRules.Content);
+            var rs1 = await buildmessage(mths1, "Account Rules:", args);
+            var rs2 = await buildmessage(mths2, "Server Rules:", args);
+            var rs3 = await buildmessage(mths3, "Content Rules:", args);
+            var rs4 = await buildmessage(mths4, "Voice Chat Rules:", args);
+
+            if (rs1 != null)
+                await Context.Channel.SendMessageAsync("", false, rs1);
+            else
+                if (rs2 != null)
+                await Context.Channel.SendMessageAsync("", false, rs2);
+            else
+                if (rs3 != null)
+                await Context.Channel.SendMessageAsync("", false, rs3);
+            else
+                if (rs4 != null)
+                await Context.Channel.SendMessageAsync("", false, rs4);
+            else
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "That rule doesnt exist buddy",
+                    Description = $"The rule \"{args[0]}\" doesn't exist!",
+                    Color = Color.Red
+                }.Build());
+        }
+        public async Task<Embed?> buildmessage(MatchCollection mths, string title, string[] args)
+        {
+            if (mths.Any(x => x.Groups[1].Value == args[0].ToLower()))
+            {
+                var match = mths.First(x => x.Groups[1].Value == args[0].ToLower());
+                int index = 0;
+                for (int i = 0; i != mths.Count; i++)
+                    if (mths[i] == match)
+                        index = i;
+
+                string bCont = $"";
+                string mCont = "";
+                string aCont = "";
+                if (index != 0)
+                    bCont = $"**{mths[index - 1].Groups[1]}.** {mths[index - 1].Groups[2].Value.Remove(0, 1)}";
+                else
+                    bCont = "Rules";
+                mCont = $"**{mths[index].Groups[1]}.** {mths[index].Groups[2].Value.Remove(0, 1)}";
+                if (index + 1 >= mths.Count)
+                    aCont = "__\n__";
+                else
+                    aCont = $"**{mths[index + 1].Groups[1]}.** {mths[index + 1].Groups[2].Value.Remove(0, 1)}";
+
+                //await Context.Channel.SendMessageAsync("", false, );
+                return new EmbedBuilder()
+                {
+                    Title = $"{title}",
+                    Description = $"Rule **{args[0]}** falls under the **{title.Replace(':', ' ')}**",
+                    Color = Color.Blue,
+                    Fields = new List<EmbedFieldBuilder>()
+                    {
+                        new EmbedFieldBuilder()
+                        {
+                            Name = bCont,
+                            Value = mCont
+                        },
+                        new EmbedFieldBuilder()
+                        {
+                            Name = aCont,
+                            Value ="__\n__"
+                        }
+                    },
+                    Timestamp = DateTimeOffset.UtcNow,
+                }.Build();
+            }
+            else
+                return null;
+        }
     }
 }

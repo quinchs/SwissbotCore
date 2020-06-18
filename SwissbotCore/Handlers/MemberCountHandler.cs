@@ -6,6 +6,7 @@ using System.Timers;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     class MemberCountHandler
     {
         public DiscordSocketClient client;

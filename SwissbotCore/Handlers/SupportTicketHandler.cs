@@ -16,6 +16,7 @@ using System.IO;
 
 namespace SwissbotCore.Handlers
 {
+    [DiscordHandler]
     public class SupportTicketHandler
     {
         public DiscordSocketClient client { get; set; }
