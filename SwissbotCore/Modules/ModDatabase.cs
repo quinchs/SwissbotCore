@@ -811,7 +811,7 @@ namespace SwissbotCore.Modules
                         } }
                     }
                 }.Build();
-                await Context.Channel.SendMessageAsync("", false, b2);
+                    await Context.Channel.SendMessageAsync("", false, b2);
                 try
                 {
                     await usr.SendMessageAsync("", false, b);

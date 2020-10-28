@@ -2,7 +2,11 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -78,7 +82,7 @@ namespace SwissbotCore.Modules
                 .AddField("Created at UTC", user.CreatedAt.UtcDateTime.ToString("r"))
                 .AddField("Joined at UTC?", SGU.JoinedAt.HasValue ? SGU.JoinedAt.Value.UtcDateTime.ToString("r") : "No value :/")
                 .WithAuthor(SGU)
-                .WithColor(Color.DarkPurple)
+                .WithColor(Discord.Color.DarkPurple)
                 .WithTitle($"{user.Username}")
                 .WithDescription($"Heres some stats for {user} <3")
 
@@ -95,6 +99,58 @@ namespace SwissbotCore.Modules
             else
                 if(Context.Message.MentionedUsers.Any())
                     await Context.Channel.SendMessageAsync("", false, await GetUserInfo(Context.Message.MentionedUsers.First()));
+        }
+        [DiscordCommand("ryanair")]
+        public async Task Crash(params string[] _args)
+        {
+            WebClient wc = new WebClient();
+            byte[] bytes = wc.DownloadData("https://cdn.discordapp.com/attachments/701032180893220914/728683860237222019/1176648.png");
+            MemoryStream ms = new MemoryStream(bytes);
+            System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
+            string purl;
+            if (!(Context as SocketCommandContext).Message.MentionedUsers.Any())
+            {
+                purl = Context.Message.Author.GetAvatarUrl();
+            }
+            else
+            {
+                purl = (Context as SocketCommandContext).Message.MentionedUsers.First().GetAvatarUrl();
+            }
+            byte[] bytes2 = wc.DownloadData(purl);
+            MemoryStream ms2 = new MemoryStream(bytes2);
+            System.Drawing.Image img2 = System.Drawing.Image.FromStream(ms2);
+            int width = img.Width;
+            int height = img.Height;
+            using (img)
+            {
+                using (var bitmap = new Bitmap(img.Width, img.Height))
+                {
+                    using (var canvas = Graphics.FromImage(bitmap))
+                    {
+                        canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        canvas.DrawImage(img,
+                                         new Rectangle(0,
+                                                       0,
+                                                       width,
+                                                       height),
+                                         new Rectangle(0,
+                                                       0,
+                                                       img.Width,
+                                                       img.Height),
+                                         GraphicsUnit.Pixel);
+                        canvas.DrawImage(img2, (img.Width / 2) - (img2.Width / 2) + 160, (img.Height / 2) - img2.Height - 30, 160, 160);
+                        canvas.Save();
+                    }
+                    try
+                    {
+                        bitmap.Save($"{Environment.CurrentDirectory}\\img.jpg",
+                                    System.Drawing.Imaging.ImageFormat.Jpeg);
+                        await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}\\img.jpg");
+                        //this.BackgroundImage = bitmap;
+                    }
+                    catch (Exception ex) { }
+                }
+            }
         }
     }
 }

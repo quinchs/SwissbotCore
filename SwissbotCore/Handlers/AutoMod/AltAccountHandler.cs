@@ -20,6 +20,8 @@ namespace SwissbotCore.Handlers
         }
         public async Task CheckAlt(SocketGuildUser arg)
         {
+            if (arg.Guild.Id != Global.SwissGuildId)
+                return;
             if (IsAlt(arg))
             {
                 EmbedBuilder b = new EmbedBuilder()

@@ -23,6 +23,8 @@ namespace SwissbotCore.Handlers
         Dictionary<ulong, KeyValuePair<ulong, string>> Setups { get; set; }
         static Dictionary<KeyValuePair<ulong, ulong>, Timer> closingState { get; set; }
         public static List<SupportTicket> CurrentTickets { get; set; }
+        public static List<ulong> WelcomeMessages { get; set; } = new List<ulong>();
+
         public static List<ulong> BlockedUsers = Global.LoadBlockedUsers();
         public static Dictionary<string, string> Snippets = Global.LoadSnippets();
         public class SupportTicket
@@ -31,6 +33,8 @@ namespace SwissbotCore.Handlers
             public ulong DMChannelID { get; set; }
             public ulong TicketChannel { get; set; }
             public TypingState DMTyping { get; set; }
+            public bool Welcomed { get; set; } = false;
+            public TicketTranscript Transcript;
         }
         public class TypingState
         {
@@ -117,9 +121,9 @@ namespace SwissbotCore.Handlers
                 //checkmark
                 if (arg3.Emote.Equals(new Emoji("✅")))
                 {
-                    if(client.GetGuild(Global.SwissGuildId).Users.Any(x => x.Id == usr.Id))
+                    if (client.GetGuild(Global.SwissGuildId).Users.Any(x => x.Id == usr.Id))
                     {
-                        if(BlockedUsers.Any(x => x == usr.Id))
+                        if (BlockedUsers.Any(x => x == usr.Id))
                         {
                             await arg2.SendMessageAsync("", false, new EmbedBuilder()
                             {
@@ -146,7 +150,7 @@ namespace SwissbotCore.Handlers
                     }
                     else
                     {
-                        await usr.SendMessageAsync("", false, new EmbedBuilder() 
+                        await usr.SendMessageAsync("", false, new EmbedBuilder()
                         {
                             Title = "Sorry... :(",
                             Description = "The staff team does not accept tickets from users who are not in the server.",
@@ -155,11 +159,11 @@ namespace SwissbotCore.Handlers
                     }
 
                 }
-                else if(arg3.Emote.Equals(new Emoji("❌"))) // xmark
+                else if (arg3.Emote.Equals(new Emoji("❌"))) // xmark
                 {
                     Setups.Remove(arg2.Id);
                     await msg.DeleteAsync();
-                } 
+                }
             }
             else if (closingState.Keys.Any(x => x.Key == arg2.Id))
             {
@@ -172,6 +176,25 @@ namespace SwissbotCore.Handlers
                     o.Value.Dispose();
                     closingState.Remove(o.Key);
                     await msg.DeleteAsync();
+                }
+            }
+            else if (WelcomeMessages.Contains(arg3.MessageId))
+            {
+                if (arg3.Emote.Equals(new Emoji("❌")))
+                {
+                    var msg = await arg2.GetMessageAsync(arg3.MessageId);
+                    await msg.DeleteAsync();
+                }
+                if (arg3.Emote.Equals(new Emoji("✅")))
+                {
+                    var ticket = CurrentTickets.Find(x => x.TicketChannel == arg2.Id);
+                    var msg = await arg2.GetMessageAsync(arg3.MessageId);
+                    var dmchan = await client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
+                    var gusr = usr as SocketGuildUser;
+                    await msg.DeleteAsync();
+                    string tmsg = $"**[Staff] {(gusr.Nickname == null ? usr.ToString() : gusr.Nickname)}** - Hello! Swiss001 Support! How May I help you?";
+                    await arg2.SendMessageAsync(tmsg);
+                    await dmchan.SendMessageAsync(tmsg);
                 }
             }
         }
@@ -192,6 +215,8 @@ namespace SwissbotCore.Handlers
             //create new ticket channel
             var ticketchan = await client.GetGuild(Global.SwissGuildId).CreateTextChannelAsync($"{user.Username}-{user.Discriminator}", x => x.CategoryId = Global.TicketCategoryID);
             var logs = ModDatabase.currentLogs.Users.Any(x => x.userId == user.Id) ? ModDatabase.currentLogs.Users.First(x => x.userId == user.Id) : null;
+
+            ticket.Transcript = new TicketTranscript(ticket, omsg);
 
             var embed = new EmbedBuilder()
             {
@@ -233,9 +258,9 @@ namespace SwissbotCore.Handlers
                 embed.AddField("Modlogs", mlogs.Length > 1024 ? $"Modlogs too long, listing top 5\n\n{string.Join("\n\n", mlogs.Split("\n\n").Take(5))}" : string.Join("\n\n", mlogs.Split("\n\n")));
             }
 
-            await ticketchan.SendMessageAsync("@here", false, embed.Build());
+            var msg = await ticketchan.SendMessageAsync("@here", false, embed.Build());
             await ticketchan.SendMessageAsync($"**\nV----------------START-OF-TICKET----------------V**\n\n**[Ticketer] {user}** - " + omsg);
-
+            await msg.PinAsync();
             ticket.TicketChannel = ticketchan.Id;
             CurrentTickets.Add(ticket);
             Global.SaveSupportTickets();
@@ -257,9 +282,10 @@ namespace SwissbotCore.Handlers
                     ticket.DMTyping.Typing = false;
                     if (ticket.DMTyping.TypingObject != null)
                         ticket.DMTyping.TypingObject.Dispose();
-                    string msg = $"**[Ticketer] {arg.Author}** - {arg.Content}";
+                    string msg = $"**[Ticketer] {arg.Author}** - {arg.Content.Replace("@everyone", "~~@ everyone~~").Replace("@here", "~~@ here~~")}";
                     var tkchan = client.GetGuild(Global.SwissGuildId).GetTextChannel(ticket.TicketChannel);
                     await tkchan.SendMessageAsync(msg);
+                    ticket.Transcript.AddMessage(arg);
                     if (arg.Attachments.Count > 0)
                     {
                         foreach (var attc in arg.Attachments)
@@ -304,6 +330,7 @@ namespace SwissbotCore.Handlers
                 var dmchan = await client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
                 string snipval = Snippets[snipname];
                 await arg.DeleteAsync();
+                ticket.Transcript.AddMessage(snipval, arg.Author, arg.Id, arg.Timestamp);
                 await dmchan.SendMessageAsync($"**[Staff] {arg.Author.ToString()}** - {snipval}");
                 await arg.Channel.SendMessageAsync($"**[Staff] {arg.Author.ToString()}** - {snipval}");
             }
@@ -321,6 +348,40 @@ namespace SwissbotCore.Handlers
         [DiscordCommandClass()]
         public class SupportCommandModule : CommandModuleBase
         {
+            [DiscordCommand("w",
+            BotCanExecute = false,
+            description = "Welcomes a user in a thread",
+            commandHelp = "`(PREFIX)w`",
+            prefixes = new char[] { '!', '*', },
+            RequiredPermission = true
+            )]
+            public async Task Welcome()
+            {
+                if (!HasExecutePermission)
+                    return;
+                if (CurrentTickets.Any(x => x.TicketChannel == Context.Channel.Id))
+                {
+                    var ticket = CurrentTickets.Find(x => x.TicketChannel == Context.Channel.Id);
+                    if(!ticket.Welcomed)
+                    {
+                        var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
+                        var usr = Context.Message.Author as SocketGuildUser;
+                        await Context.Message.DeleteAsync();
+                        ticket.Transcript.AddMessage("Hello! Swiss001 Support! How May I help you?", usr, Context.Message.Id, Context.Message.Timestamp);
+                        string msg = $"**[Staff] {(usr.Nickname == null ? usr.ToString() : usr.Nickname)}** - Hello! Swiss001 Support! How May I help you?";
+                        await Context.Guild.GetTextChannel(ticket.TicketChannel).SendMessageAsync(msg);
+                        await dmchan.SendMessageAsync(msg);
+                        ticket.Welcomed = true;
+                    
+                    }
+                    else
+                    {
+                        var msg = await Context.Channel.SendMessageAsync("The user has been welcomed, are you sure you want to still want to send them another welcome message?");
+                        await msg.AddReactionsAsync(new IEmote[] { new Emoji("✅"), new Emoji("❌") });
+                        WelcomeMessages.Add(msg.Id);
+                    }
+                }
+            }
             [DiscordCommand("r",
             description = "Respond to a thread; *only works in thread channels*",
             BotCanExecute = false,
@@ -364,6 +425,7 @@ namespace SwissbotCore.Handlers
                         try
                         {
                             await dmchan.SendMessageAsync(msg);
+                            ticket.Transcript.AddMessage(string.Join(" ", args), usr, Context.Message.Id, Context.Message.Timestamp);
                         }
                         catch (Exception e)
                         {
@@ -465,6 +527,12 @@ namespace SwissbotCore.Handlers
                         var chan = Context.Channel as SocketTextChannel;
                         closingState.Remove(closingState.Keys.First(x => x.Key == chan.Id));
                         CurrentTickets.Remove(ticket);
+
+                        string html = ticket.Transcript.compileHtml();
+
+                        File.WriteAllText(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}{ticket.UserID}.html", html);
+                        await Global.Client.GetGuild(Global.SwissGuildId).GetTextChannel(770875781823463424).SendFileAsync(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}{ticket.UserID}.html", $"Ticket from <@{ticket.UserID}>").Result.PinAsync();
+
                         await chan.DeleteAsync(new RequestOptions() { AuditLogReason = "Ticket Closed" });
                         var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
                         if (dmchan != null) 

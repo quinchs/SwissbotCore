@@ -24,7 +24,7 @@ namespace SwissbotCore
         private static string ConfigPath = $"{Environment.CurrentDirectory}{systemSlash}Data{systemSlash}Config.json";
         private static string cMSGPath = $"{Environment.CurrentDirectory}{systemSlash}Data{systemSlash}CashedMSG.MSG";
         private static string ConfigSettingsPath = $"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}ConfigPerms.json";
-        public static string aiResponsePath = $"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}Responses.AI";
+        //public static string aiResponsePath = $"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}Responses.AI";
         public static string LinksDirpath = $"{Environment.CurrentDirectory}{Global.systemSlash}LinkLogs";
         public static string CensorPath = $"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}Censor.txt";
         public static string HelpMessagefilepath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}HelpCards.txt";
@@ -155,7 +155,7 @@ namespace SwissbotCore
         {
             if (!Directory.Exists(MessageLogsDir)) { Directory.CreateDirectory(MessageLogsDir); }
             if (!Directory.Exists(CommandLogsDir)) { Directory.CreateDirectory(CommandLogsDir); }
-            if (!File.Exists(aiResponsePath)) { File.Create(aiResponsePath); }
+            //if (!File.Exists(aiResponsePath)) { File.Create(aiResponsePath); }
             if (!File.Exists(CensorPath)) { File.Create(CensorPath); }
             if (!File.Exists(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt")) { File.Create(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "AltVerifyCards.txt").Close(); }
             if (!File.Exists(HelpMessagefilepath)) { File.Create(HelpMessagefilepath).Close(); }

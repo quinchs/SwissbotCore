@@ -46,7 +46,7 @@ namespace SwissbotCore.Handlers
                 if (chan.SlowModeInterval != chnl.currentslowmode)
                     chnl.currentslowmode = chnl.currentslowmode;
                 chnl.messages++;
-                if(chnl.messages >= 7)
+                if(chnl.messages >= 8)
                 {
                     HandleSlowmodeChange(chnl);
                 }
@@ -86,13 +86,7 @@ namespace SwissbotCore.Handlers
 
             t.Elapsed += async (object sender, ElapsedEventArgs e) =>
             {
-                if(expl)
-                { 
-
-                }
-                else
-                    await chan.ModifyAsync(x => x.SlowModeInterval = 0);
-
+                await chan.ModifyAsync(x => x.SlowModeInterval = 0);
             };
         }
     }

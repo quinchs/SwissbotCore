@@ -254,7 +254,7 @@ namespace SwissbotCore.Handlers
                 orig = orig.Replace("(USER)", $"<@{user.Id}>");
 
             if (orig.Contains("(USERCOUNT)"))
-                orig = orig.Replace("(USERCOUNT)", Global.UserCount.ToString());
+                orig = orig.Replace("(USERCOUNT)", user.Guild.MemberCount.ToString());
             return orig;
         }
     }

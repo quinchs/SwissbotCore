@@ -28,6 +28,7 @@ using Color = Discord.Color;
 using static SwissbotCore.CustomCommandService;
 using System.Security.Cryptography;
 using SwissbotCore.Handlers;
+using SwissbotCore.Handlers.AutoMod;
 
 namespace SwissbotCore.Modules
 {
@@ -36,7 +37,7 @@ namespace SwissbotCore.Modules
     {
         [DiscordCommand("help")]
         public async Task help()
-        {   
+        {
             var msg = await Context.Channel.SendMessageAsync("", false, HelpMessageHandler.HelpEmbedBuilder(1, HelpMessageHandler.CalcHelpPage(Context.Guild.GetUser(Context.Message.Author.Id))));
             var emote1 = new Emoji("\U000027A1");
             var emote2 = new Emoji("\U00002B05");
@@ -44,6 +45,18 @@ namespace SwissbotCore.Modules
             await msg.AddReactionAsync(emote1);
             HelpMessageHandler.CurrentHelpMessages.Add(msg.Id, Context.Message.Author.Id);
             Global.SaveHelpMessageCards();
+        }
+        [DiscordCommand("kgb")]
+        public async Task kgb()
+        {
+            //https://www.youtube.com/watch?v=qIbfB1rRUIQ
+            await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+            {
+                Title = "КГБ",
+                Description = "Gopnik blyat, [Click me comrade](https://www.youtube.com/watch?v=qIbfB1rRUIQ)",
+                Color = Color.Red,
+                Footer = new EmbedFooterBuilder() { Text = "na na na na na na na naa na na na na na na na an na na na na na na na na na na na na na na na na" }
+            }.Build());
         }
         [DiscordCommand("altverify", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)altverify <on/off/true/false>`\n If on or true alt accounts can verify and will still post an alert in <#665647956816429096>. if off or false it will post a verify msg in <#692909459831390268>")]
         public async Task AltVerify(string param)
@@ -89,7 +102,7 @@ namespace SwissbotCore.Modules
         {
             await PlaySoundFile(@"C:\Users\plynch\Downloads\update.mp3");
         }
-        [DiscordCommand("alexa", description ="gravy train")]
+        [DiscordCommand("alexa", description = "gravy train")]
         public async Task al()
         {
             await PlaySoundFile(@"C:\Users\plynch\Downloads\whip_a_cessna_1.mp3");
@@ -200,6 +213,16 @@ namespace SwissbotCore.Modules
             var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
             if (rolepos != null || r.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
             {
+                if (inp.Length == 0)
+                {
+                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Please provide some arguments!",
+                        Description = "See the help message for help! <3",
+                        Color = Color.Red
+                    }.Build());
+                    return;
+                }
                 string full = string.Join(' ', inp);
                 if (full.ToLower() == "list")
                 {
@@ -311,7 +334,7 @@ namespace SwissbotCore.Modules
                 await CommandHandler.SendMilestone(Convert.ToInt32(count), Context.Channel.Id);
             }
         }
-        [DiscordCommand("owo", BotCanExecute = false, commandHelp = "`(PREFIX)owo <msg>`", description ="turn your message into a cursed mess" )]
+        [DiscordCommand("owo", BotCanExecute = false, commandHelp = "`(PREFIX)owo <msg>`", description = "turn your message into a cursed mess")]
         public async Task Owo(params string[] arg)
         {
             if (Context.Message.MentionedRoles.Count > 0)
@@ -332,12 +355,12 @@ namespace SwissbotCore.Modules
         [DiscordCommand("uwu", BotCanExecute = false, commandHelp = "`(PREFIX)uwu <msg>`", description = "turn your message into a cursed mess")]
         public async Task uwu(params string[] arg)
         {
-            if(Context.Message.MentionedRoles.Count > 0)
+            if (Context.Message.MentionedRoles.Count > 0)
             {
                 await Context.Channel.SendMessageAsync("sowwy but yu cant mentwion woles :(");
                 return;
             }
-            if(Context.Message.MentionedUsers.Count > 0)
+            if (Context.Message.MentionedUsers.Count > 0)
             {
                 await Context.Channel.SendMessageAsync("sowwy but yu cant mentwion usewrs :(");
                 return;
@@ -361,12 +384,12 @@ namespace SwissbotCore.Modules
             return final;
         }
 
-        [DiscordCommand("quinasking", description ="*loads gun*")]
+        [DiscordCommand("quinasking", description = "*loads gun*")]
         public async Task quinasking()
         {
             await Context.Channel.SendFileAsync(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Data" + Path.DirectorySeparatorChar + "quinasking.jpg");
         }
-        [DiscordCommand("asking", description ="does cool image generation stuff")]
+        [DiscordCommand("asking", description = "does cool image generation stuff")]
         public async Task bernie()
         {
             WebClient wc = new WebClient();
@@ -412,7 +435,7 @@ namespace SwissbotCore.Modules
                 }
             }
         }
-        [DiscordCommand("george", description ="more cool image gen stuff")]
+        [DiscordCommand("george", description = "more cool image gen stuff")]
         public async Task g()
         {
             //baseurl https://cdn.discordapp.com/attachments/592463507124125706/682686064229613593/george.jpg
@@ -425,7 +448,7 @@ namespace SwissbotCore.Modules
             byte[] bytes2 = wc.DownloadData(Context.Message.Author.GetAvatarUrl());
             MemoryStream ms2 = new MemoryStream(bytes2);
             System.Drawing.Image img2 = System.Drawing.Image.FromStream(ms2);
-            
+
             int width = img.Width;
             int height = img.Height;
 
@@ -472,7 +495,7 @@ namespace SwissbotCore.Modules
             byte[] bytes2 = wc.DownloadData(purl);
             MemoryStream ms2 = new MemoryStream(bytes2);
             System.Drawing.Image img2 = System.Drawing.Image.FromStream(ms2);
-            
+
 
             int width = img.Width;
             int height = img.Height;
@@ -494,7 +517,7 @@ namespace SwissbotCore.Modules
                                                        img.Width,
                                                        img.Height),
                                          GraphicsUnit.Pixel);
-                        canvas.DrawImage(img2, (img.Width / 2) - (img2.Width / 2)-10, (img.Height / 2) - (img2.Height / 2) + 100);
+                        canvas.DrawImage(img2, (img.Width / 2) - (img2.Width / 2) - 10, (img.Height / 2) - (img2.Height / 2) + 100);
                         canvas.Save();
                     }
                     try
@@ -531,7 +554,7 @@ namespace SwissbotCore.Modules
         {
             await Context.Channel.SendMessageAsync($"Pong: {Context.Client.Latency}ms!");
         }
-        
+
         [DiscordCommand("vcmute", RequiredPermission = true, description = "Mutes all memebrs in vc")]
         public async Task muteusers()
         {
@@ -598,7 +621,7 @@ namespace SwissbotCore.Modules
                 }
                 Global.MutedMembers = null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }
@@ -649,8 +672,8 @@ namespace SwissbotCore.Modules
                     var g = await c.GetAsync(url);
                     string resp = await g.Content.ReadAsStringAsync();
                     Regex r = new Regex("title=\"(Sök|Search)\" value=\"(.*?)\" aria-label=\"(Sök|Search)\"");
-                    //File.Create($"{Environment.CurrentDirectory}\\Debug.txt").Close();
-                    //File.WriteAllText($"{Environment.CurrentDirectory}\\Debug.txt", $"--DEBUG--\n\nRegex debug:\n    IsMatch: {r.IsMatch(resp)}\n    RegexString: {r.ToString()}\n\n--Start Resp--\n\n {resp}\n\n--End Resp--");
+                    File.Create($"{Environment.CurrentDirectory}\\Debug.txt").Close();
+                    File.WriteAllText($"{Environment.CurrentDirectory}\\Debug.txt", $"--DEBUG--\n\nRegex debug:\n    IsMatch: {r.IsMatch(resp)}\n    RegexString: {r.ToString()}\n\n--Start Resp--\n\n {resp}\n\n--End Resp--");
                     //await Context.Message.Author.SendFileAsync($"{Environment.CurrentDirectory}\\Debug.txt");
                     if (r.IsMatch(resp))
                     {
@@ -683,6 +706,7 @@ namespace SwissbotCore.Modules
                 c.DefaultRequestHeaders.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36");
                 var g = await c.GetAsync(url);
                 string resp = await g.Content.ReadAsStringAsync();
+                Console.WriteLine($"Resp: {resp}");
                 Regex r = new Regex("title=\"Search\" value=\"(.*?)\" aria-label=\"Search\"");
                 if (r.IsMatch(resp))
                 {
@@ -703,6 +727,32 @@ namespace SwissbotCore.Modules
 
             }
             else { await Context.Channel.SendMessageAsync("theres nothing to guess or there is too much :/"); }
+        }
+        public static string atPath = $"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}at.trak";
+        private void AddAt(string r)
+        {
+            if (!File.Exists(atPath))
+                File.Create(atPath).Close();
+            string t = File.ReadAllText(atPath);
+            t += $"\n{r}";
+            File.WriteAllText(atPath, t);
+        }
+        
+        [DiscordCommand("at")]
+        public async Task at(params string[] arg)
+        {
+            if (arg.Length == 0)
+                return;
+            var s = string.Join(' ', arg);
+            
+            if (Context.User.Id == 259053800755691520)
+            { NoTracker.aT.Add(s); AddAt(s); await Context.Message.AddReactionAsync(new Emoji("✅")); }
+        }
+        public static List<string> loadAt()
+        {
+            if (!File.Exists(atPath))
+                File.Create(atPath).Close();
+            return File.ReadAllLines(atPath).ToList();
         }
         [DiscordCommand("butter", description = "Fetches a random butter submission made by you wonderful people <3")]
         public async Task butter()

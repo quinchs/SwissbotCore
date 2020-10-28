@@ -56,7 +56,7 @@ namespace SwissbotCore
 
             _client.UserJoined += WelcomeMessage;
 
-            _client.MessageReceived += responce;
+            //_client.MessageReceived += responce;
 
             //_client.UserLeft += _client_UserLeft; 
 
@@ -64,49 +64,56 @@ namespace SwissbotCore
 
             _client.ReactionAdded += ReactionHandler;
 
-            _client.Ready += Init;
+            _client.MessageReceived += CheckYoutube;
 
-            t.Elapsed += DCRS;
-            t.Enabled = true;
-            t.Interval = 300000;
-            Thread t2 = new Thread(aiTrd);
-            t2.Start();
+            _client.Ready += Init;
 
             SwissbotCore.Modules.ModDatabase.Start(_client);
             Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Services loaded, update init");
 
         }
 
-        SocketMessage r;
-        private async void aiTrd()
+        private async Task CheckYoutube(SocketMessage arg)
         {
-            while (true)
+            if(arg.Channel.Id == 593107179700224050)
             {
-
-                await Task.Delay(5000);
-                if (r != null)
+                if(arg.Author.Id == 204255221017214977)
                 {
-                    var es = GenerateAIResponse(r, new Random()).Result;
-                    if(es == "") { es = "e"; }
-                    foreach (var word in Global.CensoredWords)
-                    {
-                        string newword = "";
-                        if (es.Contains(word))
-                        {
-                            newword += word.ToCharArray().First();
-                            for (int i = 1; i != word.ToCharArray().Length; i++)
-                                newword += "\\*";
-                            es.Replace(word, newword);
-                        }
-                    }
-                    try
-                    {
-                        await r.Channel.SendMessageAsync(es);
-                    }
-                    catch(Exception ex) { Console.WriteLine(ex); }
+                    await arg.Channel.SendMessageAsync("<@&724842603492933633>");
                 }
             }
         }
+
+        //SocketMessage r;
+        //private async void aiTrd()
+        //{
+        //    while (true)
+        //    {
+
+        //        await Task.Delay(5000);
+        //        if (r != null)
+        //        {
+        //            var es = GenerateAIResponse(r, new Random()).Result;
+        //            if(es == "") { es = "e"; }
+        //            foreach (var word in Global.CensoredWords)
+        //            {
+        //                string newword = "";
+        //                if (es.Contains(word))
+        //                {
+        //                    newword += word.ToCharArray().First();
+        //                    for (int i = 1; i != word.ToCharArray().Length; i++)
+        //                        newword += "\\*";
+        //                    es.Replace(word, newword);
+        //                }
+        //            }
+        //            try
+        //            {
+        //                await r.Channel.SendMessageAsync(es);
+        //            }
+        //            catch(Exception ex) { Console.WriteLine(ex); }
+        //        }
+        //    }
+        //}
 
         private async Task _client_JoinedGuild(SocketGuild arg)
         {
@@ -117,218 +124,218 @@ namespace SwissbotCore
             }
         }
 
-        internal async Task<string> GenerateAIResponse(SocketMessage arg, Random r)
-        {
-            bool dbug = false;
-            string dbugmsg = "";
+        //internal async Task<string> GenerateAIResponse(SocketMessage arg, Random r)
+        //{
+        //    bool dbug = false;
+        //    string dbugmsg = "";
 
 
-            Regex r1 = new Regex("what time is it in .*");
-            if (arg == null)
-            {
-                dbugmsg += "arg was null... \n";
-                string[] filecontUn = File.ReadAllLines(Global.aiResponsePath);
-                //var list = filecontUn.ToList();
-                //var d = list.FirstOrDefault(x => x.ToLower() == arg.Content.ToLower());
-                Regex rg2 = new Regex(".*(\\d{18})>.*");
-                string msg = filecontUn[r.Next(0, filecontUn.Length)];
-                //if (d != "") { msg = d; }
-                if (rg2.IsMatch(msg))
-                {
-                    dbugmsg += "Found a ping in there, sanitizing..\n";
-                    var rm = rg2.Match(msg);
-                    var user = _client.GetGuild(Global.SwissGuildId).GetUser(Convert.ToUInt64(rm.Groups[1].Value));
-                    msg = msg.Replace(rm.Groups[0].Value, $"**(non-ping: {user.Username}#{user.Discriminator})**");
-                }
-                if (msg == "") { return filecontUn[r.Next(0, filecontUn.Length)]; }
-                else { return msg; }
-            }
-            else
-            {
-                string oMsg = arg.Content.ToLower();
-                if (arg.Content.StartsWith("*debug "))
-                {
-                    dbug = true;
-                    oMsg = oMsg.Replace("*debug ", "");
-                }
-                dbugmsg += "Arg was not null. starting AI responces..\n";
-                try
-                {
-                    if (r1.IsMatch(oMsg.ToLower()))
-                    {
-                        dbugmsg += "User looking for the time. starting up Time API..\n";
-                        HttpClient c = new HttpClient();
-                        string link = $"https://www.google.com/search?q={oMsg.ToLower().Replace(' ', '+')}";
-                        var req = await c.GetAsync(link);
-                        var resp = await req.Content.ReadAsStringAsync();
-                        Regex x = new Regex(@"<div class=""BNeawe iBp4i AP7Wnd""><div><div class=""BNeawe iBp4i AP7Wnd"">(.*?)<\/div><\/div>");
-                        if (x.IsMatch(resp))
-                        {
-                            string time = x.Match(resp).Groups[1].Value;
-                            c.Dispose();
-                            dbugmsg += "Found the time to be " + time + "\n";
-                            return $"The current time in {oMsg.ToLower().Replace("what time is it in ", "")} is {time}";
-                        }
-                        else { c.Dispose(); return $"Sorry buddy but could not get the time for {arg.Content.ToLower().Replace("what time is it in ", "")}"; }
-                    }
-                    //if (oMsg.ToLower() == "are you gay") { return "no ur gay lol"; }
-                    //if (oMsg.ToLower() == "how is your day going") { return "kinda bad. my creator beats me and hurts me help"; }
-                    //if (oMsg.ToLower() == "are you smart") { return "smarter than your mom lol goteme"; }
-                    //if (oMsg.ToLower() == "hi") { return "hello mortal"; }
-                    string[] filecontUn = File.ReadAllLines(Global.aiResponsePath);
-                    for (int i = 0; i != filecontUn.Length; i++)
-                        filecontUn[i] = filecontUn[i].ToLower();
-                    Regex rg2 = new Regex(".*?[@!&](\\d{18}|\\d{17})>.*?");
-                    string msg = "";
-                    var ar = filecontUn.Select((b, i) => b == oMsg ? i : -1).Where(i => i != -1).ToArray();
-                    Random ran = new Random();
-                    dbugmsg += $"Found {ar.Length} indexed responces for the question\n";
-                    if (ar.Length != 0)
-                    {
-                        var ind = (ar[ran.Next(0, ar.Length)]);
-                        if (ind != 0 && (ind + 1) < filecontUn.Length)
-                            msg = filecontUn[ind + 1];
-                        dbugmsg += $"Picked the best answer: {msg}\n";
-                    }
-                    else
-                    {
-                        dbugmsg += $"Question has 0 indexed responces, starting word analisys...\n";
-                        var words = oMsg.Split(' ');
-                        var query = from state in filecontUn.AsParallel()
-                                    let StateWords = state.Split(' ')
-                                    select (Word: state, Count: words.Intersect(StateWords).Count());
+        //    Regex r1 = new Regex("what time is it in .*");
+        //    if (arg == null)
+        //    {
+        //        dbugmsg += "arg was null... \n";
+        //        string[] filecontUn = File.ReadAllLines(Global.aiResponsePath);
+        //        //var list = filecontUn.ToList();
+        //        //var d = list.FirstOrDefault(x => x.ToLower() == arg.Content.ToLower());
+        //        Regex rg2 = new Regex(".*(\\d{18})>.*");
+        //        string msg = filecontUn[r.Next(0, filecontUn.Length)];
+        //        //if (d != "") { msg = d; }
+        //        if (rg2.IsMatch(msg))
+        //        {
+        //            dbugmsg += "Found a ping in there, sanitizing..\n";
+        //            var rm = rg2.Match(msg);
+        //            var user = _client.GetGuild(Global.SwissGuildId).GetUser(Convert.ToUInt64(rm.Groups[1].Value));
+        //            msg = msg.Replace(rm.Groups[0].Value, $"**(non-ping: {user.Username}#{user.Discriminator})**");
+        //        }
+        //        if (msg == "") { return filecontUn[r.Next(0, filecontUn.Length)]; }
+        //        else { return msg; }
+        //    }
+        //    else
+        //    {
+        //        string oMsg = arg.Content.ToLower();
+        //        if (arg.Content.StartsWith("*debug "))
+        //        {
+        //            dbug = true;
+        //            oMsg = oMsg.Replace("*debug ", "");
+        //        }
+        //        dbugmsg += "Arg was not null. starting AI responces..\n";
+        //        try
+        //        {
+        //            if (r1.IsMatch(oMsg.ToLower()))
+        //            {
+        //                dbugmsg += "User looking for the time. starting up Time API..\n";
+        //                HttpClient c = new HttpClient();
+        //                string link = $"https://www.google.com/search?q={oMsg.ToLower().Replace(' ', '+')}";
+        //                var req = await c.GetAsync(link);
+        //                var resp = await req.Content.ReadAsStringAsync();
+        //                Regex x = new Regex(@"<div class=""BNeawe iBp4i AP7Wnd""><div><div class=""BNeawe iBp4i AP7Wnd"">(.*?)<\/div><\/div>");
+        //                if (x.IsMatch(resp))
+        //                {
+        //                    string time = x.Match(resp).Groups[1].Value;
+        //                    c.Dispose();
+        //                    dbugmsg += "Found the time to be " + time + "\n";
+        //                    return $"The current time in {oMsg.ToLower().Replace("what time is it in ", "")} is {time}";
+        //                }
+        //                else { c.Dispose(); return $"Sorry buddy but could not get the time for {arg.Content.ToLower().Replace("what time is it in ", "")}"; }
+        //            }
+        //            //if (oMsg.ToLower() == "are you gay") { return "no ur gay lol"; }
+        //            //if (oMsg.ToLower() == "how is your day going") { return "kinda bad. my creator beats me and hurts me help"; }
+        //            //if (oMsg.ToLower() == "are you smart") { return "smarter than your mom lol goteme"; }
+        //            //if (oMsg.ToLower() == "hi") { return "hello mortal"; }
+        //            string[] filecontUn = File.ReadAllLines(Global.aiResponsePath);
+        //            for (int i = 0; i != filecontUn.Length; i++)
+        //                filecontUn[i] = filecontUn[i].ToLower();
+        //            Regex rg2 = new Regex(".*?[@!&](\\d{18}|\\d{17})>.*?");
+        //            string msg = "";
+        //            var ar = filecontUn.Select((b, i) => b == oMsg ? i : -1).Where(i => i != -1).ToArray();
+        //            Random ran = new Random();
+        //            dbugmsg += $"Found {ar.Length} indexed responces for the question\n";
+        //            if (ar.Length != 0)
+        //            {
+        //                var ind = (ar[ran.Next(0, ar.Length)]);
+        //                if (ind != 0 && (ind + 1) < filecontUn.Length)
+        //                    msg = filecontUn[ind + 1];
+        //                dbugmsg += $"Picked the best answer: {msg}\n";
+        //            }
+        //            else
+        //            {
+        //                dbugmsg += $"Question has 0 indexed responces, starting word analisys...\n";
+        //                var words = oMsg.Split(' ');
+        //                var query = from state in filecontUn.AsParallel()
+        //                            let StateWords = state.Split(' ')
+        //                            select (Word: state, Count: words.Intersect(StateWords).Count());
 
-                        var sortedDict = from entry in query orderby entry.Count descending select entry;
-                        string rMsg = sortedDict.First().Word;
-                        var s = sortedDict.Where(x => x.Count >= 1);
-                        dbugmsg += $"Found common phrase based off of {s.Count()} results: {rMsg}\n";
-                        var reslt = filecontUn.Select((b, i) => b == rMsg ? i : -1).Where(i => i != -1).ToArray();
-                        if (reslt.Length != 0)
-                        {
-                            var ind = (reslt[ran.Next(0, reslt.Length)]);
-                            if (ind != 0 && (ind + 1) < filecontUn.Length)
-                                msg = filecontUn[ind + 1];
-                            dbugmsg += $"Picked the best answer: {msg}\n";
-                        }
-                        else { msg = rMsg; }
-                        //string[] words = oMsg.Split(' ');
-                        //Dictionary<string, int> final = new Dictionary<string, int>();
-                        //foreach (var state in filecontUn)
-                        //{
-                        //    int count = 0;
-                        //    foreach (var word in state.Split(' '))
-                        //    {
-                        //        if (words.Contains(word))
-                        //            count++;
-                        //    }
-                        //    if (!final.Keys.Contains(state) && count != 0)
-                        //        final.Add(state, count);
-                        //}
-                        //string res = sortedDict.First().Key;
+        //                var sortedDict = from entry in query orderby entry.Count descending select entry;
+        //                string rMsg = sortedDict.First().Word;
+        //                var s = sortedDict.Where(x => x.Count >= 1);
+        //                dbugmsg += $"Found common phrase based off of {s.Count()} results: {rMsg}\n";
+        //                var reslt = filecontUn.Select((b, i) => b == rMsg ? i : -1).Where(i => i != -1).ToArray();
+        //                if (reslt.Length != 0)
+        //                {
+        //                    var ind = (reslt[ran.Next(0, reslt.Length)]);
+        //                    if (ind != 0 && (ind + 1) < filecontUn.Length)
+        //                        msg = filecontUn[ind + 1];
+        //                    dbugmsg += $"Picked the best answer: {msg}\n";
+        //                }
+        //                else { msg = rMsg; }
+        //                //string[] words = oMsg.Split(' ');
+        //                //Dictionary<string, int> final = new Dictionary<string, int>();
+        //                //foreach (var state in filecontUn)
+        //                //{
+        //                //    int count = 0;
+        //                //    foreach (var word in state.Split(' '))
+        //                //    {
+        //                //        if (words.Contains(word))
+        //                //            count++;
+        //                //    }
+        //                //    if (!final.Keys.Contains(state) && count != 0)
+        //                //        final.Add(state, count);
+        //                //}
+        //                //string res = sortedDict.First().Key;
 
-                    }
-                    if (msg == "") { msg = filecontUn[r.Next(0, filecontUn.Length)]; }
+        //            }
+        //            if (msg == "") { msg = filecontUn[r.Next(0, filecontUn.Length)]; }
 
-                    if (rg2.IsMatch(msg))
-                    {
-                        var rem = rg2.Matches(msg);
-                        foreach(Match rm in rem)
-                        {
-                            var user = _client.GetGuild(Global.SwissGuildId).GetUser(Convert.ToUInt64(rm.Groups[1].Value));
-                            var role = _client.GetGuild(Global.SwissGuildId).GetRole(Convert.ToUInt64(rm.Groups[1].Value));
-                            if (user != null)
-                            {
-                                msg = msg.Replace("<@" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
-                                msg = msg.Replace("<@!" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
-                                dbugmsg += "Sanitized ping.. \n";
-                            }
-                            else if (role != null)
-                            {
-                                msg = msg.Replace("<@&" + rm.Groups[1].Value + ">", $"**(non-ping: {role.Name})**");
-                            }
-                            else
-                            {
-                                try
-                                {
-                                    var em = await _client.GetGuild(Global.SwissGuildId).GetEmoteAsync(Convert.ToUInt64(rm.Groups[1].Value));
-                                    if (em == null)
-                                    {
-                                        dbugmsg += $"Could not find a user for {rm.Value}, assuming emoji or user is not in server..\n";
-                                        msg = msg.Replace(rm.Groups[0].Value, $"**(non-ping: {rm.Value})**");
-                                    }
-                                }
-                                catch (Exception ex) { dbugmsg += $"{ex.Message}.. \n"; }
-                            }
-                        }
-                    }
-                    if (msg.Contains("@everyone")) { msg = msg.Replace("@everyone", "***(Non-ping @every0ne)***"); }
-                    if (msg.Contains("@here")) { msg = msg.Replace("@here", "***(Non-ping @h3re)***"); }
-                    dbugmsg += "Sanitized for @h3re and @every0ne\n";
+        //            if (rg2.IsMatch(msg))
+        //            {
+        //                var rem = rg2.Matches(msg);
+        //                foreach(Match rm in rem)
+        //                {
+        //                    var user = _client.GetGuild(Global.SwissGuildId).GetUser(Convert.ToUInt64(rm.Groups[1].Value));
+        //                    var role = _client.GetGuild(Global.SwissGuildId).GetRole(Convert.ToUInt64(rm.Groups[1].Value));
+        //                    if (user != null)
+        //                    {
+        //                        msg = msg.Replace("<@" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
+        //                        msg = msg.Replace("<@!" + rm.Groups[1].Value + ">", $"**(non-ping: {user.Username}#{user.Discriminator})**");
+        //                        dbugmsg += "Sanitized ping.. \n";
+        //                    }
+        //                    else if (role != null)
+        //                    {
+        //                        msg = msg.Replace("<@&" + rm.Groups[1].Value + ">", $"**(non-ping: {role.Name})**");
+        //                    }
+        //                    else
+        //                    {
+        //                        try
+        //                        {
+        //                            var em = await _client.GetGuild(Global.SwissGuildId).GetEmoteAsync(Convert.ToUInt64(rm.Groups[1].Value));
+        //                            if (em == null)
+        //                            {
+        //                                dbugmsg += $"Could not find a user for {rm.Value}, assuming emoji or user is not in server..\n";
+        //                                msg = msg.Replace(rm.Groups[0].Value, $"**(non-ping: {rm.Value})**");
+        //                            }
+        //                        }
+        //                        catch (Exception ex) { dbugmsg += $"{ex.Message}.. \n"; }
+        //                    }
+        //                }
+        //            }
+        //            if (msg.Contains("@everyone")) { msg = msg.Replace("@everyone", "***(Non-ping @every0ne)***"); }
+        //            if (msg.Contains("@here")) { msg = msg.Replace("@here", "***(Non-ping @h3re)***"); }
+        //            dbugmsg += "Sanitized for @h3re and @every0ne\n";
                     
-                    if (dbug)
-                    {
-                        EmbedBuilder eb = new EmbedBuilder()
-                        {
-                            Color = Color.Orange,
-                            Title = "Ai Debug",
-                            Author = new EmbedAuthorBuilder()
-                            {
-                                Name = _client.CurrentUser.ToString(),
-                                IconUrl = _client.CurrentUser.GetAvatarUrl()
-                            },
-                            Description = "```Ai Debug Log```\n`" + dbugmsg + "`",
-                        };
-                        await arg.Channel.SendMessageAsync("", false, eb.Build());
-                    }
+        //            if (dbug)
+        //            {
+        //                EmbedBuilder eb = new EmbedBuilder()
+        //                {
+        //                    Color = Color.Orange,
+        //                    Title = "Ai Debug",
+        //                    Author = new EmbedAuthorBuilder()
+        //                    {
+        //                        Name = _client.CurrentUser.ToString(),
+        //                        IconUrl = _client.CurrentUser.GetAvatarUrl()
+        //                    },
+        //                    Description = "```Ai Debug Log```\n`" + dbugmsg + "`",
+        //                };
+        //                await arg.Channel.SendMessageAsync("", false, eb.Build());
+        //            }
                         
                     
-                    return msg;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                    return "uh oh ai broke stinkie";
-                }
-            }
-        }
-        private async Task responce(SocketMessage arg)
-        {
-            if (arg.Channel.Id == Global.BotAiChanID && !arg.Author.IsBot)
-            {
-                var d = arg.Channel.EnterTypingState();
-                try
-                {
-                    Random r = new Random();
-                    var mu = arg.MentionedUsers.FirstOrDefault(x => x.Username == _client.CurrentUser.Username);
-                    if (r.Next(1, 2) == 1 || mu != null)
-                    {
-                        string msg = await GenerateAIResponse(arg, r);
-                        foreach (var word in Global.CensoredWords)
-                        {
-                            string newword = "";
-                            if (msg.Contains(word))
-                            {
-                                newword += word.ToCharArray().First();
-                                for (int i = 1; i != word.ToCharArray().Length; i++)
-                                    newword += "\\*";
-                                msg.Replace(word, newword);
-                            }
-                        }
-                        if (msg != "")
-                        {
-                            if (msg != ("*terminate"))
-                                await arg.Channel.SendMessageAsync(msg);
-                        }
-                    }
-                    d.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Global.SendExeption(ex);
-                    d.Dispose();
-                }
-            }
-        }
+        //            return msg;
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine(ex);
+        //            return "uh oh ai broke stinkie";
+        //        }
+        //    }
+        //}
+        //private async Task responce(SocketMessage arg)
+        //{
+        //    if (arg.Channel.Id == Global.BotAiChanID && !arg.Author.IsBot)
+        //    {
+        //        var d = arg.Channel.EnterTypingState();
+        //        try
+        //        {
+        //            Random r = new Random();
+        //            var mu = arg.MentionedUsers.FirstOrDefault(x => x.Username == _client.CurrentUser.Username);
+        //            if (r.Next(1, 2) == 1 || mu != null)
+        //            {
+        //                string msg = await GenerateAIResponse(arg, r);
+        //                foreach (var word in Global.CensoredWords)
+        //                {
+        //                    string newword = "";
+        //                    if (msg.Contains(word))
+        //                    {
+        //                        newword += word.ToCharArray().First();
+        //                        for (int i = 1; i != word.ToCharArray().Length; i++)
+        //                            newword += "\\*";
+        //                        msg.Replace(word, newword);
+        //                    }
+        //                }
+        //                if (msg != "")
+        //                {
+        //                    if (msg != ("*terminate"))
+        //                        await arg.Channel.SendMessageAsync(msg);
+        //                }
+        //            }
+        //            d.Dispose();
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Global.SendExeption(ex);
+        //            d.Dispose();
+        //        }
+        //    }
+        //}
 
         private async Task ReactionHandler(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
@@ -410,6 +417,8 @@ namespace SwissbotCore
             //    _client.GetGuild(Global.SwissGuildId).GetTextChannel(592768337407115264).SendMessageAsync("@everyone BLACK ALERT: George has tried to join the server and has been banned! ");
             //    return;
             //}
+            if (arg.Guild.Id != Global.SwissGuildId)
+                return;
             var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
             await arg.AddRoleAsync(unVertRole);
             Console.WriteLine($"The member {arg.Username}#{arg.Discriminator} joined the guild");
@@ -455,7 +464,7 @@ namespace SwissbotCore
                 try { await AddUnVert(); } catch (Exception ex) { Global.ConsoleLog($"Ex,{ex} ", ConsoleColor.Red); }
                 foreach (var arg in _client.Guilds)
                 {
-                    if (arg.Id != Global.SwissBotDevGuildID && arg.Id != Global.SwissGuildId)
+                    if (arg.Id != Global.SwissBotDevGuildID && arg.Id != Global.SwissGuildId && arg.Id != 726857672942420070)
                     {
                         try { await arg.DeleteAsync(); }
                         catch { await arg.LeaveAsync(); }
@@ -609,18 +618,9 @@ namespace SwissbotCore
             try
             {
                 var msg = arg as SocketUserMessage;
-                if (msg.Channel.Id == 669305903710863440)
-                {
-                    r = arg;
-                }
-               
-                if (arg.Channel.Id == 592463507124125706)
-                {
-                    string cont = File.ReadAllText(Global.aiResponsePath);
-                    if (cont == "") { cont = arg.Content; }
-                    else { cont += $"\n{arg.Content}"; }
-                    File.WriteAllText(Global.aiResponsePath, cont);
-                }
+                if (msg == null)
+                    return;
+                
                 if (CheckCensor(arg).Result)
                 {
                     var smsg = arg.Content;
@@ -709,6 +709,7 @@ namespace SwissbotCore
         }
         public async Task HandleCommandAsync(SocketMessage s)
         {
+            
             try
             {
                 if (s.Channel.Id == 592463507124125706)
@@ -722,8 +723,13 @@ namespace SwissbotCore
 
                 var msg = s as SocketUserMessage;
                 if (msg == null) return;
+               
 
                 var context = new SocketCommandContext(_client, msg);
+                if (context.Guild == null)
+                    return;
+                if (context.Guild.Id == 726857672942420070)
+                    return;
                 if (Commands.giveawayinProg) { Commands.checkGiveaway(s); }
 
                 int argPos = 0;
@@ -824,26 +830,26 @@ namespace SwissbotCore
                 
             }
         }
-        private async void DCRS(object sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                var r = new Random();
-                string msg = "";
-                try
-                {
-                    msg = await GenerateAIResponse(null, r);
-                }
-                catch { DCRS(null, null); }
-                if (msg != "")
-                    await _client.GetGuild(Global.SwissGuildId).GetTextChannel(592463507124125706).SendMessageAsync(msg);
-            }
-            catch (Exception ex)
-            {
-                Global.SendExeption(ex);
-                Console.WriteLine(ex);
-            }
-        }
+        //private async void DCRS(object sender, ElapsedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        var r = new Random();
+        //        string msg = "";
+        //        try
+        //        {
+        //            msg = await GenerateAIResponse(null, r);
+        //        }
+        //        catch { DCRS(null, null); }
+        //        if (msg != "")
+        //            await _client.GetGuild(Global.SwissGuildId).GetTextChannel(592463507124125706).SendMessageAsync(msg);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Global.SendExeption(ex);
+        //        Console.WriteLine(ex);
+        //    }
+        //}
 
         internal async Task HandleCommandresult(ICommandResult result, SocketUserMessage msg)
         {
