@@ -43,7 +43,7 @@ namespace SwissbotCore.HTTP.Routes
 
                 var user = new DiscordUser(JsonConvert.DeserializeObject<TokenResponse>(responseFromServer));
 
-                DiscordAuthKeeper.AddUser(user);
+                DiscordAuthKeeper.AddOrReplace(user);
 
                 if (c.Request.QueryString.AllKeys.Contains("state"))
                     c.Response.Redirect(c.Request.QueryString["state"]);

@@ -35,6 +35,23 @@ namespace SwissbotCore.Handlers
         public static DiscordUser GetUser(string session)
             => Users.First(x => x.SessionToken == session);
 
+        public static void LogoutUser(string session)
+        {
+            Users.Remove(GetUser(session));
+
+            Save();
+        }
+        
+        public static void AddOrReplace(DiscordUser u)
+        {
+            if (Users.Any(x => x.ID == u.ID))
+            {
+                Users.Remove(Users.Find(x => x.ID == u.ID));
+                AddUser(u);
+            }
+            else
+                AddUser(u);
+        }
         public static bool UserIsStaff(DiscordUser u)
         {
             var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(u.ID);

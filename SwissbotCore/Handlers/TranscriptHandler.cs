@@ -265,7 +265,7 @@ namespace SwissbotCore.Handlers
             // Add our header
             html += "<body style=\"background: #36393f; font-family: Arial, Helvetica, sans-serif\"> " +
                 "<div class=\"header\" style=\"text-align: center;color: white;border-bottom: white 1px dashed;margin-bottom: 1rem;\">" +
-                $"<h2>This ticket was created on {creationTime.ToString("g")} by {Author.ToString()}</h2>" +
+                $"<a style=\"top: 10px; left: 10px; color: white; text-decoration: none; position: absolute;\" href=\"/apprentice/v1/tickets\">View all tickets</a> <h2>This ticket was created on {creationTime.ToString("g")} by {Author.ToString()}</h2>" +
                 "<h3>This ticket is only accessable to staff and the ticket author. All time formats are in UTC</h3>" +
                 "</div>";
 

@@ -22,7 +22,7 @@ namespace SwissbotCore.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SwissbotCore.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SwissbotCore.Properties.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace SwissbotCore.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -62,31 +62,88 @@ namespace SwissbotCore.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;html&gt;
-        ///  &lt;head&gt; &lt;/head&gt;
-        ///  &lt;body style=&quot;background-color: #36393f&quot;&gt;
-        ///    &lt;div
-        ///      class=&quot;header&quot;
-        ///      style=&quot;
-        ///        border-bottom: 1px white dashed;
-        ///        padding-bottom: 1rem;
-        ///        text-align: center;
-        ///        color: white;
-        ///        padding-top: 1rem;
-        ///        position: sticky;
-        ///        top: 0px;
-        ///        background-color: inherit;
-        ///        z-index: 10;
-        ///        display: flex;
-        ///        align-items: center;
-        ///        justify-content: center;
-        ///      &quot;
-        ///    &gt;
-        ///      &lt;h1 style=&quot;width: 70%&quot;&gt;
-        ///    [rest of string was truncated]&quot;;.
+        ///  &lt;head&gt;
+        ///    &lt;style&gt;
+        ///      body {
+        ///        font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        ///          Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
+        ///          &quot;Segoe UI Symbol&quot;;
+        ///      }
+        ///      @keyframes close {
+        ///        from {
+        ///          transform: rotate(-90deg);
+        ///        }
+        ///        to {
+        ///          transform: rotate(0);
+        ///        }
+        ///      }
+        ///      @keyframes open {
+        ///        from {
+        ///          transform: rotate(0);
+        ///        }
+        ///        to {
+        ///          tran [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string listingTickets {
+        internal static string listingTickets {
             get {
                 return ResourceManager.GetString("listingTickets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;html&gt;
+        ///  &lt;head&gt;
+        ///    &lt;style&gt;
+        ///      body {
+        ///        font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        ///          Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
+        ///          &quot;Segoe UI Symbol&quot;;
+        ///        background-color: #36393f;
+        ///        display: flex;
+        ///        justify-content: center;
+        ///        color: white;
+        ///        text-align: center;
+        ///      }
+        ///    &lt;/style&gt;
+        ///  &lt;/head&gt;
+        ///  &lt;body&gt;
+        ///    &lt;div class=&quot;content&quot;&gt;
+        ///      &lt;h1&gt;You have been logged out!&lt;/h1&gt;
+        ///      &lt;h4&gt;Btw you are [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string loggedOut {
+            get {
+                return ResourceManager.GetString("loggedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;html&gt;
+        ///  &lt;head&gt;
+        ///    &lt;style&gt;
+        ///      body {
+        ///        font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        ///          Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
+        ///          &quot;Segoe UI Symbol&quot;;
+        ///      }
+        ///    &lt;/style&gt;
+        ///  &lt;/head&gt;
+        ///  &lt;body style=&quot;background-color: #36393f&quot;&gt;
+        ///    &lt;div
+        ///      class=&quot;content&quot;
+        ///      style=&quot;
+        ///        display: flex;
+        ///        align-items: center;
+        ///        flex-direction: column;
+        ///        color: white;
+        ///      &quot;
+        ///    &gt;
+        ///      &lt;img
+        ///        style=&quot;w [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string notLoggedIn {
+            get {
+                return ResourceManager.GetString("notLoggedIn", resourceCulture);
             }
         }
         
@@ -118,7 +175,7 @@ namespace SwissbotCore.Properties {
         ///      -webkit-user-select: none;
         ///      -moz-user-sele [rest of string was truncated]&quot;;.
         /// </summary>
-        public static string ticketItem {
+        internal static string ticketItem {
             get {
                 return ResourceManager.GetString("ticketItem", resourceCulture);
             }

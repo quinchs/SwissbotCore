@@ -121,6 +121,12 @@
   <data name="listingTickets" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\listingTickets.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="loggedOut" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\loggedOut.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="notLoggedIn" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\notLoggedIn.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
   <data name="ticketItem" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ticketItem.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>

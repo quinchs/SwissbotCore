@@ -1,6 +1,66 @@
 <html>
-  <head> </head>
-  <body style="background-color: #36393f; margin: 0">
+  <head>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
+      }
+      @keyframes close {
+        from {
+          transform: rotate(-90deg);
+        }
+        to {
+          transform: rotate(0);
+        }
+      }
+      @keyframes open {
+        from {
+          transform: rotate(0);
+        }
+        to {
+          transform: rotate(-90deg);
+        }
+      }
+
+      @keyframes up {
+        from {
+          height: 5rem;
+          display: flex;
+        }
+        to {
+          height: 0rem;
+          display: none;
+        }
+      }
+
+      @keyframes down {
+        from {
+          height: 0rem;
+          display: none;
+        }
+        to {
+          height: 5rem;
+          display: flex;
+        }
+      }
+      .logout-up {
+        animation: up 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+      }
+      .logout-down {
+        animation: down 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+      }
+      .gui-closed {
+        animation: close 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+        transform: rotate(0);
+      }
+      .gui-open {
+        animation: open 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+        transform: rotate(-90deg);
+      }
+    </style>
+  </head>
+  <body style="background-color: #36393f; margin: 0" onload="handleLoad()">
     <div
       class="header"
       style="
@@ -23,51 +83,123 @@
         All datetime formats are in UTC
       </h1>
       <div
-        class="profile"
+        id="dropdown"
+        class="logout"
         style="
-          border-radius: 25px;
+          border-radius: 0 0 25px 25px;
           display: flex;
           background-color: #7289da;
           position: absolute;
-          top: 10px;
+          top: 35px;
           align-items: center;
+          height: 0;
           right: 10px;
+          justify-content: center;
         "
       >
-        <img
-          src="{user.profile}"
-          aria-hidden="true"
-          alt=""
+        <a
+          style="color: #ff3d00; font-size: 1.5rem; text-decoration: none"
+          id="logout"
+          href="/apprentice/v1/logout"
+        >
+          <b>logout</b></a
+        >
+      </div>
+      <script>
+        function handleLoad() {
+          const dd = document.getElementById("dropdown");
+          const profile = document.getElementById("profile");
+          dd.style.width = profile.offsetWidth;
+        }
+      </script>
+      <div class="profile-container">
+        <div
+          id="profile"
+          class="profile"
           style="
-            margin: 0.1rem;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            overflow: hidden;
-            cursor: pointer;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-box-flex: 0;
-            -ms-flex: 0 0 auto;
-            flex: 0 0 auto;
-            pointer-events: none;
-            z-index: 1;
-          "
-        />
-        <p
-          style="
-            margin-right: 0.5rem;
-            margin-left: 0.25rem;
-            margin-top: 0;
-            margin-bottom: 0;
-            font-size: 1.5rem;
-            font-weight: 300;
+            border-radius: 25px;
+            display: flex;
+            background-color: #7289da;
+            position: absolute;
+            top: 10px;
+            align-items: center;
+            right: 10px;
           "
         >
-          {user.username}
-        </p>
+          <img
+            src="{user.profile}"
+            aria-hidden="true"
+            alt=""
+            style="
+              margin: 0.1rem;
+              width: 50px;
+              height: 50px;
+              border-radius: 50%;
+              overflow: hidden;
+              cursor: pointer;
+              -webkit-user-select: none;
+              -moz-user-select: none;
+              -ms-user-select: none;
+              user-select: none;
+              -webkit-box-flex: 0;
+              -ms-flex: 0 0 auto;
+              flex: 0 0 auto;
+              pointer-events: none;
+              z-index: 1;
+            "
+          />
+          <p
+            style="
+              margin-right: 0.5rem;
+              margin-left: 0.25rem;
+              margin-top: 0;
+              margin-bottom: 0;
+              font-size: 1.5rem;
+              font-weight: 300;
+            "
+          >
+            {user.username}
+          </p>
+          <p
+            id="gui-button"
+            class="gui"
+            style="
+              margin-right: 0.5rem;
+              margin-left: 0.25rem;
+              margin-top: 0;
+              margin-bottom: 0;
+              font-size: 1.5rem;
+              font-weight: 300;
+              cursor: pointer;
+              user-select: none;
+            "
+            onclick="handleDropdown()"
+          >
+            <b>&lt;</b>
+          </p>
+
+          <script>
+            let first = true;
+            function handleDropdown() {
+              const element = document.getElementById("gui-button");
+              const logout = document.getElementById("dropdown");
+
+              if (first) {
+                element.className = "gui-closed";
+                logout.className = "logout-up";
+                first = false;
+              } else {
+                if (element.className == "gui-open") {
+                  element.className = "gui-closed";
+                  logout.className = "logout-up";
+                } else {
+                  element.className = "gui-open";
+                  logout.className = "logout-down";
+                }
+              }
+            }
+          </script>
+        </div>
       </div>
     </div>
     <div
