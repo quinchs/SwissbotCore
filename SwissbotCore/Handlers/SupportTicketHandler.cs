@@ -13,6 +13,7 @@ using System.Net;
 using System.Timers;
 using Discord.Net;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace SwissbotCore.Handlers
 {
@@ -34,6 +35,7 @@ namespace SwissbotCore.Handlers
             public ulong TicketChannel { get; set; }
             public TypingState DMTyping { get; set; }
             public bool Welcomed { get; set; } = false;
+
             public TicketTranscript Transcript;
         }
         public class TypingState
@@ -528,10 +530,22 @@ namespace SwissbotCore.Handlers
                         closingState.Remove(closingState.Keys.First(x => x.Key == chan.Id));
                         CurrentTickets.Remove(ticket);
 
-                        string html = ticket.Transcript.compileHtml();
+                        var ts = ticket.Transcript.CompileAndSave();
 
-                        File.WriteAllText(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}{ticket.UserID}.html", html);
-                        await Global.Client.GetGuild(Global.SwissGuildId).GetTextChannel(770875781823463424).SendFileAsync(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}{ticket.UserID}.html", $"Ticket from <@{ticket.UserID}>").Result.PinAsync();
+                        await Global.Client.GetGuild(Global.SwissGuildId).GetTextChannel(770875781823463424).SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "New ticket transcript",
+                            Description = $"New [transcript](https://api.swissdev.team/apprentice/v1/tickets/{ts.id}/{ts.timestamp}) from <@{ticket.UserID}>",
+                            Fields = new List<EmbedFieldBuilder>()
+                            {
+                                new EmbedFieldBuilder()
+                                {
+                                    Name = "Notice",
+                                    Value = "To view tickets you have to sign in with discord, The only information i recieve is Username, Profile, and User ID. I use this information to check if you are staff. Links will not allow non staff members to view tickets.\nYou can view all tickets [here](https://api.swissdev.team/apprentice/v1/tickets)"
+                                }
+                            },
+                            Color = Color.Green
+                        }.WithCurrentTimestamp().Build());
 
                         await chan.DeleteAsync(new RequestOptions() { AuditLogReason = "Ticket Closed" });
                         var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();

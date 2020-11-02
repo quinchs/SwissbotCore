@@ -1,5 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using SwissbotCore.HTTP;
+using SwissbotCore.Properties;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -12,20 +14,162 @@ using static SwissbotCore.Handlers.SupportTicketHandler;
 
 namespace SwissbotCore.Handlers
 {
+    
+    public class TranscriptHandler
+    {
+        public TranscriptHandler()
+        {
+            if(!Directory.Exists(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Transcripts"))
+                Directory.CreateDirectory(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Transcripts");
+        }
+
+        public static List<(string id, string[] dt)> ListTickets()
+        {
+            var lst = new List<(string id, string[] dt)>();
+
+            foreach(var dir in Directory.GetDirectories(Environment.CurrentDirectory + Path.DirectorySeparatorChar + "Transcripts"))
+            {
+                var files = Directory.GetFiles(dir);
+                lst.Add((dir.Split($"{Path.DirectorySeparatorChar}").Last(), files.Select(x => x.Split(Path.DirectorySeparatorChar).Last().Replace(".html", "")).ToArray()));
+            }
+
+            return lst;
+        }
+
+        public static string CreateTicketListHtml(DiscordUser requestingUser)
+        {
+            var u = Global.Client.GetUser(requestingUser.ID);
+            string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTjA0Lpsg840JNGLaPgVWM9QofkvAYdFPLb-g&usqp=CAU";
+            if(u != null)
+            {
+                pfp = u.GetAvatarUrl(Discord.ImageFormat.Jpeg, 256);
+                if (pfp == null)
+                    pfp = u.GetDefaultAvatarUrl();
+            }
+
+            string ticketLists = "";
+
+            foreach(var item in ListTickets())
+            {
+                var ticketAuthor = Global.Client.GetUser(ulong.Parse(item.id));
+                string username = "Username unavailable";
+                string avatar = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTjA0Lpsg840JNGLaPgVWM9QofkvAYdFPLb-g&usqp=CAU";
+                if(ticketAuthor != null)
+                {
+                    username = ticketAuthor.ToString();
+
+                    avatar = ticketAuthor.GetAvatarUrl(Discord.ImageFormat.Jpeg, 256);
+                    if (avatar == null)
+                        avatar = ticketAuthor.GetDefaultAvatarUrl();
+                }
+
+                foreach (var ticket in item.dt)
+                {
+                    var dt = DateTime.FromFileTimeUtc(long.Parse(ticket));
+                    ticketLists += Resources.ticketItem.Replace("{item.profile}", avatar)
+                        .Replace("{item.username}", username)
+                        .Replace("{item.id}", item.id)
+                        .Replace("{item.date}", dt.ToString("R"))
+                        .Replace("{item.url}", $"/apprentice/v1/tickets/{item.id}/{ticket}");
+                }
+            }
+
+            string html = Resources.listingTickets;
+
+            html = html.Replace("{user.username}", requestingUser.Username)
+                   .Replace("{user.profile}", pfp)
+                   .Replace("{tickets}", ticketLists);
+
+            return html;
+        }
+
+        public static bool TranscriptExists(string uid, string timestamp)
+            => File.Exists(Environment.CurrentDirectory
+                + Path.DirectorySeparatorChar
+                + "Transcripts"
+                + Path.DirectorySeparatorChar 
+                + $"{uid}" + Path.DirectorySeparatorChar
+                + $"{timestamp}.html");
+
+        public static string GetTranscript(string uid, string timestamp)
+        {
+            if (!TranscriptExists(uid, timestamp))
+                return null;
+
+            return File.ReadAllText(Environment.CurrentDirectory
+                + Path.DirectorySeparatorChar
+                + "Transcripts"
+                + Path.DirectorySeparatorChar
+                + $"{uid}" + Path.DirectorySeparatorChar
+                + $"{timestamp}.html");
+        }
+
+        public static void SaveTranscript(TicketTranscript ticket)
+        {
+            var ticketerDir = Environment.CurrentDirectory
+                + Path.DirectorySeparatorChar
+                + "Transcripts"
+                + Path.DirectorySeparatorChar
+                + ticket.TicketAuther;
+
+            if (!Directory.Exists(ticketerDir))
+            {
+                Directory.CreateDirectory(ticketerDir);
+            }
+
+            File.WriteAllText(ticketerDir 
+                + Path.DirectorySeparatorChar
+                + $"{ticket.creationTime.ToFileTimeUtc()}.html", ticket.compileHtml());
+        }
+    }
+
     public class TicketTranscript
     {
-        private List<Message> msgs = new List<Message>();
-        private SupportTicket t;
-        private SocketUser tAuther;
-        private DateTime creationTime;
+        public List<Message> msgs = new List<Message>();
+        private SupportTicket t
+            => CurrentTickets.Find(x => x.UserID == TicketAuther);
 
+        public ulong TicketAuther;
+        public DateTime creationTime;
+
+        private SocketUser Author
+            => Global.Client.GetUser(TicketAuther);
         public class Message
         {
-            public SocketUser Author;
+            public ulong Author;
             public ulong Id;
             public string Content;
-            public List<Attachment> Attachments = new List<Attachment>();
+            public void AddAttachments(List<Attachment> l)
+            {
+                Attachments = new List<DiscordAttachment>();
+                l.ForEach(x => Attachments.Add(new DiscordAttachment(x)));
+            }
+            public List<DiscordAttachment> Attachments = new List<DiscordAttachment>();
             public DateTimeOffset Timestamp;
+            public class DiscordAttachment
+            {
+                public ulong Id { get; set; }
+                public string Filename { get; set; }
+                public string Url { get; set; }
+                public string ProxyUrl { get; set; }
+                public int Size { get; set; }
+                public int? Height { get; set; }
+                public int? Width { get; set; }
+
+                public DiscordAttachment() { }
+
+                public DiscordAttachment(Attachment t)
+                {
+                    var tpe = this.GetType();
+
+                    foreach(var item in tpe.GetProperties())
+                    {
+                        item.SetValue(this, t.GetType().GetProperty(item.Name).GetValue(t));
+                    }
+                }
+            }
+            public SocketUser GetAuthor()
+                => Global.Client.GetUser(Author);
         }
 
         private string sM;
@@ -68,35 +212,52 @@ namespace SwissbotCore.Handlers
         }
         public void AddMessage(SocketMessage m)
         {
-            msgs.Add(new Message()
+            var msg = new Message()
             {
-                Attachments = m.Attachments.ToList(),
-                Author = m.Author,
+                Author = m.Author.Id,
                 Content = m.Content,
-                Id = m.Id
-            });
+                Id = m.Id,
+                Timestamp = m.Timestamp
+            };
+
+            msg.AddAttachments(m.Attachments.ToList());
+
+            msgs.Add(msg);
+
+            Global.SaveSupportTickets();
+
         }
         public void AddMessage(string content, SocketUser user, ulong mId, DateTimeOffset timeOffset)
         {
             msgs.Add(new Message()
             {
-                Author = user,
+                Author = user.Id,
                 Id = mId,
                 Content = content,
                 Timestamp  = timeOffset
             });
+
+            Global.SaveSupportTickets();
+
         }
         public TicketTranscript(SupportTicket ticket, string startingMessage)
         {
             if (ticket == null)
                 return;
-
-            t = ticket;
+            TicketAuther = ticket.UserID;
             creationTime = DateTime.UtcNow;
             sM = startingMessage;
-            tAuther = Global.Client.GetUser(ticket.UserID);
         }
 
+        /// <summary>
+        /// Compiles and saves the transcript
+        /// </summary>
+        /// <returns>The id and timestamp for this ticket</returns>
+        public (string id, string timestamp) CompileAndSave()
+        {
+            TranscriptHandler.SaveTranscript(this);
+            return (this.TicketAuther.ToString(), this.creationTime.ToFileTimeUtc().ToString());
+        }
         public string compileHtml()
         {
             string html = "";
@@ -104,8 +265,8 @@ namespace SwissbotCore.Handlers
             // Add our header
             html += "<body style=\"background: #36393f; font-family: Arial, Helvetica, sans-serif\"> " +
                 "<div class=\"header\" style=\"text-align: center;color: white;border-bottom: white 1px dashed;margin-bottom: 1rem;\">" +
-                $"<h2>This ticket was created on {creationTime.ToString("g")} by {tAuther.ToString()}</h2>" +
-                "<h3>This ticket is only accessable to staff and the ticket author</h3>" +
+                $"<h2>This ticket was created on {creationTime.ToString("g")} by {Author.ToString()}</h2>" +
+                "<h3>This ticket is only accessable to staff and the ticket author. All time formats are in UTC</h3>" +
                 "</div>";
 
             // Add the first message
@@ -113,17 +274,17 @@ namespace SwissbotCore.Handlers
             // Get role color
             string scolor = "white";
 
-            var su = Global.Client.GetGuild(Global.SwissGuildId).GetUser(t.UserID);
+            var su = Global.Client.GetGuild(Global.SwissGuildId).GetUser(TicketAuther);
             if (su != null)
             {
-                var sr = Global.Client.GetGuild(Global.SwissGuildId).Roles.ElementAt(su.Hierarchy - 1);
+                var sr = Global.Client.GetGuild(Global.SwissGuildId).Roles.First(x => x.Position == su.Hierarchy);
                 if (sr != null)
                     scolor = sr.Color.ToString();
             }
 
 
             // mDiv
-            html += $"<div class=\"m-start\" style=\"padding-right: 10rem !important; padding-left: 72px; padding-bottom: 1rem;\">";
+            html += $"<div class=\"m-start\" style=\"padding-right: 10rem !important; padding-left: 72px; padding-bottom: 2rem;\">";
 
             // Profile
             string spfp = su.GetAvatarUrl(Discord.ImageFormat.Jpeg);
@@ -149,30 +310,30 @@ namespace SwissbotCore.Handlers
             foreach (var msg in msgs)
             {
                 // mDiv
-                html += $"<div class=\"m-{msg.Id}\" style=\"padding-right: 10rem !important; padding-left: 72px; padding-bottom: 1rem;\">";
+                html += $"<div class=\"m-{msg.Id}\" style=\"padding-right: 10rem !important; padding-left: 72px; padding-bottom: 2rem;\">";
 
                 // Profile
-                string pfp = msg.Author.GetAvatarUrl(Discord.ImageFormat.Jpeg);
+                string pfp = msg.GetAuthor().GetAvatarUrl(Discord.ImageFormat.Jpeg);
                 if (pfp == null)
-                    pfp = msg.Author.GetDefaultAvatarUrl();
+                    pfp = msg.GetAuthor().GetDefaultAvatarUrl();
                 html += $"<img src=\"{pfp}\" aria-hidden=\"true\" alt=\"\" style=\"position: absolute;left: 16px;margin-top: calc(4px - 0.125rem);width: 40px;height: 40px;border-radius: 50%;overflow: hidden;cursor: pointer;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none;-webkit-box-flex: 0;-ms-flex: 0 0 auto;flex: 0 0 auto;pointer-events: none;z-index: 1;\"/>";
 
                 // Get role color
                 string color = "white";
 
-                var u = Global.Client.GetGuild(Global.SwissGuildId).GetUser(msg.Author.Id);
+                var u = Global.Client.GetGuild(Global.SwissGuildId).GetUser(msg.Author);
                 if(u != null)
                 {
-                    var r = Global.Client.GetGuild(Global.SwissGuildId).Roles.ElementAt(u.Hierarchy -1);
-                    if(r != null)
+                    var r = Global.Client.GetGuild(Global.SwissGuildId).Roles.First(x => x.Position == u.Hierarchy);
+                    if (r != null)
                         color = r.Color.ToString();
                 }
 
                 // Message header
                 html += $"<h2 class=\"h-{msg.Id}\" style=\"margin: 0; padding: 0; border: 0; vertical-align: baseline\"><span class=\"headerText\">" +
-                    $"<span class=\"username\" aria-controls=\"popout_102154\" aria-expanded=\"false\" role=\"button\" tabindex=\"0\" style=\"color: {color}; margin: 0; padding: 0; border: 0; font-size: 1.1rem; vertical-align: baseline;\">{msg.Author.ToString()}</span></span><span class=\"timestamp\">" +
-                    $"<span aria-label=\"{msg.Timestamp.UtcDateTime.ToString("g")}\"style=\"color: #72767d; font-size: 1rem; padding-left: 0.5rem;\">" +
-                    $"{msg.Timestamp.UtcDateTime.ToString("g")}</span></span></h2>";
+                    $"<span class=\"username\" aria-controls=\"popout_102154\" aria-expanded=\"false\" role=\"button\" tabindex=\"0\" style=\"color: {color}; margin: 0; padding: 0; border: 0; font-size: 1.1rem; vertical-align: baseline;\">{msg.GetAuthor().ToString()}</span></span><span class=\"timestamp\">" +
+                    $"<span aria-label=\"{msg.Timestamp.ToString("g")}\"style=\"color: #72767d; font-size: 1rem; padding-left: 0.5rem;\">" +
+                    $"{msg.Timestamp.ToString("g")}</span></span></h2>";
 
                 // Message content
 

@@ -18,11 +18,46 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="AutoSlowmode.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\listingTickets.html" />
+    <None Remove="Resources\ticketItem.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="CommandService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Reddit.Net" Version="1.0.33" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.0-preview.4.20251.6" />
     <PackageReference Include="System.Linq.Dynamic" Version="1.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="AutoSlowmode.cs" />
+    <Resource Include="CommandHandler.cs" />
+    <Resource Include="Resources\listingTickets.html" />
+    <Resource Include="Resources\ticketItem.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

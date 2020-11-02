@@ -1,0 +1,133 @@
+<html>
+  <head> </head>
+  <body style="background-color: #36393f; margin: 0">
+    <div
+      class="header"
+      style="
+        border-bottom: 1px white dashed;
+        padding-bottom: 1rem;
+        text-align: center;
+        color: white;
+        padding-top: 1rem;
+        position: sticky;
+        top: 0px;
+        background-color: inherit;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <h1 style="width: 70%">
+        This content is only accessable by current staff members of Swiss001.
+        All datetime formats are in UTC
+      </h1>
+      <div
+        class="profile"
+        style="
+          border-radius: 25px;
+          display: flex;
+          background-color: #7289da;
+          position: absolute;
+          top: 10px;
+          align-items: center;
+          right: 10px;
+        "
+      >
+        <img
+          src="{user.profile}"
+          aria-hidden="true"
+          alt=""
+          style="
+            margin: 0.1rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-box-flex: 0;
+            -ms-flex: 0 0 auto;
+            flex: 0 0 auto;
+            pointer-events: none;
+            z-index: 1;
+          "
+        />
+        <p
+          style="
+            margin-right: 0.5rem;
+            margin-left: 0.25rem;
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 1.5rem;
+            font-weight: 300;
+          "
+        >
+          {user.username}
+        </p>
+      </div>
+    </div>
+    <div
+      class="searchbox"
+      style="
+        max-width: 1100px;
+        margin: auto;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+      "
+    >
+      <p style="color: white; font-size: 1.5rem">Search by Username or ID</p>
+      <input
+        id="search"
+        type="text"
+        style="
+          font-size: 1rem;
+          width: 75%;
+          margin-bottom: 0.5rem;
+          border-radius: 10px;
+          outline: none;
+          padding: 0 0.4rem;
+        "
+        oninput="sort()"
+      />
+    </div>
+    <script>
+      function sort() {
+        var list = document.getElementsByClassName("item");
+        var query = document.getElementById("search").value;
+
+        console.log(list);
+        console.log(query);
+
+        for (i = 0; i < list.length; i++) {
+          var element = list[i];
+
+          var item = element.getElementsByClassName("username")[0].innerHTML;
+          var id = element.getElementsByClassName("id")[0].innerHTML;
+
+          if (item.includes(query) || id.startsWith(query)) {
+            element.style.display = "flex";
+          } else {
+            element.style.display = "none";
+          }
+        }
+      }
+    </script>
+    <div
+      class="content"
+      style="
+        display: flex;
+        flex-direction: column;
+        max-width: 1100px;
+        margin: auto;
+      "
+    >
+      {tickets}
+    </div>
+  </body>
+</html>
