@@ -110,6 +110,7 @@
           const dd = document.getElementById("dropdown");
           const profile = document.getElementById("profile");
           dd.style.width = profile.offsetWidth;
+          sort();
         }
       </script>
       <div class="profile-container">
@@ -230,17 +231,27 @@
     </div>
     <script>
       function sort() {
-        var list = document.getElementsByClassName("item");
-        var query = document.getElementById("search").value;
+        const list = document.getElementsByClassName("item");
 
-        console.log(list);
-        console.log(query);
+        const arr = [];
+        for (let i = 0; i < list.length; i++) {
+          arr.push(list.item(i));
+        }
+
+        arr.sort(function (a, b) {
+          return (
+            new Date(b.getElementsByClassName("date")[0].innerHTML) -
+            new Date(a.getElementsByClassName("date")[0].innerHTML)
+          );
+        });
+
+        const query = document.getElementById("search").value;
 
         for (i = 0; i < list.length; i++) {
-          var element = list[i];
+          let element = arr[i];
 
-          var item = element.getElementsByClassName("username")[0].innerHTML;
-          var id = element.getElementsByClassName("id")[0].innerHTML;
+          let item = element.getElementsByClassName("username")[0].innerHTML;
+          let id = element.getElementsByClassName("id")[0].innerHTML;
 
           if (item.includes(query) || id.startsWith(query)) {
             element.style.display = "flex";
@@ -248,6 +259,13 @@
             element.style.display = "none";
           }
         }
+
+        let cont = "";
+        arr.forEach((el) => {
+          cont += el.outerHTML;
+        });
+
+        document.getElementsByClassName("content")[0].innerHTML = cont;
       }
     </script>
     <div
