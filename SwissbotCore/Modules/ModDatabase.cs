@@ -34,6 +34,11 @@ namespace SwissbotCore.Modules
             if (!File.Exists(ModLogsPath)) { File.Create(ModLogsPath).Close(); }
             //load logs
             currentLogs = LoadModLogs();
+            var amnt = currentLogs.Users.RemoveAll(x => x.Logs.Count == 0);
+            Console.WriteLine($"Removed {amnt} dead logs");
+            currentLogs.Users = currentLogs.Users.OrderBy(x => x.Logs.Max(x => DateTime.Parse(x.Date)).Ticks).Reverse().ToList();
+
+            //SaveModLogs();
 
             //create muted role if it doesnt exist
             //change text channel perms for muted role if not set
@@ -113,6 +118,15 @@ namespace SwissbotCore.Modules
             {
                 var d = JsonConvert.DeserializeObject<ModlogsJson>(File.ReadAllText(ModLogsPath));
                 if(d == null) { throw new Exception(); }
+
+                //foreach(var item in d.Users)
+                //{
+                //    foreach(var ml in item.Logs)
+                //    {
+                //        ml.InfractionID = RandomString(32);
+                //    }
+                //}
+
                 return d;
             }
             catch(Exception ex)
@@ -142,6 +156,7 @@ namespace SwissbotCore.Modules
             public Action Action { get; set; }
             public ulong ModeratorID { get; set; }
             public string Date { get; set; }
+            public string InfractionID { get; set; }
         }
 
         public enum Action
@@ -151,6 +166,13 @@ namespace SwissbotCore.Modules
             Banned,
             Muted,
             voiceban
+        }
+        private static Random random = new Random();
+        public static string RandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         static async Task AddModlogs(ulong userID, Action action, ulong ModeratorID, string reason, string username)
@@ -162,7 +184,8 @@ namespace SwissbotCore.Modules
                     Action = action,
                     ModeratorID = ModeratorID,
                     Reason = reason,
-                    Date = DateTime.UtcNow.ToString("r")
+                    Date = DateTime.UtcNow.ToString("r"),
+                    InfractionID = RandomString(32)
                 });
             }
             else
@@ -175,7 +198,8 @@ namespace SwissbotCore.Modules
                             Action = action,
                             ModeratorID = ModeratorID,
                             Reason = reason,
-                            Date = DateTime.UtcNow.ToString("r")
+                            Date = DateTime.UtcNow.ToString("r"),
+                            InfractionID = RandomString(32)
                         } }
                     },
                     userId = userID,

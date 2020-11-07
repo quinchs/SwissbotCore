@@ -61,6 +61,37 @@ namespace SwissbotCore.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
+        ///&lt;html lang=&quot;en&quot;&gt;
+        ///  &lt;head&gt;
+        ///    &lt;title&gt;Modlogs&lt;/title&gt;
+        ///  &lt;/head&gt;
+        ///
+        ///  &lt;script&gt;
+        ///    function createAlert(title, message) {
+        ///      var elm = document.getElementById(&quot;alert&quot;);
+        ///      elm.style.display = &quot;block&quot;;
+        ///
+        ///      elm.innerHTML =
+        ///        &apos;&lt;span class=&quot;closebtn&quot; onclick=&quot;this.parentElement.style.display=\&apos;none\&apos;;&quot;&gt;&amp;times;&lt;/span&gt;&lt;strong&gt;&apos; +
+        ///        title +
+        ///        &quot;&lt;/strong&gt; &quot; +
+        ///        message;
+        ///
+        ///      elm.animate(
+        ///        [
+        ///          {
+        ///            opacity: 0,
+        ///          },
+        ///   [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string index {
+            get {
+                return ResourceManager.GetString("index", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;html&gt;
         ///  &lt;head&gt;
         ///    &lt;style&gt;
@@ -114,6 +145,69 @@ namespace SwissbotCore.Properties {
         internal static string loggedOut {
             get {
                 return ResourceManager.GetString("loggedOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;div
+        ///  class=&quot;case&quot;
+        ///  style=&quot;
+        ///    display: flex;
+        ///    flex-direction: column;
+        ///    width: 100%;
+        ///    margin-bottom: 1rem;
+        ///  &quot;
+        ///&gt;
+        ///  &lt;span class=&quot;modlog-id&quot; style=&quot;display: none&quot;&gt;{modlog.id}&lt;/span&gt;
+        ///  &lt;div
+        ///    class=&quot;title&quot;
+        ///    style=&quot;
+        ///      display: flex;
+        ///      flex-direction: row;
+        ///      align-items: center;
+        ///      margin-bottom: 0.5rem;
+        ///    &quot;
+        ///  &gt;
+        ///    &lt;p
+        ///      style=&quot;
+        ///        font-size: 1.2rem;
+        ///        margin-top: 0;
+        ///        margin-bottom: 0;
+        ///        margin-left: 39%;
+        ///      &quot;
+        ///    &gt;
+        ///      [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string modlogItem {
+            get {
+                return ResourceManager.GetString("modlogItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;div class=&quot;box&quot;&gt;
+        ///  &lt;div
+        ///    class=&quot;head&quot;
+        ///    style=&quot;
+        ///      display: flex;
+        ///      color: white;
+        ///      background-color: #2c2f33;
+        ///      border-radius: 35px;
+        ///      width: 100%;
+        ///      align-items: center;
+        ///    &quot;
+        ///  &gt;
+        ///    &lt;img src=&quot;{user.profile}&quot; /&gt;
+        ///    &lt;p class=&quot;username&quot; style=&quot;padding: 0 0.5rem; font-size: 1.5rem&quot;&gt;
+        ///      {user.username}
+        ///    &lt;/p&gt;
+        ///    &lt;span class=&quot;id&quot; style=&quot;display: none&quot;&gt;{user.id}&lt;/span&gt;
+        ///    &lt;p class=&quot;date&quot; style=&quot;color: #72767d; padding-right: 1rem&quot;&gt;
+        ///      Most recent: {user [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string modlogUser {
+            get {
+                return ResourceManager.GetString("modlogUser", resourceCulture);
             }
         }
         

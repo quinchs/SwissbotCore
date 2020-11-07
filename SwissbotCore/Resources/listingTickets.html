@@ -58,6 +58,14 @@
         animation: open 0.25s ease-in-out 0s 1 alternate-reverse forwards;
         transform: rotate(-90deg);
       }
+      .navbar {
+        width: 100%;
+        background-color: #23272a;
+        max-height: 75px;
+        height: 75px;
+        display: flex;
+        align-items: center;
+      }
     </style>
   </head>
   <body style="background-color: #36393f; margin: 0" onload="handleLoad()">
@@ -68,7 +76,6 @@
         padding-bottom: 1rem;
         text-align: center;
         color: white;
-        padding-top: 1rem;
         position: sticky;
         top: 0px;
         background-color: inherit;
@@ -76,132 +83,176 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-direction: column;
       "
     >
+      <div class="navbar">
+        <img
+          style="max-height: 50px; border-radius: 50%; margin-left: 1rem"
+          src="https://cdn.discordapp.com/avatars/622148936425275392/915ccc92158f2c119f1b68ee187ffe4a.png?size=256"
+          alt="logo"
+        />
+
+        <a
+          style="
+            color: white;
+            text-decoration: none;
+            padding: 0.25rem 1rem;
+            margin-left: 1rem;
+            border-left: 1px solid white;
+            font-size: 1.8rem;
+          "
+          href="/apprentice/v1/tickets"
+          >Tickets</a
+        >
+        <a
+          style="
+            color: white;
+            text-decoration: none;
+            padding: 0.25rem 1rem;
+            font-size: 1.8rem;
+          "
+          href="/apprentice/v1/modlogs"
+          title="Modlogs"
+          >Modlogs</a
+        >
+        <a
+          style="
+            color: white;
+            text-decoration: none;
+            padding: 0.25rem 1rem;
+            font-size: 1.8rem;
+            cursor: no-drop;
+          "
+          href=""
+          title="Currently under development"
+          >Action logs</a
+        >
+        <div
+          id="dropdown"
+          class="logout"
+          style="
+            border-radius: 0 0 25px 25px;
+            display: flex;
+            background-color: #7289da;
+            position: absolute;
+            top: 35px;
+            align-items: center;
+            height: 0;
+            right: 10px;
+            justify-content: center;
+          "
+        >
+          <a
+            style="color: #ff3d00; font-size: 1.5rem; text-decoration: none"
+            id="logout"
+            href="/apprentice/v1/logout"
+          >
+            <b>logout</b></a
+          >
+        </div>
+        <script>
+          function handleLoad() {
+            const dd = document.getElementById("dropdown");
+            const profile = document.getElementById("profile");
+            dd.style.width = profile.offsetWidth;
+            sort();
+          }
+        </script>
+        <div class="profile-container">
+          <div
+            id="profile"
+            class="profile"
+            style="
+              border-radius: 25px;
+              display: flex;
+              background-color: #7289da;
+              position: absolute;
+              top: 10px;
+              align-items: center;
+              right: 10px;
+            "
+          >
+            <img
+              src="{user.profile}"
+              aria-hidden="true"
+              alt=""
+              style="
+                margin: 0.1rem;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                overflow: hidden;
+                cursor: pointer;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                -webkit-box-flex: 0;
+                -ms-flex: 0 0 auto;
+                flex: 0 0 auto;
+                pointer-events: none;
+                z-index: 1;
+              "
+            />
+            <p
+              style="
+                margin-right: 0.5rem;
+                margin-left: 0.25rem;
+                margin-top: 0;
+                margin-bottom: 0;
+                font-size: 1.5rem;
+                font-weight: 300;
+              "
+            >
+              {user.username}
+            </p>
+            <p
+              id="gui-button"
+              class="gui"
+              style="
+                margin-right: 0.5rem;
+                margin-left: 0.25rem;
+                margin-top: 0;
+                margin-bottom: 0;
+                font-size: 1.5rem;
+                font-weight: 300;
+                cursor: pointer;
+                user-select: none;
+              "
+              onclick="handleDropdown()"
+            >
+              <b>&lt;</b>
+            </p>
+
+            <script>
+              let first = true;
+              function handleDropdown() {
+                const element = document.getElementById("gui-button");
+                const logout = document.getElementById("dropdown");
+
+                if (first) {
+                  element.className = "gui-closed";
+                  logout.className = "logout-up";
+                  first = false;
+                } else {
+                  if (element.className == "gui-open") {
+                    element.className = "gui-closed";
+                    logout.className = "logout-up";
+                  } else {
+                    element.className = "gui-open";
+                    logout.className = "logout-down";
+                  }
+                }
+              }
+            </script>
+          </div>
+        </div>
+      </div>
       <h1 style="width: 70%">
         This content is only accessable by current staff members of Swiss001.
         All datetime formats are in UTC
       </h1>
-      <div
-        id="dropdown"
-        class="logout"
-        style="
-          border-radius: 0 0 25px 25px;
-          display: flex;
-          background-color: #7289da;
-          position: absolute;
-          top: 35px;
-          align-items: center;
-          height: 0;
-          right: 10px;
-          justify-content: center;
-        "
-      >
-        <a
-          style="color: #ff3d00; font-size: 1.5rem; text-decoration: none"
-          id="logout"
-          href="/apprentice/v1/logout"
-        >
-          <b>logout</b></a
-        >
-      </div>
-      <script>
-        function handleLoad() {
-          const dd = document.getElementById("dropdown");
-          const profile = document.getElementById("profile");
-          dd.style.width = profile.offsetWidth;
-          sort();
-        }
-      </script>
-      <div class="profile-container">
-        <div
-          id="profile"
-          class="profile"
-          style="
-            border-radius: 25px;
-            display: flex;
-            background-color: #7289da;
-            position: absolute;
-            top: 10px;
-            align-items: center;
-            right: 10px;
-          "
-        >
-          <img
-            src="{user.profile}"
-            aria-hidden="true"
-            alt=""
-            style="
-              margin: 0.1rem;
-              width: 50px;
-              height: 50px;
-              border-radius: 50%;
-              overflow: hidden;
-              cursor: pointer;
-              -webkit-user-select: none;
-              -moz-user-select: none;
-              -ms-user-select: none;
-              user-select: none;
-              -webkit-box-flex: 0;
-              -ms-flex: 0 0 auto;
-              flex: 0 0 auto;
-              pointer-events: none;
-              z-index: 1;
-            "
-          />
-          <p
-            style="
-              margin-right: 0.5rem;
-              margin-left: 0.25rem;
-              margin-top: 0;
-              margin-bottom: 0;
-              font-size: 1.5rem;
-              font-weight: 300;
-            "
-          >
-            {user.username}
-          </p>
-          <p
-            id="gui-button"
-            class="gui"
-            style="
-              margin-right: 0.5rem;
-              margin-left: 0.25rem;
-              margin-top: 0;
-              margin-bottom: 0;
-              font-size: 1.5rem;
-              font-weight: 300;
-              cursor: pointer;
-              user-select: none;
-            "
-            onclick="handleDropdown()"
-          >
-            <b>&lt;</b>
-          </p>
-
-          <script>
-            let first = true;
-            function handleDropdown() {
-              const element = document.getElementById("gui-button");
-              const logout = document.getElementById("dropdown");
-
-              if (first) {
-                element.className = "gui-closed";
-                logout.className = "logout-up";
-                first = false;
-              } else {
-                if (element.className == "gui-open") {
-                  element.className = "gui-closed";
-                  logout.className = "logout-up";
-                } else {
-                  element.className = "gui-open";
-                  logout.className = "logout-down";
-                }
-              }
-            }
-          </script>
-        </div>
-      </div>
     </div>
     <div
       class="searchbox"

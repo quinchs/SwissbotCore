@@ -194,7 +194,7 @@ namespace SwissbotCore.Handlers
                                 byte[] byteImage = ms.ToArray();
                                 var b64 = Convert.ToBase64String(byteImage);
 
-                                string stl = "width: fit-content;height: fit-content; padding-top: 1rem;";
+                                string stl = "width: fit-content;height: fit-content; padding-top: 1rem; max-width: 75%;";
 
                                 if (style != "default")
                                     stl = style;

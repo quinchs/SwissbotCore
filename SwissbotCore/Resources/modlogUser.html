@@ -1,0 +1,26 @@
+<div class="box">
+  <div
+    class="head"
+    style="
+      display: flex;
+      color: white;
+      background-color: #2c2f33;
+      border-radius: 35px;
+      width: 100%;
+      align-items: center;
+    "
+  >
+    <img src="{user.profile}" />
+    <p class="username" style="padding: 0 0.5rem; font-size: 1.5rem">
+      {user.username}
+    </p>
+    <span class="id" style="display: none">{user.id}</span>
+    <p class="date" style="color: #72767d; padding-right: 1rem">
+      Most recent: {user.mostRecent}
+    </p>
+    <button class="dropdown-button" onclick="dropDown(this)" type="view">
+      View
+    </button>
+  </div>
+  <div class="modlogs-content" style="width: 100%">{user.modlogs}</div>
+</div>

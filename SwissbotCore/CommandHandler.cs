@@ -483,7 +483,6 @@ namespace SwissbotCore
                 }
                 Console.WriteLine("[" + DateTime.Now.TimeOfDay + "] - " + "Command Handler ready");
 
-
             }
             catch (Exception ex)
             {
