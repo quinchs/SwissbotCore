@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using SwissbotCore.HTTP;
+using SwissbotCore.HTTP.Websocket;
 using SwissbotCore.Properties;
 using System;
 using System.Collections.Generic;
@@ -256,6 +257,13 @@ namespace SwissbotCore.Handlers
         public (string id, string timestamp) CompileAndSave()
         {
             TranscriptHandler.SaveTranscript(this);
+
+            // Push the ticket event
+            WebSocketServer.PushEvent("tickets.added", new
+            {
+                uid = this.Author.Id,
+                date = this.creationTime.ToFileTimeUtc()
+            });
             return (this.TicketAuther.ToString(), this.creationTime.ToFileTimeUtc().ToString());
         }
         public string compileHtml()

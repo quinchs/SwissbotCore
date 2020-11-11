@@ -1,98 +1,24 @@
-<div
-  class="case"
-  style="
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin-bottom: 1rem;
-  "
->
-  <span class="modlog-id" style="display: none">{modlog.id}</span>
-  <div
-    class="title"
-    style="
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    "
-  >
-    <p
-      style="
-        font-size: 1.2rem;
-        margin-top: 0;
-        margin-bottom: 0;
-        margin-left: 39%;
-      "
-    >
+<div class="case">
+  <span class="modlog-id">{modlog.id}</span>
+  <div class="title">
+    <p class="modlog-action">
       <b>{modlog.action}</b>
     </p>
-    <p
-      style="color: #72767d; margin-top: 0; margin-left: 1rem; margin-bottom: 0"
-    >
-      {modlog.date}
-    </p>
+    <p class="modlog-date">{modlog.date}</p>
 
-    <div
-      style="
-        margin-left: auto;
-        margin-right: 1rem;
-        cursor: pointer;
-        width: 80px;
-        height: 30px;
-      "
-      class="delete-button"
-      onclick="togglePopup(this)"
-    >
-      <div
-        class="confirm"
-        style="
-          display: flex;
-          width: 80px;
-          margin-bottom: 0rem;
-          justify-content: center;
-          cursor: auto;
-        "
-      >
-        <p
-          style="
-            font-size: 1.4rem;
-            margin: 0 0.25rem;
-            color: #f04747;
-            cursor: pointer;
-            user-select: none;
-          "
-          onclick="deleteModlog(this)"
-        >
-          ✓
-        </p>
-        <p
-          onclick="hidePopup(this)"
-          style="
-            font-size: 1.4rem;
-            margin: 0 0.25rem;
-            color: cyan;
-            cursor: pointer;
-            user-select: none;
-          "
-        >
-          X
-        </p>
+    <div class="delete-button" onclick="togglePopup(this)">
+      <div class="confirm">
+        <p class="confirm-delete" onclick="deleteModlog(this)">✓</p>
+        <p class="confirm-cancel" onclick="hidePopup(this)">X</p>
       </div>
       <svg
         class="icon"
         aria-hidden="false"
         width="80"
-        style="
-          position: relative;
-          transform: translateY(-25px);
-          background-color: #2c2f33;
-        "
         height="24"
         viewBox="0 0 24 24"
       >
         <path
-          style="transform-origin: center"
           class="lid"
           fill="#f04747"
           d="M15 3.999V2H9V3.999H3V5.999H21V3.999H15Z"
@@ -105,26 +31,8 @@
       </svg>
     </div>
   </div>
-  <div
-    class="inner"
-    style="display: flex; margin: 0 2rem; border-bottom: 1px dashed white"
-  >
-    <p class="reason" style="margin: 1rem">{modlog.reason}</p>
-    <p
-      class="mod"
-      style="
-        margin-left: auto;
-        border-left: 1px white dashed;
-        margin-left: auto;
-        margin-top: 0;
-        margin-bottom: 0;
-        padding-top: auto;
-        padding: 1rem;
-        max-width: 10%;
-        width: 100%;
-      "
-    >
-      {modlog.moderator}
-    </p>
+  <div class="inner">
+    <p class="reason">{modlog.reason}</p>
+    <p class="mod">{modlog.moderator}</p>
   </div>
 </div>

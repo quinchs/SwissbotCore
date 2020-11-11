@@ -14,12 +14,12 @@ namespace SwissbotCore.HTTP.Routes
 {
     public class Modlogs
     {
-        [Route(@"(^\/modlogs$)|(^\/modlogs\?q=(.*?)$)|\/modlogs\?f=(.*?)&t=(.*?)$", "GET", true)]
+        [Route(@"(^\/modlogs$)|(^\/modlogs\?q=(.*?)$)|\/modlogs\?f=(.*?)&t=(.*?)$|\/modlogs\?id=([0-9]{17,18})$", "GET", true)]
         public static async Task getModlogs(HttpListenerContext c, MatchCollection m)
         {
             try
             {
-               
+
                 // Check if they have the discord auth
                 if (!c.Request.Cookies.Any(x => x.Name == "csSessionID"))
                 {
@@ -50,7 +50,8 @@ namespace SwissbotCore.HTTP.Routes
 
                 if (c.Request.QueryString.Count == 0)
                 {
-                    var requestingUser = Global.Client.GetUser(user.ID);
+                    //var requestingUser = Global.Client.GetUser(user.ID);
+                    var requestingUser = Global.Client.GetUser(310586056351154176);
                     var pfp = requestingUser.GetAvatarUrl(Discord.ImageFormat.Jpeg);
                     if (pfp == null)
                         pfp = requestingUser.GetDefaultAvatarUrl();
@@ -127,7 +128,7 @@ namespace SwissbotCore.HTTP.Routes
                         }
 
                         // Query the modlogs
-                        var users = ModDatabase.currentLogs.Users.Where(x => x.userId.ToString().StartsWith(query) || x.username.StartsWith(query)).Take(25);
+                        var users = ModDatabase.currentLogs.Users.Where(x => x.userId != default && x.username != null).Where(x => x.userId.ToString().StartsWith(query) || x.username.StartsWith(query)).Take(25);
 
                         string modlogs = "";
 
@@ -268,12 +269,79 @@ namespace SwissbotCore.HTTP.Routes
                         c.Response.ContentEncoding = Encoding.UTF8;
                         c.Response.StatusCode = 200;
                         c.Response.Close();
+                    } else if (c.Request.QueryString.AllKeys.Contains("id"))
+                    {
+                        // Get modlog for said user
+                        var id = c.Request.QueryString["id"];
+                        ulong uid = 0;
+                        if(!ulong.TryParse(id, out uid))
+                        {
+                            c.Response.StatusCode = 400;
+                            c.Response.Close();
+                            return;
+                        }
+
+                        var u = ModDatabase.currentLogs.Users.FirstOrDefault(x => x.userId == uid);
+
+                        if(u == null)
+                        {
+                            c.Response.StatusCode = 404;
+                            c.Response.Close();
+                            return;
+                        }
+
+                        // Create the html for this user
+
+                        string logs = "";
+
+                        foreach (var log in u.Logs.OrderBy(x => DateTime.Parse(x.Date).Ticks).Reverse())
+                        {
+                            var mod = "Unknown Moderator";
+                            var modUser = Global.Client.GetUser(log.ModeratorID);
+                            if (modUser != null)
+                                mod = modUser.ToString();
+
+                            logs += Properties.Resources.modlogItem
+                                .Replace("{modlog.id}", log.InfractionID)
+                                .Replace("{modlog.action}", log.Action.ToString())
+                                .Replace("{modlog.date}", log.Date)
+                                .Replace("{modlog.reason}", log.Reason)
+                                .Replace("{modlog.moderator}", mod);
+                        }
+
+                        var modlogUser = Global.Client.GetUser(u.userId);
+
+                        string modlogpfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTjA0Lpsg840JNGLaPgVWM9QofkvAYdFPLb-g&usqp=CAU";
+                        if (modlogUser != null)
+                        {
+                            modlogpfp = modlogUser.GetAvatarUrl(Discord.ImageFormat.Jpeg);
+                            if (modlogpfp == null)
+                            {
+                                modlogpfp = modlogUser.GetDefaultAvatarUrl();
+                            }
+                        }
+                        string username = u.username;
+
+                        if (modlogUser != null)
+                            username = modlogUser.ToString();
+
+                        string final = Properties.Resources.modlogUser
+                            .Replace("{user.profile}", modlogpfp)
+                            .Replace("{user.id}", u.userId.ToString())
+                            .Replace("{user.username}", username)
+                            .Replace("{user.mostRecent}", u.Logs.OrderBy(x => DateTime.Parse(x.Date).Ticks).Last().Date)
+                            .Replace("{user.modlogs}", logs);
+
+                        c.Response.OutputStream.Write(Encoding.UTF8.GetBytes(final));
+                        c.Response.ContentEncoding = Encoding.UTF8;
+                        c.Response.StatusCode = 200;
+                        c.Response.Close();
                     }
                 }
-               
             }
             catch(Exception x)
             {
+                Console.Error.WriteLine($"Got {x} on /modlogs");
                 c.Response.StatusCode = 500;
                 c.Response.Close();
             }

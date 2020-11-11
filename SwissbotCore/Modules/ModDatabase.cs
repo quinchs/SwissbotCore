@@ -15,6 +15,7 @@ using static SwissbotCore.CustomCommandService;
 using System.Runtime.InteropServices.ComTypes;
 using RedditNet.Extensions;
 using SwissbotCore.Handlers;
+using SwissbotCore.HTTP.Websocket;
 
 namespace SwissbotCore.Modules
 {
@@ -177,7 +178,9 @@ namespace SwissbotCore.Modules
 
         static async Task AddModlogs(ulong userID, Action action, ulong ModeratorID, string reason, string username)
         {
-            if(currentLogs.Users.Any(x => x.userId == userID))
+            bool newUser = currentLogs.Users.Any(x => x.userId == userID);
+            string infracId = RandomString(32);
+            if (currentLogs.Users.Any(x => x.userId == userID))
             {
                 currentLogs.Users[currentLogs.Users.FindIndex(x => x.userId == userID)].Logs.Add(new UserModLogs()
                 {
@@ -185,7 +188,7 @@ namespace SwissbotCore.Modules
                     ModeratorID = ModeratorID,
                     Reason = reason,
                     Date = DateTime.UtcNow.ToString("r"),
-                    InfractionID = RandomString(32)
+                    InfractionID = infracId
                 });
             }
             else
@@ -199,7 +202,7 @@ namespace SwissbotCore.Modules
                             ModeratorID = ModeratorID,
                             Reason = reason,
                             Date = DateTime.UtcNow.ToString("r"),
-                            InfractionID = RandomString(32)
+                            InfractionID = infracId
                         } }
                     },
                     userId = userID,
@@ -207,6 +210,15 @@ namespace SwissbotCore.Modules
                 });
             }
             SaveModLogs();
+
+            WebSocketServer.PushEvent("modlog.added", new
+            {
+                userId = userID,
+                infracId = infracId,
+                action = action,
+                moderatorId = ModeratorID,
+                reason = reason,
+            });
         }
         public async Task<bool> HasPerms(SocketGuildUser user)
         {
@@ -560,6 +572,11 @@ namespace SwissbotCore.Modules
                     });
                 }
                 await Context.Channel.SendMessageAsync("", false, b.Build());
+
+                WebSocketServer.PushEvent("modlog.removed", new
+                {
+                    userId = usrlogs.userId,
+                });
             }
             else
             {

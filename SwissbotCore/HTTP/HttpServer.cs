@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SwissbotCore.http;
+using SwissbotCore.HTTP.Websocket;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -38,21 +39,40 @@ namespace SwissbotCore.Http
 
         private async void HttpServer_requestEvent(object sender, HttpListenerContext context)
         {
-            ThreadPool.QueueUserWorkItem(_ => 
+            if (context.Request.IsWebSocketRequest)
             {
-                Global.ConsoleLog($"Got new request on {context.Request.RawUrl}");
-                var sw = Stopwatch.StartNew();
-
-                using (var response = context.Response)
+                // Handle sepratly
+                if (context.Request.RawUrl != "/apprentice/v1/socket")
                 {
-                    _handler.ExecuteAsync(context).GetAwaiter().GetResult();
-                    
-                    sw.Stop();
-
-                    Global.ConsoleLog($"Executed an http request to {context.Request.RawUrl} in {sw.ElapsedMilliseconds}ms");
+                    context.Response.StatusCode = 400;
+                    context.Response.Close();
                 }
-            });
-            
+
+                Global.ConsoleLog("Upgrading a socket");
+                var sock = await context.AcceptWebSocketAsync(null);
+                WebSocketServer.AcceptSocket(sock);
+                return;
+            }
+            else
+            {
+                context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+                context.Response.Headers.Add("Access-Control-Allow-Headers", "*");
+
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    Global.ConsoleLog($"Got new request on {context.Request.RawUrl}");
+                    var sw = Stopwatch.StartNew();
+
+                    using (var response = context.Response)
+                    {
+                        _handler.ExecuteAsync(context).GetAwaiter().GetResult();
+
+                        sw.Stop();
+
+                        Global.ConsoleLog($"Executed an http request to {context.Request.RawUrl} in {sw.ElapsedMilliseconds}ms");
+                    }
+                });
+            }
         }
         public async void ListenerLoop()
         {

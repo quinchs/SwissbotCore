@@ -14,6 +14,7 @@ using System.Timers;
 using Discord.Net;
 using System.IO;
 using Newtonsoft.Json;
+using SwissbotCore.HTTP.Websocket;
 
 namespace SwissbotCore.Handlers
 {
@@ -548,13 +549,18 @@ namespace SwissbotCore.Handlers
                         }.WithCurrentTimestamp().Build());
 
                         await chan.DeleteAsync(new RequestOptions() { AuditLogReason = "Ticket Closed" });
-                        var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
-                        if (dmchan != null) 
-                            await dmchan.SendMessageAsync("Your ticket with the staff team is now closed. If you wish to open another ticket, please send a message.");
+                        var dmUser = Context.Client.GetUser(ticket.UserID);
+                        if(dmUser != null)
+                        {
+                            var dmchan = await dmUser.GetOrCreateDMChannelAsync();
+                            if (dmchan != null)
+                                await dmchan.SendMessageAsync("Your ticket with the staff team is now closed. If you wish to open another ticket, please send a message.");
+                        }
+                       
                         Global.SaveSupportTickets();
                     };
                     closingState.Add(new KeyValuePair<ulong, ulong>(Context.Channel.Id, cmsg.Id), t);
-
+                    
                 }
                 else
                     Global.ConsoleLog("cant find chan for close");

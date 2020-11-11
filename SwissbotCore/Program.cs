@@ -1,12 +1,15 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 using SwissbotCore.Handlers;
 using SwissbotCore.Http;
+using SwissbotCore.HTTP.Websocket;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -41,31 +44,8 @@ namespace SwissbotCore
 
         public async Task StartAsync()
         {
-            //foreach(var dir in Directory.GetDirectories(@"C:\Users\plynch\source\repos\SwissbotCore\SwissbotCore\bin\Debug\netcoreapp3.1\Transcripts"))
-            //{
-            //    foreach(var file in Directory.GetFiles(dir))
-            //    {
-            //        string cont = File.ReadAllText(file); 
-            //        cont = cont.Replace("1rem;\"><h2>This ticket was", "1rem;\"> <a style=\"top: 10px; left: 10px; color: white; text-decoration: none; position: absolute;\" href=\"/apprentice/v1/tickets\">View all tickets</a> <h2>This ticket was");
-            //        File.WriteAllText(file, cont);
-            //    }
-            //}
-            ////foreach (var file in Directory.GetFiles(@"C:\Users\plynch\source\repos\SwissbotCore\SwissbotCore\bin\Debug\netcoreapp3.1\Transcripts\old"))
-            ////{
-            ////    var uid = file.Split("\\").Last().Replace(".html", "");
-            ////    string dir = $@"C:\Users\plynch\source\repos\SwissbotCore\SwissbotCore\bin\Debug\netcoreapp3.1\Transcripts\{uid}";
-            ////    if (!Directory.Exists(dir))
-            ////    {
-            ////        Directory.CreateDirectory(dir);
-            ////    }
-
-            ////    var mtch = Regex.Match(File.ReadAllText(file), "created on (.*?) by");
-
-            ////    var dt = DateTime.Parse(mtch.Groups[1].Value);
-
-            ////    File.WriteAllText(dir + $"\\{dt.ToFileTime()}.html", File.ReadAllText(file));
-            ////}
-
+            WebSocketServer.Create();
+            
             Global.systemSlash = "/";
             
             Console.ForegroundColor = ConsoleColor.Green;
@@ -110,9 +90,31 @@ namespace SwissbotCore
             _handler = new CommandHandler(_client, _commands, handlerService);
 
             Global.ConsoleLog("Creating Server...");
-            _server = new HttpServer(3000);
+            _server = new HttpServer(8000);
             Global.ConsoleLog("Server running!");
 
+            //ClientWebSocket c = new ClientWebSocket();
+            //await c.ConnectAsync(new Uri("ws://localhost:8000/apprentice/v1/socket"), CancellationToken.None);
+            //await c.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+            //{
+            //    session = "test",
+            //    page = "/e",
+            //    type = "handshake",
+            //    events = new string[0]
+            //})), WebSocketMessageType.Text, true, CancellationToken.None);
+
+            bool odd = false;
+            while (true)
+            {
+                Console.ReadLine();
+
+                WebSocketServer.PushEvent("tickets.added", new
+                {
+                    uid = 259053800755691520,
+                    date = 132483652200000000
+                });
+                
+            }
             await Task.Delay(-1);   
 
             //jabibot

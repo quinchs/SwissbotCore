@@ -85,10 +85,16 @@ namespace SwissbotCore.http
                 {
                     MatchCollection mtch = Regex.Matches(Path, route.Route);
                     task = (Task)route.Method.Invoke(null, new object[] { context, mtch});
-                    await task;
                 }
                 else
                     task = (Task)route.Method.Invoke(null, new object[] { context });
+
+                await task;
+
+                if(task.Exception != null)
+                {
+                    Global.ConsoleLog($"Failed route: {task.Exception}");
+                };
             }
         }
     }

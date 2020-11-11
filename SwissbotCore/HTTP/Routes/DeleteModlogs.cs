@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using SwissbotCore.Handlers;
 using SwissbotCore.http;
 using SwissbotCore.HTTP.Types;
+using SwissbotCore.HTTP.Websocket;
 using SwissbotCore.Modules;
 using System;
 using System.Collections.Generic;
@@ -154,6 +155,16 @@ namespace SwissbotCore.HTTP.Routes
 
             // Save the log
             ModDatabase.SaveModLogs();
+
+            // Send to browsers that a log has been deleted
+            WebSocketServer.PushEvent("modlog.removed", new
+            {
+                userId = modlogUser.userId,
+                infracId = log.InfractionID,
+                action = log.Action,
+                moderatorId = log.ModeratorID,
+                reason = log.Reason,
+            });
 
             // Post an alert
             await Global.Client.GetGuild(Global.SwissGuildId).GetTextChannel(665647956816429096).SendMessageAsync("", false, new EmbedBuilder()

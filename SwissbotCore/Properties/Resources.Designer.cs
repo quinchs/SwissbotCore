@@ -64,26 +64,31 @@ namespace SwissbotCore.Properties {
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;html lang=&quot;en&quot;&gt;
         ///  &lt;head&gt;
-        ///    &lt;title&gt;Modlogs&lt;/title&gt;
-        ///  &lt;/head&gt;
+        ///    &lt;!--CSS Styles--&gt;
+        ///    &lt;style&gt;
+        ///      @keyframes close {
+        ///        from {
+        ///          transform: rotate(-90deg);
+        ///        }
+        ///        to {
+        ///          transform: rotate(0);
+        ///        }
+        ///      }
+        ///      @keyframes open {
+        ///        from {
+        ///          transform: rotate(0);
+        ///        }
+        ///        to {
+        ///          transform: rotate(-90deg);
+        ///        }
+        ///      }
         ///
-        ///  &lt;script&gt;
-        ///    function createAlert(title, message) {
-        ///      var elm = document.getElementById(&quot;alert&quot;);
-        ///      elm.style.display = &quot;block&quot;;
-        ///
-        ///      elm.innerHTML =
-        ///        &apos;&lt;span class=&quot;closebtn&quot; onclick=&quot;this.parentElement.style.display=\&apos;none\&apos;;&quot;&gt;&amp;times;&lt;/span&gt;&lt;strong&gt;&apos; +
-        ///        title +
-        ///        &quot;&lt;/strong&gt; &quot; +
-        ///        message;
-        ///
-        ///      elm.animate(
-        ///        [
-        ///          {
-        ///            opacity: 0,
-        ///          },
-        ///   [rest of string was truncated]&quot;;.
+        ///      @keyframes up {
+        ///        from {
+        ///          height: 5rem;
+        ///          display: flex;
+        ///        }
+        ///        to {        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string index {
             get {
@@ -149,34 +154,23 @@ namespace SwissbotCore.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;div
-        ///  class=&quot;case&quot;
-        ///  style=&quot;
-        ///    display: flex;
-        ///    flex-direction: column;
-        ///    width: 100%;
-        ///    margin-bottom: 1rem;
-        ///  &quot;
-        ///&gt;
-        ///  &lt;span class=&quot;modlog-id&quot; style=&quot;display: none&quot;&gt;{modlog.id}&lt;/span&gt;
-        ///  &lt;div
-        ///    class=&quot;title&quot;
-        ///    style=&quot;
-        ///      display: flex;
-        ///      flex-direction: row;
-        ///      align-items: center;
-        ///      margin-bottom: 0.5rem;
-        ///    &quot;
-        ///  &gt;
-        ///    &lt;p
-        ///      style=&quot;
-        ///        font-size: 1.2rem;
-        ///        margin-top: 0;
-        ///        margin-bottom: 0;
-        ///        margin-left: 39%;
-        ///      &quot;
-        ///    &gt;
-        ///      [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to &lt;div class=&quot;case&quot;&gt;
+        ///  &lt;span class=&quot;modlog-id&quot;&gt;{modlog.id}&lt;/span&gt;
+        ///  &lt;div class=&quot;title&quot;&gt;
+        ///    &lt;p class=&quot;modlog-action&quot;&gt;
+        ///      &lt;b&gt;{modlog.action}&lt;/b&gt;
+        ///    &lt;/p&gt;
+        ///    &lt;p class=&quot;modlog-date&quot;&gt;{modlog.date}&lt;/p&gt;
+        ///
+        ///    &lt;div class=&quot;delete-button&quot; onclick=&quot;togglePopup(this)&quot;&gt;
+        ///      &lt;div class=&quot;confirm&quot;&gt;
+        ///        &lt;p class=&quot;confirm-delete&quot; onclick=&quot;deleteModlog(this)&quot;&gt;✓&lt;/p&gt;
+        ///        &lt;p class=&quot;confirm-cancel&quot; onclick=&quot;hidePopup(this)&quot;&gt;X&lt;/p&gt;
+        ///      &lt;/div&gt;
+        ///      &lt;svg
+        ///        class=&quot;icon&quot;
+        ///        aria-hidden=&quot;false&quot;
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string modlogItem {
             get {
@@ -185,7 +179,7 @@ namespace SwissbotCore.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;div class=&quot;box&quot;&gt;
+        ///   Looks up a localized string similar to &lt;div class=&quot;box&quot; , style=&quot;margin-top: 1rem&quot;&gt;
         ///  &lt;div
         ///    class=&quot;head&quot;
         ///    style=&quot;
@@ -202,8 +196,7 @@ namespace SwissbotCore.Properties {
         ///      {user.username}
         ///    &lt;/p&gt;
         ///    &lt;span class=&quot;id&quot; style=&quot;display: none&quot;&gt;{user.id}&lt;/span&gt;
-        ///    &lt;p class=&quot;date&quot; style=&quot;color: #72767d; padding-right: 1rem&quot;&gt;
-        ///      Most recent: {user [rest of string was truncated]&quot;;.
+        ///    &lt;p class=&quot;date&quot; style=&quot;color: #72767d; padding-right: 1rem&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string modlogUser {
             get {
