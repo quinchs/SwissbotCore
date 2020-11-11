@@ -90,31 +90,10 @@ namespace SwissbotCore
             _handler = new CommandHandler(_client, _commands, handlerService);
 
             Global.ConsoleLog("Creating Server...");
-            _server = new HttpServer(8000);
+            _server = new HttpServer(3000);
             Global.ConsoleLog("Server running!");
 
-            //ClientWebSocket c = new ClientWebSocket();
-            //await c.ConnectAsync(new Uri("ws://localhost:8000/apprentice/v1/socket"), CancellationToken.None);
-            //await c.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
-            //{
-            //    session = "test",
-            //    page = "/e",
-            //    type = "handshake",
-            //    events = new string[0]
-            //})), WebSocketMessageType.Text, true, CancellationToken.None);
-
-            bool odd = false;
-            while (true)
-            {
-                Console.ReadLine();
-
-                WebSocketServer.PushEvent("tickets.added", new
-                {
-                    uid = 259053800755691520,
-                    date = 132483652200000000
-                });
-                
-            }
+            
             await Task.Delay(-1);   
 
             //jabibot

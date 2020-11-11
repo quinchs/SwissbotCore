@@ -50,8 +50,8 @@ namespace SwissbotCore.HTTP.Routes
 
                 if (c.Request.QueryString.Count == 0)
                 {
-                    //var requestingUser = Global.Client.GetUser(user.ID);
-                    var requestingUser = Global.Client.GetUser(310586056351154176);
+                    var requestingUser = Global.Client.GetUser(user.ID);
+
                     var pfp = requestingUser.GetAvatarUrl(Discord.ImageFormat.Jpeg);
                     if (pfp == null)
                         pfp = requestingUser.GetDefaultAvatarUrl();

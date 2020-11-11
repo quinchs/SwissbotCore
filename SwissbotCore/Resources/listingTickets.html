@@ -135,14 +135,14 @@
     </script>
     <!--Swissbot websocket scripts-->
     <script>
-      document.cookie =
-        "csSessionID=E2FCBFB0CAFEE5AE0AD86410A5493278462B3248CC14EB8471FA794DF638D2E3";
       // The list of events we want to receive
       const swissbotEvents = ["tickets.added"];
 
       // This script will handle the Swissbot websocket protocol:
       function connect() {
-        let socket = new WebSocket("ws://localhost:8000/apprentice/v1/socket");
+        let socket = new WebSocket(
+          "wss://api.swissdev.team/apprentice/v1/socket"
+        );
 
         socket.onopen = function (event) {
           console.log("[ OPENED ] - Opened Websocket! sending handshake...");
@@ -248,7 +248,7 @@
       }
       async function getTicketItem(data) {
         const req = await fetch(
-          `http://localhost:8000/apprentice/v1/tickets?uid=${encodeURIComponent(
+          `/apprentice/v1/tickets?uid=${encodeURIComponent(
             data.uid
           )}&dt=${encodeURIComponent(data.date)}`
         );
@@ -545,61 +545,7 @@
         margin: auto;
       "
     >
-      <div
-        class="item"
-        style="
-          display: flex;
-          color: white;
-          margin-left: 1rem;
-          background-color: #2c2f33;
-          border-radius: 2rem;
-          margin-top: 1rem;
-          width: 100%;
-          align-items: center;
-        "
-      >
-        <img
-          src="{item.profile}"
-          aria-hidden="true"
-          alt=""
-          style="
-            margin-left: 0.75rem;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            overflow: hidden;
-            cursor: pointer;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-box-flex: 0;
-            -ms-flex: 0 0 auto;
-            flex: 0 0 auto;
-            pointer-events: none;
-            z-index: 1;
-          "
-        />
-        <p class="username" style="padding: 0 0.5rem; font-size: 1.5rem">
-          {item.username}
-        </p>
-        <span class="id" style="display: none">{item.id}</span>
-
-        <p class="date" style="color: #72767d; padding-right: 1rem">
-          {item.date}
-        </p>
-        <a
-          style="
-            margin-left: auto;
-            margin-right: 1rem;
-            font-size: 1.2rem;
-            color: white;
-            text-decoration: none;
-          "
-          href="{item.url}"
-          >View</a
-        >
-      </div>
+      {tickets}
     </div>
   </body>
 </html>

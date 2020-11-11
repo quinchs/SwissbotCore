@@ -38,9 +38,8 @@ namespace SwissbotCore.Modules
             var amnt = currentLogs.Users.RemoveAll(x => x.Logs.Count == 0);
             Console.WriteLine($"Removed {amnt} dead logs");
             currentLogs.Users = currentLogs.Users.OrderBy(x => x.Logs.Max(x => DateTime.Parse(x.Date)).Ticks).Reverse().ToList();
-
+            
             //SaveModLogs();
-
             //create muted role if it doesnt exist
             //change text channel perms for muted role if not set
             //client.MessageReceived += AutoSlowmode;
@@ -138,6 +137,8 @@ namespace SwissbotCore.Modules
         }
         static public void SaveModLogs()
         {
+            currentLogs.Users = currentLogs.Users.OrderBy(x => x.Logs.Max(x => DateTime.Parse(x.Date)).Ticks).Reverse().ToList();
+
             string json = JsonConvert.SerializeObject(currentLogs);
             File.WriteAllText(ModLogsPath, json);
         }
@@ -353,7 +354,7 @@ namespace SwissbotCore.Modules
                 {
                     b.Footer = new EmbedFooterBuilder()
                     {
-                        Text = "To appeal your ban, visit https://bans.swissdev.team/"
+                        Text = "To appeal your ban, visit [https://swissdev.team/bans](https://swissdev.team/bans)"
                     };
                 }
 
@@ -818,7 +819,7 @@ namespace SwissbotCore.Modules
                 //};
                 Embed b = new EmbedBuilder()
                 {
-                    Title = $"You have been **Muted** on **{guildName}** for **{t.ToString()}",
+                    Title = $"You have been **Muted** on **{guildName}** for {t.ToString()}",
                     Fields = new List<EmbedFieldBuilder>()
                     {
                         { new EmbedFieldBuilder(){

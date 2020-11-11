@@ -631,14 +631,14 @@
   </script>
   <!--Swissbot websocket scripts-->
   <script>
-    document.cookie =
-      "csSessionID=E2FCBFB0CAFEE5AE0AD86410A5493278462B3248CC14EB8471FA794DF638D2E3";
     // The list of events we want to receive
     const swissbotEvents = ["modlog.added", "modlog.removed"];
 
     // This script will handle the Swissbot websocket protocol:
     function connect() {
-      let socket = new WebSocket("ws://localhost:8000/apprentice/v1/socket");
+      let socket = new WebSocket(
+        "wss://api.swissdev.team/apprentice/v1/socket"
+      );
 
       socket.onopen = function (event) {
         console.log("[ OPENED ] - Opened Websocket! sending handshake...");
@@ -690,9 +690,15 @@
             break;
           case "modlog.removed":
             // TODO: add molog removed handler
-            console.log("Modlog was removed");
-            const logItem = await getModlogsForUser(content.data.userId);
-            updateCase(logItem, content.data.userId);
+            if (myDeleted.indexOf(content.data.infracId) === -1) {
+              console.log("Modlog was removed");
+              const logItem = await getModlogsForUser(content.data.userId);
+              updateCase(logItem, content.data.userId);
+            } else {
+              console.log(
+                "[ MODLOGS ] - Confirmed deletion of " + content.data.infracId
+              );
+            }
             break;
         }
       };
@@ -912,9 +918,7 @@
     async function getModlogsForUser(userId) {
       // Create our request
       const resp = await fetch(
-        `http://localhost:8000/apprentice/v1/modlogs?id=${encodeURIComponent(
-          userId
-        )}`
+        `/apprentice/v1/modlogs?id=${encodeURIComponent(userId)}`
       );
 
       if (resp.status == 400) {
@@ -1015,6 +1019,13 @@
         }
       );
     }
+    let myDeleted = [];
+    function removeDeleted(id) {
+      const indx = myDeleted.indexOf(id);
+      if (indx > -1) {
+        myDeleted.splice(indx, 1);
+      }
+    }
     async function deleteModlog(element) {
       const caseItem =
         element.parentElement.parentElement.parentElement.parentElement;
@@ -1025,7 +1036,7 @@
 
       const uid = box.getElementsByClassName("id")[0].innerHTML;
       element.className = "loader";
-
+      myDeleted.push(modlog);
       console.log(`Sending over ${modlog} for ${uid}`);
       // call the api
       var resp = await fetch("/apprentice/v1/modlog", {
@@ -1037,9 +1048,11 @@
       });
 
       if (resp.status == 401 || resp.status == 403) {
+        removeDeleted(modlog);
         location.reload();
         return;
       } else if (resp.status == 429) {
+        removeDeleted(modlog);
         caseItem.animate(
           [
             {
@@ -1070,15 +1083,18 @@
         element.className = undefined;
         return;
       } else if (resp.status == 404) {
+        removeDeleted(modlog);
         createAlert(
           "Uhh",
           "The requested modlog couldn't be found, it might have been deleted already or the code is big broke, we're just gonna assume its gone :/"
         );
       } else if (resp.status == 400) {
+        removeDeleted(modlog);
         createAlert("Uhm", "Somthing went wrong. Please contact quin asap");
         element.className = undefined;
         return;
       } else if (resp.status != 200) {
+        removeDeleted(modlog);
         createAlert(
           "Yikes",
           "Please let quin know that the delete failed with a " + resp.status
@@ -1452,34 +1468,7 @@
       </button>
     </div>
     <!--Modlogs Container-->
-    <div style="margin-bottom: 1rem" class="modlogs-container">
-      <div class="box" , style="margin-top: 1rem">
-        <div
-          class="head"
-          style="
-            display: flex;
-            color: white;
-            background-color: #2c2f33;
-            border-radius: 35px;
-            width: 100%;
-            align-items: center;
-          "
-        >
-          <img src="{user.profile}" />
-          <p class="username" style="padding: 0 0.5rem; font-size: 1.5rem">
-            {user.username}
-          </p>
-          <span class="id" style="display: none">{user.id}</span>
-          <p class="date" style="color: #72767d; padding-right: 1rem">
-            Most recent: {user.mostRecent}
-          </p>
-          <button class="dropdown-button" onclick="dropDown(this)" type="view">
-            View
-          </button>
-        </div>
-        <div class="modlogs-content" style="width: 100%">{user.modlogs}</div>
-      </div>
-    </div>
+    <div style="margin-bottom: 1rem" class="modlogs-container">{modlogs}</div>
 
     <div
       class="load-more"
