@@ -195,7 +195,7 @@ namespace SwissbotCore.Handlers
             var sMessage = (IUserMessage)tpm;
 
             var emote = new Emoji("✅");
-            var reActs = await sMessage.GetReactionUsersAsync(emote, 7500).FlattenAsync();
+            var reActs = await sMessage.GetReactionUsersAsync(emote, 15000).FlattenAsync();
             foreach (var rUsers in reActs.ToList())
             {
                 var user = _client.GetGuild(Global.SwissGuildId).GetUser(rUsers.Id);

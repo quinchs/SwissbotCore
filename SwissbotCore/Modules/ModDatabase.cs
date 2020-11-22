@@ -137,7 +137,7 @@ namespace SwissbotCore.Modules
         }
         static public void SaveModLogs()
         {
-            currentLogs.Users = currentLogs.Users.OrderBy(x => x.Logs.Max(x => DateTime.Parse(x.Date)).Ticks).Reverse().ToList();
+            currentLogs.Users = currentLogs.Users.Where(z => z.Logs.Count > 0).OrderBy(x => x.Logs.Max(y => DateTime.Parse(y.Date)).Ticks).Reverse().ToList();
 
             string json = JsonConvert.SerializeObject(currentLogs);
             File.WriteAllText(ModLogsPath, json);
