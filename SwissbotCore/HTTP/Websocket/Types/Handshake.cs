@@ -27,6 +27,11 @@ namespace SwissbotCore.HTTP.Websocket.Types
         /// </summary>
         public string[] events { get; set; }
 
+        /// <summary>
+        /// Used for SwissbotWorkers
+        /// </summary>
+        public int workerId { get; set; } = -1;
+
         public static Handshake fromContent(string c)
             => JsonConvert.DeserializeObject<Handshake>(c);
     }

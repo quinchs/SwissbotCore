@@ -4,7 +4,6 @@ using SwissbotCore.HTTP.Websocket.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -15,8 +14,14 @@ namespace SwissbotCore.HTTP.Websocket
     public class WebSocketServer
     {
         public static List<WebsocketUser> CurrentClients = new List<WebsocketUser>();
+        private static Dictionary<string, Func<RawWebsocketMessage, Task>> customEvent = new Dictionary<string, Func<RawWebsocketMessage, Task>>();
 
         private static event EventHandler<WebSocketReceiveEventArgs> MessageReceived;
+
+        public static void AddCustomEvent(string messageType, Func<RawWebsocketMessage, Task> handler)
+        {
+            customEvent.Add(messageType, handler);
+        }
 
         public static void PushEvent(string eventName, object eventData)
         {
@@ -55,8 +60,6 @@ namespace SwissbotCore.HTTP.Websocket
 
         private static async void WebSocketServer_MessageReceived(object sender, WebSocketReceiveEventArgs e)
         {
-            Global.ConsoleLog("Received new message from websocket client", ConsoleColor.Cyan, ConsoleColor.Black);
-
             if(e.result.MessageType == WebSocketMessageType.Close)
             {
                 Global.ConsoleLog($"Got a close, Updating session", ConsoleColor.Cyan, ConsoleColor.Black);
@@ -94,36 +97,88 @@ namespace SwissbotCore.HTTP.Websocket
                     // Parse the handshake
                     Handshake hs = Handshake.fromContent(content);
 
-                    // Check if the user has a valid session
-                    var u = DiscordAuthKeeper.GetUser(hs.session.Replace("csSessionID=", ""));
-                    if(u == null)
+                    if(hs.workerId != -1)
                     {
-                        await e.socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Invalid session", CancellationToken.None);
-                    }
-
-                    // Check if this is a resumed session
-                    if (CanResumeSession(hs))
-                    {
-                        // Resume the session
-                        var session = GetResumedSession(hs);
-                        session.ResumeSession(hs, e.socket);
-                        Global.ConsoleLog($"Resumed {session.User.Username}'s session", ConsoleColor.Cyan, ConsoleColor.Black);
-
+                        if (SwissbotWorkerHandler.isValidHandshake(hs))
+                        {
+                            SwissbotWorkerHandler.AcceptHandshake(hs, e.socket);
+                            await e.socket.SendAsync(Encoding.UTF8.GetBytes("{\"type\": \"handshake_accept\"}"), WebSocketMessageType.Text, true, CancellationToken.None);
+                            return;
+                        }
+                        else
+                        {
+                            // Bad handshake
+                            await e.socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Invalid session", CancellationToken.None);
+                            return;
+                        }
+                        
                     }
                     else
                     {
-                        Global.ConsoleLog("Creating new WebsocketUser", ConsoleColor.Cyan, ConsoleColor.Black);
-                        // Add the client
-                        CurrentClients.Add(new WebsocketUser(hs, e.socket));
+
+                        // Check if the user has a valid session
+                        var u = DiscordAuthKeeper.GetUser(hs.session.Replace("csSessionID=", ""));
+                        if (u == null)
+                        {
+                            await e.socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Invalid session", CancellationToken.None);
+                            return;
+                        }
+
+                        // Check if they have permission for the requested events
+                        if (!EventPermissions.hasPermissionForEvent(u, hs.events))
+                        {
+                            byte[] returnData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                            {
+                                status = $"Invalid Permissions for the requested event(s): {string.Join(", ", hs.events)}",
+                                type = "handshake_deny"
+                            }));
+
+                            await e.socket.SendAsync(returnData, WebSocketMessageType.Text, true, CancellationToken.None);
+                            return;
+                        }
+
+                        // Check if this is a resumed session
+                        if (CanResumeSession(hs))
+                        {
+                            // Resume the session
+                            var session = GetResumedSession(hs);
+                            session.ResumeSession(hs, e.socket);
+                            Global.ConsoleLog($"Resumed {session.User.Username}'s session", ConsoleColor.Cyan, ConsoleColor.Black);
+
+                        }
+                        else
+                        {
+                            Global.ConsoleLog("Creating new WebsocketUser", ConsoleColor.Cyan, ConsoleColor.Black);
+                            // Add the client
+                            CurrentClients.Add(new WebsocketUser(hs, e.socket));
+                        }
+
+                        // Send an OK status
+                        byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
+                        {
+                            status = "OK",
+                            type = "handshake_accept"
+                        }));
+
+                        await e.socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
                     }
 
-                    // Send an OK status
-                    byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new {
-                        status = "OK",
-                        type = "handshake_accept"
-                    }));
+                    break;
 
-                    await e.socket.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
+                case "Log":
+                    WorkerLog log = JsonConvert.DeserializeObject<WorkerLog>(content);
+                    SwissbotWorkerHandler.WorkerLog(log.message);
+
+                    break;
+                default:
+                    if (customEvent.ContainsKey(message.type))
+                    {
+                        if(EventPermissions.hasPermissionForEvent(message.session.Replace("csSessionID=", ""), message.type))
+                        {
+                            var task = customEvent[message.type];
+                            await Task.Run(() => task.Invoke(new RawWebsocketMessage(message, content, e.socket)).ConfigureAwait(false));
+                        }
+                    }
                     break;
             }
         }

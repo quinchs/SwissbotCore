@@ -82,6 +82,7 @@ namespace SwissbotCore
         public static Dictionary<string, List<LogItem>> commandLogs { get; set; }
         public static List<ulong> MutedMembers { get; set; }
 
+        public static string[] Workers { get; set; }
 
         public static string ApiKey { get; set; }
         internal static Dictionary<string, string> jsonItemsList { get; private set; }
@@ -208,6 +209,8 @@ namespace SwissbotCore
             TicketCategoryID = data.TicketCategoryID;
             SuggestionChannelID = data.SuggestionChannelID;
             TicketSnippets = data.TicketSnippets;
+            Workers = data.Workers.Split(' ');
+
             try
             {
                 CensoredWords = SwissbotStateHandler.LoadObject<List<string>>("Censor.json").Result;
@@ -216,7 +219,6 @@ namespace SwissbotCore
             {
                 CensoredWords = new List<string>(); 
             }
-            ConsoleLog("Read New configPerm items. here is the new JSON \n " + File.ReadAllText(ConfigPath) + "\n", ConsoleColor.DarkYellow, ConsoleColor.Black);
 
 
         }
@@ -324,6 +326,8 @@ namespace SwissbotCore
             public ulong MutedRoleID { get; set; }
             public ulong TicketCategoryID { get; set; }
             public string StateAPIKey { get; set; }
+            public string Workers { get; set; }
+
         }
         public static void ConsoleLog(string ConsoleMessage, ConsoleColor FColor = ConsoleColor.Green, ConsoleColor BColor = ConsoleColor.Black)
         {

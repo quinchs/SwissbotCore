@@ -61,6 +61,65 @@ namespace SwissbotCore.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;html&gt;
+        ///  &lt;head&gt;
+        ///    &lt;style&gt;
+        ///      body {
+        ///        background-color: #36393f;
+        ///        margin: 0rem 1rem;
+        ///        font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        ///          Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
+        ///          &quot;Segoe UI Symbol&quot;;
+        ///        display: flex;
+        ///        justify-content: center;
+        ///      }
+        ///      .content {
+        ///        width: 100%;
+        ///        max-width: 1100px;
+        ///        margin: auto;
+        ///      }
+        ///      .head {
+        ///        color: white;
+        ///        dis [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string EventManager {
+            get {
+                return ResourceManager.GetString("EventManager", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;div class=&quot;user {user.id}&quot;&gt;
+        ///  &lt;img
+        ///    src=&quot;{user.profile}&quot;
+        ///    aria-hidden=&quot;true&quot;
+        ///    alt=&quot;&quot;
+        ///    style=&quot;
+        ///      width: 40px;
+        ///      margin-left: 5px;
+        ///      height: 40px;
+        ///      border-radius: 50%;
+        ///      overflow: hidden;
+        ///      cursor: pointer;
+        ///      -webkit-user-select: none;
+        ///      -moz-user-select: none;
+        ///      -ms-user-select: none;
+        ///      user-select: none;
+        ///      -webkit-box-flex: 0;
+        ///      -ms-flex: 0 0 auto;
+        ///      flex: 0 0 auto;
+        ///      pointer-events: none;
+        ///      z-index: 1;
+        ///    &quot;
+        ///  / [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string eventUser {
+            get {
+                return ResourceManager.GetString("eventUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;html lang=&quot;en&quot;&gt;
         ///  &lt;head&gt;
@@ -265,6 +324,62 @@ namespace SwissbotCore.Properties {
         internal static string ticketItem {
             get {
                 return ResourceManager.GetString("ticketItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;div class=&quot;vc-kicked-user {user.id}&quot; onclick=&quot;handleVcKickListHighlight(this)&quot;&gt;
+        ///  &lt;div class=&quot;head-content&quot;&gt;
+        ///    &lt;img
+        ///      src=&quot;{user.profile}&quot;
+        ///      aria-hidden=&quot;true&quot;
+        ///      alt=&quot;&quot;
+        ///      style=&quot;
+        ///        width: 30px;
+        ///        height: 30px;
+        ///        border-radius: 50%;
+        ///        overflow: hidden;
+        ///        cursor: pointer;
+        ///        -webkit-user-select: none;
+        ///        -moz-user-select: none;
+        ///        -ms-user-select: none;
+        ///        user-select: none;
+        ///        -webkit-box-flex: 0;
+        ///        -ms-flex: 0 0 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string VoiceKickMenuUser {
+            get {
+                return ResourceManager.GetString("VoiceKickMenuUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;div
+        ///  class=&quot;vc-kick-target-user&quot;
+        ///  onclick=&quot;handleVoiceKickUserSelecterClick(this)&quot;
+        ///&gt;
+        ///  &lt;img
+        ///    src=&quot;{user.profile}&quot;
+        ///    aria-hidden=&quot;true&quot;
+        ///    alt=&quot;&quot;
+        ///    style=&quot;
+        ///      width: 35px;
+        ///      height: 35px;
+        ///      border-radius: 50%;
+        ///      overflow: hidden;
+        ///      cursor: pointer;
+        ///      -webkit-user-select: none;
+        ///      -moz-user-select: none;
+        ///      -ms-user-select: none;
+        ///      user-select: none;
+        ///      -webkit-box-flex: 0;
+        ///      -ms-flex: 0 0 auto;
+        ///      flex: 0 0 auto;
+        ///      pointer-events: [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string VoicekickPopupUser {
+            get {
+                return ResourceManager.GetString("VoicekickPopupUser", resourceCulture);
             }
         }
     }

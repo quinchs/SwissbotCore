@@ -33,7 +33,7 @@ namespace SwissbotCore.Handlers
             => Users.Any(x => x.SessionToken == cookie.Value);
 
         public static DiscordUser GetUser(string session)
-            => Users.First(x => x.SessionToken == session);
+            => Users.FirstOrDefault(x => x.SessionToken == session);
 
         public static void LogoutUser(string session)
         {

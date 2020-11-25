@@ -1,0 +1,28 @@
+<div
+  class="vc-kick-target-user"
+  onclick="handleVoiceKickUserSelecterClick(this)"
+>
+  <img
+    src="{user.profile}"
+    aria-hidden="true"
+    alt=""
+    style="
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      overflow: hidden;
+      cursor: pointer;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-box-flex: 0;
+      -ms-flex: 0 0 auto;
+      flex: 0 0 auto;
+      pointer-events: none;
+      z-index: 1;
+    "
+  />
+  <p>{user.displayName}</p>
+  <span style="display: none" class="user-id">{user.id}</span>
+</div>

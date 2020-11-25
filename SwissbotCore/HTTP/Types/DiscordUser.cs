@@ -18,6 +18,7 @@ namespace SwissbotCore.HTTP
     {
 
         public string SessionToken;
+        public SessionPermission Permission = SessionPermission.Staff;
         public ulong ID
             => User.id;
         public string Username
@@ -40,6 +41,22 @@ namespace SwissbotCore.HTTP
             SessionToken = GenerateToken();
 
             getId();
+
+            if (HasPermissions())
+            {
+                Permission = SessionPermission.Staff;
+            }
+            else
+            {
+                var discordUser = Global.Client.GetGuild(Global.SwissGuildId).GetUser(this.ID);
+                if (discordUser == null)
+                {
+                    return;
+                }
+                if (discordUser.Roles.Any(x => x.Id == 779943693951565824))
+                    Permission = SessionPermission.EventManager;
+            }
+            
         }
 
         private static RNGCryptoServiceProvider random = new RNGCryptoServiceProvider();

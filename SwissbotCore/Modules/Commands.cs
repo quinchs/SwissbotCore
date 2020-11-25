@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Linq.Dynamic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -100,7 +99,7 @@ namespace SwissbotCore.Modules
         [DiscordCommand("newvideo")]
         public async Task nv()
         {
-            await PlaySoundFile(@"C:\Users\plynch\Downloads\update.mp3");
+            await PlaySoundFile(@"C:\Users\plynch\Documents\ScuffedUpKicks.mp3");
         }
         [DiscordCommand("alexa", description = "gravy train")]
         public async Task al()

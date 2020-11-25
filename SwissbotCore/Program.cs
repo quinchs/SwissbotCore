@@ -94,6 +94,7 @@ namespace SwissbotCore
             Global.ConsoleLog("Server running!");
 
             
+            
             await Task.Delay(-1);   
 
             //jabibot

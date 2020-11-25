@@ -4,7 +4,6 @@ using System.Text;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using System.Linq.Dynamic;
 using System.Linq;
 using System.Net.Http.Headers;
 
@@ -48,7 +47,7 @@ namespace SwissbotCore.Handlers
             }
             catch(Exception e)
             {
-                throw e;
+                throw;
             }
             if (curobj.Any(x => x == name))
             {
