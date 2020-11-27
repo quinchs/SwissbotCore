@@ -27,7 +27,7 @@
     <div
       class="muted"
       style="color: #ffffff22; cursor: pointer"
-      onclick="toggleMute()"
+      onclick="toggleMute(this.parentElement.parentElement.getElementsByClassName('user-id')[0].innerHTML)"
     >
       <svg
         class="icon-2IuuZd"
@@ -57,7 +57,7 @@
     <div
       class="deafened"
       style="color: #ffffff22; cursor: pointer"
-      onclick="toggleDeafen()"
+      onclick="toggleDeafen(this.parentElement.parentElement.getElementsByClassName('user-id')[0].innerHTML)"
     >
       <svg
         class="icon-2IuuZd"

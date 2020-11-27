@@ -527,6 +527,40 @@
 
       let UserList = [];
 
+      async function loadData() {
+        // Fetch the data
+
+        console.log("[ LOAD ] - Staring init load");
+        const request = await fetch("/apprentice/v1/event.json");
+
+        if (request.status === 401 || request.status === 403) {
+          // Reload the page, unauthed
+          location.reload();
+        } else if (request.status !== 200) {
+          // Unknow error, create the alert
+          createAlert(
+            "Uh oh",
+            "Looks like we failed to init the page, let quin know the error code was " +
+              request.status
+          );
+        } else if (request.status === 200) {
+          // Read the body
+          const body = JSON.parse(await request.text());
+          console.log("[ LOAD ] - Finished load, staring insert of items");
+          body.users.forEach((item) => {
+            const user = new User(item);
+            UserList.push(user);
+          });
+
+          body.kicks.forEach((item) => {
+            const kickedUsers = new VcKickedUser(item);
+            VcKickedUsers.push(kickedUsers);
+          });
+
+          console.log("[ LOAD ] - Finished init load");
+        }
+      }
+
       class User {
         displayName = "";
         id = "0";
@@ -884,7 +918,7 @@
             type: "event.user.mute",
             action: "Mute",
             value: value,
-            targetUser: userMenuId,
+            targetUser: user.id,
           })
         );
       }
@@ -903,7 +937,7 @@
             type: "event.user.deafen",
             action: "Deafen",
             value: value,
-            targetUser: userMenuId,
+            targetUser: user.id,
           })
         );
       }
@@ -916,7 +950,7 @@
             type: "event.user.deafen",
             action: "Disconnect",
             value: true,
-            targetUser: userMenuId,
+            targetUser: user.id,
           })
         );
       }
@@ -1554,7 +1588,7 @@
       }
     </script>
   </head>
-  <body>
+  <body onload="loadData()">
     <div id="alert" class="alert" style="position: fixed; z-index: 30">
       <span class="closebtn" onclick="closeAlert(this)">&times;</span>
     </div>
@@ -1704,7 +1738,7 @@
               </svg>
               <h1>Event VC</h1>
             </div>
-            <div id="user-container" class="user-container">{vc.users}</div>
+            <div id="user-container" class="user-container"></div>
           </div>
         </div>
         <div class="right-content">
@@ -1718,7 +1752,7 @@
           </div>
           <p class="voice-kick-title">Voice kicks</p>
           <div class="vc-kicked-container">
-            <div class="vc-kicked-list">{vc.kicks.users}</div>
+            <div class="vc-kicked-list"></div>
             <div class="vc-kick-controlls">
               <div onclick="voiceKickMenuToggle(false)" class="add-vc-kick">
                 Add

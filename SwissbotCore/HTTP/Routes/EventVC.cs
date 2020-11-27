@@ -1,6 +1,8 @@
-﻿using SwissbotCore.Handlers;
+﻿using Newtonsoft.Json;
+using SwissbotCore.Handlers;
 using SwissbotCore.Handlers.EventVC;
 using SwissbotCore.http;
+using SwissbotCore.HTTP.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,23 +25,7 @@ namespace SwissbotCore.HTTP.Routes
 
             // Serve the page
 
-            // {vc.users} - current users in vc 
-            // {vc.kicks.users} - current kicked users
-
-            // Generate our current users
-            string users = EventVCHandler.GetCurrentUsersHTML();
-
-            // Get current voice kicked
-            string vcKicked = "";
-
-            VoiceKickHandler.CurrentVoiceKicked.ForEach(x
-                => vcKicked += x.ToHTML()
-            );
-
-
-            string html = Properties.Resources.EventManager
-                .Replace("{vc.users}", users)
-                .Replace("{vc.kicks.users}", vcKicked);
+            string html = Properties.Resources.EventManager;
 
             c.Response.ContentType = "text/html";
             c.Response.ContentEncoding = Encoding.UTF8;
@@ -47,6 +33,30 @@ namespace SwissbotCore.HTTP.Routes
             c.Response.StatusCode = 200;
             c.Response.Close();
         }
+        [Route(@"/event.json", "GET")]
+        public static async Task json(HttpListenerContext c)
+        {
+            // This will be used to populate the javascript arrays on the page load
+            var user = c.GetEventManagerAuth();
+
+            if (user == null)
+                return;
+
+            // Generate the json
+
+            EventJson json = new EventJson();
+            json.users = EventVCHandler.users;
+            json.kicks = VoiceKickHandler.CurrentVoiceKicked;
+
+            string jsonString = JsonConvert.SerializeObject(json);
+
+            c.Response.ContentEncoding = Encoding.UTF8;
+            c.Response.ContentType = "text/json";
+            c.Response.OutputStream.Write(Encoding.UTF8.GetBytes(jsonString));
+            c.Response.StatusCode = 200;
+            c.Response.Close();
+        }
+
         [Route(@"^\/event\/user\?id=(\d{17,18})$", "GET", true)]
         public static async Task eventVc(HttpListenerContext c, MatchCollection m)
         {

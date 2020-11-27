@@ -14,7 +14,7 @@ namespace SwissbotCore.Handlers
     public class EventVCHandler
     {
         private static DiscordSocketClient client;
-        private List<EventVcUser> users = new List<EventVcUser>();
+        public static List<EventVcUser> users = new List<EventVcUser>();
         public List<SocketGuildUser> CurrentVcUsers
             => client.GetGuild(Global.SwissGuildId).GetVoiceChannel(627906629047943238).Users.ToList();
         public EventVCHandler(DiscordSocketClient c)
@@ -24,6 +24,7 @@ namespace SwissbotCore.Handlers
             client.UserVoiceStateUpdated += HandleVoiceStateUpdate;
             client.GuildMemberUpdated += GuildMemberUpdated;
 
+
             WebSocketServer.AddCustomEvent("event.user.mute", HandleUserActionEvent);
             WebSocketServer.AddCustomEvent("event.user.deafen", HandleUserActionEvent);
             WebSocketServer.AddCustomEvent("event.user.disconnect", HandleUserActionEvent);
@@ -31,6 +32,16 @@ namespace SwissbotCore.Handlers
             WebSocketServer.AddCustomEvent("event.channel.mute", HandleEntireChannelMute);
             WebSocketServer.AddCustomEvent("event.channel.unmute", HandleEntireChannelUnmute);
 
+
+            // Load the users
+            var channel = client.GetGuild(Global.SwissGuildId).GetVoiceChannel(627906629047943238);
+            foreach(var user in channel.Users)
+            {
+                if (!user.VoiceState.HasValue)
+                    continue;
+
+                users.Add(new EventVcUser(user, user.VoiceState.Value));
+            }
         }
 
         public static string GetCurrentUsersHTML()
@@ -89,6 +100,7 @@ namespace SwissbotCore.Handlers
 
         private async Task HandleUserActionEvent(RawWebsocketMessage msg)
         {
+            
             // Get the data
             var data = EventVcUserAction.FromRaw(msg.rawMessage);
 
@@ -104,7 +116,7 @@ namespace SwissbotCore.Handlers
             switch (data.action)
             {
                 case EventVcUserAction.VcAction.Mute:
-                    await user.ModifyAsync(x => x.Mute = data.value);
+                    await user.ModifyAsync(x => x.Mute = data.value, new Discord.RequestOptions() { });
                     break;
                 case EventVcUserAction.VcAction.Deafen:
                     await user.ModifyAsync(x => x.Deaf = data.value);
@@ -147,6 +159,10 @@ namespace SwissbotCore.Handlers
             {
                 // Remove 
                 var user = users.FirstOrDefault(x => x.id == arg1.Id.ToString());
+
+                if (arg2.IsMuted)
+                    await client.GetGuild(Global.SwissGuildId).GetUser(arg1.Id).ModifyAsync(x => x.Mute = false);
+
                 if (user == null)
                     return;
 

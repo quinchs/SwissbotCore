@@ -485,9 +485,9 @@ namespace SwissbotCore.Modules
         [DiscordCommand("fate", description = "generates the fate image", commandHelp = "Parameters - `(PREFIX)fate <@user>`")]
         public async Task fate(string user)
         {
-            //baseurl https://cdn.discordapp.com/attachments/592807608499437665/678443510210363442/council.jpg
+            //baseurl https://media.discordapp.net/attachments/635565933473038416/780691928361730048/council.png
             WebClient wc = new WebClient();
-            byte[] bytes = wc.DownloadData("https://cdn.discordapp.com/attachments/620673311122391040/682691076649517087/image0.png");
+            byte[] bytes = wc.DownloadData("https://media.discordapp.net/attachments/635565933473038416/780691928361730048/council.png");
             MemoryStream ms = new MemoryStream(bytes);
             System.Drawing.Image img = System.Drawing.Image.FromStream(ms);
             string purl = Context.Message.MentionedUsers.First().GetAvatarUrl();
@@ -554,77 +554,77 @@ namespace SwissbotCore.Modules
             await Context.Channel.SendMessageAsync($"Pong: {Context.Client.Latency}ms!");
         }
 
-        [DiscordCommand("vcmute", RequiredPermission = true, description = "Mutes all memebrs in vc")]
-        public async Task muteusers()
-        {
-            Global.MutedMembers = new List<ulong>();
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null)
-            {
-                if (Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel != null)
-                {
-                    await Context.Channel.SendMessageAsync($"Starting to mute members...");
-                    int u = 0;
-                    foreach (var user in Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users)
-                    {
-                        var r2 = Context.Guild.GetUser(user.Id).Roles;
-                        var adminrolepos2 = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
-                        var rolepos2 = r2.FirstOrDefault(x => x.Position >= adminrolepos);
-                        if (rolepos2 == null)
-                        {
-                            if (!user.IsMuted)
-                            {
-                                await user.ModifyAsync(x => x.Mute = true);
-                                if (!MutedMembers.Contains(user.Id))
-                                    Global.MutedMembers.Add(user.Id);
-                                u++;
-                            }
-                        }
-                    }
-                    await Context.Channel.SendMessageAsync($"Muted {u} members");
-                }
-            }
-        }
-        [DiscordCommand("vcunmute", RequiredPermission = true, description = "Unmutes all members in vc")]
-        public async Task unmuteusers()
-        {
-            try
-            {
-                var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-                var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
-                var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-                if (rolepos != null)
-                {
-                    if (Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel != null)
-                    {
-                        await Context.Channel.SendMessageAsync($"Starting to Unmute members...");
-                        int u = 0;
-                        var vcusers = Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users;
-                        foreach (var item in vcusers)
-                        {
-                            SocketGuildUser user = null;
-                            if (vcusers.Any(x => x.Id == item.Id))
-                                user = vcusers.FirstOrDefault(x => x.Id == item.Id);
-                            else
-                            { user = Context.Guild.GetUser(item.Id); }
-                            if (user.IsMuted)
-                            {
-                                await user.ModifyAsync(x => x.Mute = false);
-                                u++;
-                            }
-                        }
-                        await Context.Channel.SendMessageAsync($"UnMuted {u} members");
-                    }
-                }
-                Global.MutedMembers = null;
-            }
-            catch (Exception ex)
-            {
+        //[DiscordCommand("vcmute", RequiredPermission = true, description = "Mutes all memebrs in vc")]
+        //public async Task muteusers()
+        //{
+        //    Global.MutedMembers = new List<ulong>();
+        //    var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
+        //    var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
+        //    var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
+        //    if (rolepos != null)
+        //    {
+        //        if (Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel != null)
+        //        {
+        //            await Context.Channel.SendMessageAsync($"Starting to mute members...");
+        //            int u = 0;
+        //            foreach (var user in Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users)
+        //            {
+        //                var r2 = Context.Guild.GetUser(user.Id).Roles;
+        //                var adminrolepos2 = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
+        //                var rolepos2 = r2.FirstOrDefault(x => x.Position >= adminrolepos);
+        //                if (rolepos2 == null)
+        //                {
+        //                    if (!user.IsMuted)
+        //                    {
+        //                        await user.ModifyAsync(x => x.Mute = true);
+        //                        if (!MutedMembers.Contains(user.Id))
+        //                            Global.MutedMembers.Add(user.Id);
+        //                        u++;
+        //                    }
+        //                }
+        //            }
+        //            await Context.Channel.SendMessageAsync($"Muted {u} members");
+        //        }
+        //    }
+        //}
+        //[DiscordCommand("vcunmute", RequiredPermission = true, description = "Unmutes all members in vc")]
+        //public async Task unmuteusers()
+        //{
+        //    try
+        //    {
+        //        var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
+        //        var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
+        //        var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
+        //        if (rolepos != null)
+        //        {
+        //            if (Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel != null)
+        //            {
+        //                await Context.Channel.SendMessageAsync($"Starting to Unmute members...");
+        //                int u = 0;
+        //                var vcusers = Context.Guild.GetUser(Context.Message.Author.Id).VoiceChannel.Users;
+        //                foreach (var item in vcusers)
+        //                {
+        //                    SocketGuildUser user = null;
+        //                    if (vcusers.Any(x => x.Id == item.Id))
+        //                        user = vcusers.FirstOrDefault(x => x.Id == item.Id);
+        //                    else
+        //                    { user = Context.Guild.GetUser(item.Id); }
+        //                    if (user.IsMuted)
+        //                    {
+        //                        await user.ModifyAsync(x => x.Mute = false);
+        //                        u++;
+        //                    }
+        //                }
+        //                await Context.Channel.SendMessageAsync($"UnMuted {u} members");
+        //            }
+        //        }
+        //        Global.MutedMembers = null;
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-            }
-        }
+        //    }
+        //}
         static int rot = 0;
         [DiscordCommand("reddit", description = "Pulls a random reddit post from the r/swissbot reddit")]
         public async Task r()
@@ -705,7 +705,6 @@ namespace SwissbotCore.Modules
                 c.DefaultRequestHeaders.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36");
                 var g = await c.GetAsync(url);
                 string resp = await g.Content.ReadAsStringAsync();
-                Console.WriteLine($"Resp: {resp}");
                 Regex r = new Regex("title=\"Search\" value=\"(.*?)\" aria-label=\"Search\"");
                 if (r.IsMatch(resp))
                 {
