@@ -167,7 +167,8 @@ namespace SwissbotCore.Modules
             Kicked,
             Banned,
             Muted,
-            voiceban
+            voiceban,
+            TempBan
         }
         private static Random random = new Random();
         public static string RandomString(int length)

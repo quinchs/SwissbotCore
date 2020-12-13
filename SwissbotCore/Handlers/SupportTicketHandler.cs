@@ -272,6 +272,10 @@ namespace SwissbotCore.Handlers
         {
             if (arg.Author.IsBot)
                 return;
+
+            if (arg.Author.Id == client.CurrentUser.Id)
+                return;
+
             if(arg.Channel.GetType() == typeof(SocketDMChannel))
             {
                 if (BlockedUsers.Any(x => x == arg.Author.Id))

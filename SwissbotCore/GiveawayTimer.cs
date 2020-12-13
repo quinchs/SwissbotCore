@@ -23,6 +23,7 @@ namespace SwissbotCore
                 AutoReset = true,
                 Enabled = true
             };
+
             loopingTimer.Elapsed += LoopingTimer_Elapsed;
             return Task.CompletedTask;
         }

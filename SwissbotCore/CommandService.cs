@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SwissbotCore 
@@ -601,6 +602,104 @@ namespace SwissbotCore
         /// The superlist with all the commands
         /// </summary>
         public static List<ICommands> Commands { get; internal set; }
+
+
+        public SocketGuildChannel GetChannel(string name)
+        {
+            var regex = new Regex(@"(\d{18}|\d{17})");
+            if (regex.IsMatch(name))
+            {
+                var u = Context.Guild.GetChannel(ulong.Parse(regex.Match(name).Groups[1].Value));
+                return u;
+            }
+            if (ulong.TryParse(name, out var res))
+                return Context.Guild.Channels.Any(x => x.Id == res) ? Context.Guild.Channels.First(x => x.Id == res) : null;
+            else
+                return Context.Guild.Channels.Any(x => x.Name == name) ? Context.Guild.Channels.First(x => x.Name == name) : null;
+
+
+        }
+        public SocketGuildUser GetUser(string user)
+        {
+            var regex = new Regex(@"(\d{18}|\d{17})");
+            if (regex.IsMatch(user))
+            {
+                var u = Context.Guild.GetUser(ulong.Parse(regex.Match(user).Groups[1].Value));
+                return u;
+            }
+            else
+            {
+                if (Context.Guild.Users.Any(x => x.Username.StartsWith(user)))
+                {
+                    return Context.Guild.Users.First(x => x.Username.StartsWith(user));
+                }
+                else if (Context.Guild.Users.Any(x => x.ToString().StartsWith(user)))
+                {
+                    return Context.Guild.Users.First(x => x.ToString().StartsWith(user));
+                }
+                else if (Context.Guild.Users.Any(x => x.Nickname != null && x.Nickname.StartsWith(user)))
+                {
+                    return Context.Guild.Users.First(x => x.Nickname != null && x.Nickname.StartsWith(user));
+                }
+                else
+                    return null;
+            }
+        }
+        public static SocketGuildUser GetUser(string user, ShardedCommandContext Context)
+        {
+            var regex = new Regex(@"(\d{18}|\d{17})");
+            if (regex.IsMatch(user))
+            {
+                var u = Context.Guild.GetUser(ulong.Parse(regex.Match(user).Groups[1].Value));
+                return u;
+            }
+            else
+            {
+                if (Context.Guild.Users.Any(x => x.Username.StartsWith(user)))
+                {
+                    return Context.Guild.Users.First(x => x.Username.StartsWith(user));
+                }
+                else if (Context.Guild.Users.Any(x => x.ToString().StartsWith(user)))
+                {
+                    return Context.Guild.Users.First(x => x.ToString().StartsWith(user));
+                }
+                else if (Context.Guild.Users.Any(x => x.Nickname != null && x.Nickname.StartsWith(user)))
+                {
+                    return Context.Guild.Users.First(x => x.Nickname != null && x.Nickname.StartsWith(user));
+                }
+                else
+                    return null;
+            }
+        }
+        public SocketRole GetRole(string role)
+        {
+            var regex = new Regex(@"(\d{18}|\d{17})");
+            if (regex.IsMatch(role))
+            {
+                var u = Context.Guild.GetRole(ulong.Parse(regex.Match(role).Groups[1].Value));
+                return u;
+            }
+            else
+                if (Context.Guild.Roles.Any(x => x.Name.StartsWith(role)))
+                return Context.Guild.Roles.First(x => x.Name.StartsWith(role));
+            else
+                return null;
+        }
+        public static SocketRole GetRole(string role, ShardedCommandContext Context)
+        {
+            var regex = new Regex(@"(\d{18}|\d{17})");
+            if (regex.IsMatch(role))
+            {
+                var u = Context.Guild.GetRole(ulong.Parse(regex.Match(role).Groups[1].Value));
+                return u;
+            }
+            else
+                if (Context.Guild.Roles.Any(x => x.Name.StartsWith(role)))
+                return Context.Guild.Roles.First(x => x.Name.StartsWith(role));
+            else
+                return null;
+        }
+
 
     }
     public interface ICommands

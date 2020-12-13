@@ -62,25 +62,29 @@ namespace SwissbotCore.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;html&gt;
-        ///  &lt;head&gt;
-        ///    &lt;style&gt;
-        ///      body {
-        ///        background-color: #36393f;
-        ///        margin: 0rem 1rem;
-        ///        font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
-        ///          Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
-        ///          &quot;Segoe UI Symbol&quot;;
-        ///        display: flex;
-        ///        justify-content: center;
-        ///      }
-        ///      .content {
-        ///        width: 100%;
-        ///        max-width: 1100px;
-        ///        margin: auto;
-        ///      }
-        ///      .head {
-        ///        color: white;
-        ///        dis [rest of string was truncated]&quot;;.
+        ///
+        ///&lt;head&gt;
+        ///  &lt;style&gt;
+        ///    body {
+        ///      background-color: #36393f;
+        ///      margin: 0rem 1rem;
+        ///      font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        ///        Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
+        ///        &quot;Segoe UI Symbol&quot;;
+        ///      display: flex;
+        ///      justify-content: center;
+        ///    }
+        ///
+        ///    .content {
+        ///      width: 100%;
+        ///      max-width: 1100px;
+        ///      margin: auto;
+        ///    }
+        ///
+        ///    .head {
+        ///      color: white;
+        ///      display: flex;
+        ///      align-items:  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string EventManager {
             get {

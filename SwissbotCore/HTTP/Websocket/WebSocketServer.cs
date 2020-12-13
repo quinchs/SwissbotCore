@@ -48,9 +48,9 @@ namespace SwissbotCore.HTTP.Websocket
             => CurrentClients.FirstOrDefault(x => x.User.SessionToken == cookie);
 
         private static bool CanResumeSession(Handshake hs)
-            => CurrentClients.Any(x => x.User.SessionToken == hs.session.Replace("csSessionID=", "") && x.isDisconnected && x.CanResume);
+            => CurrentClients.Any(x => x.User.SessionToken == hs.session && x.isDisconnected && x.CanResume);
         public static WebsocketUser GetResumedSession(Handshake hs)
-            => CurrentClients.FirstOrDefault(x => x.User.SessionToken == hs.session.Replace("csSessionID=", "") && x.isDisconnected && x.CanResume);
+            => CurrentClients.FirstOrDefault(x => x.User.SessionToken == hs.session && x.isDisconnected && x.CanResume);
 
         public static void Create()
         {
@@ -117,9 +117,10 @@ namespace SwissbotCore.HTTP.Websocket
                     {
 
                         // Check if the user has a valid session
-                        var u = DiscordAuthKeeper.GetUser(hs.session.Replace("csSessionID=", ""));
+                        var u = DiscordAuthKeeper.GetUser(hs.session);
                         if (u == null)
                         {
+                            Global.ConsoleLog("No session was provided for new websocket user", ConsoleColor.Yellow);
                             await e.socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Invalid session", CancellationToken.None);
                             return;
                         }
@@ -127,6 +128,8 @@ namespace SwissbotCore.HTTP.Websocket
                         // Check if they have permission for the requested events
                         if (!EventPermissions.hasPermissionForEvent(u, hs.events))
                         {
+                            Global.ConsoleLog("Invalid permissions for websocket user", ConsoleColor.Yellow);
+
                             byte[] returnData = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new
                             {
                                 status = $"Invalid Permissions for the requested event(s): {string.Join(", ", hs.events)}",

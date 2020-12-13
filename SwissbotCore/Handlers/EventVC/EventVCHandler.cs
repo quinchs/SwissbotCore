@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using SwissbotCore.Handlers.EventVC;
+using SwissbotCore.Handlers.EventVC.Types;
 using SwissbotCore.HTTP.Websocket;
 using SwissbotCore.HTTP.Websocket.Types;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace SwissbotCore.Handlers
 {
@@ -15,6 +17,9 @@ namespace SwissbotCore.Handlers
     {
         private static DiscordSocketClient client;
         public static List<EventVcUser> users = new List<EventVcUser>();
+        public static EventVcSettings settings;
+        private SocketVoiceChannel eventChannel
+            => client.GetGuild(Global.SwissGuildId).GetVoiceChannel(627906629047943238);
         public List<SocketGuildUser> CurrentVcUsers
             => client.GetGuild(Global.SwissGuildId).GetVoiceChannel(627906629047943238).Users.ToList();
         public EventVCHandler(DiscordSocketClient c)
@@ -29,8 +34,21 @@ namespace SwissbotCore.Handlers
             WebSocketServer.AddCustomEvent("event.user.deafen", HandleUserActionEvent);
             WebSocketServer.AddCustomEvent("event.user.disconnect", HandleUserActionEvent);
 
+            WebSocketServer.AddCustomEvent("event.user.permamute", HandlePermaMute);
+
             WebSocketServer.AddCustomEvent("event.channel.mute", HandleEntireChannelMute);
             WebSocketServer.AddCustomEvent("event.channel.unmute", HandleEntireChannelUnmute);
+
+            // Load the event vc settings
+            try
+            {
+                settings = SwissbotStateHandler.LoadObject<EventVcSettings>("EventSettings.json").GetAwaiter().GetResult();
+            } 
+            catch(Exception x)
+            {
+                settings = default;
+            }
+
 
 
             // Load the users
@@ -41,6 +59,47 @@ namespace SwissbotCore.Handlers
                     continue;
 
                 users.Add(new EventVcUser(user, user.VoiceState.Value));
+            }
+
+            Timer t = new Timer()
+            {
+                AutoReset = true,
+                Interval = 1000,
+                Enabled = true
+            };
+            t.Elapsed += T_Elapsed;
+        }
+
+        public async Task HandlePermaMute(RawWebsocketMessage msg)
+        {
+
+        }
+
+        private async void T_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if(!users.All(x => CurrentVcUsers.Any(y => x.id == y.Id.ToString())) || users.Count != CurrentVcUsers.Count || CurrentVcUsers.All(x => users.Any(y => y.id == x.Id.ToString())))
+            {
+                // find all users who left
+                var leftUsers = users.Where(x => !CurrentVcUsers.Any(y => y.Id.ToString() == x.id));
+                foreach(var user in leftUsers)
+                {
+                    if (user == null)
+                        return;
+
+                    if (user.GetUser().IsMuted)
+                        await user.GetUser().ModifyAsync(x => x.Mute = false);
+
+                    user.Remove();
+                    users.Remove(user);
+                }
+
+                var joinedUsers = CurrentVcUsers.Where(x => !users.Any(y => y.id == x.Id.ToString()));
+
+                foreach (var guildUser in joinedUsers)
+                {
+                    var user = new EventVcUser(client.GetGuild(Global.SwissGuildId).GetUser(guildUser.Id), guildUser.VoiceState.Value);
+                    users.Add(user);
+                }
             }
         }
 
@@ -104,28 +163,19 @@ namespace SwissbotCore.Handlers
             // Get the data
             var data = EventVcUserAction.FromRaw(msg.rawMessage);
 
-            // Get the target user
-            var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(data.targetUser);
-
-            if (user == null)
-                return;
-
-            if (user.VoiceChannel == null)
-                return;
-
-            switch (data.action)
+            if (data.action == EventVcUserAction.VcAction.Disconnect)
             {
-                case EventVcUserAction.VcAction.Mute:
-                    await user.ModifyAsync(x => x.Mute = data.value, new Discord.RequestOptions() { });
-                    break;
-                case EventVcUserAction.VcAction.Deafen:
-                    await user.ModifyAsync(x => x.Deaf = data.value);
-                    break;
-                case EventVcUserAction.VcAction.Disconnect:
-                    await user.ModifyAsync(x => x.Channel = null);
-                    break;
+                var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(data.targetUser);
+                if (user == null)
+                    return;
+                await user.ModifyAsync(x => x.Channel = null);
             }
+            else
+            {
+                var vcAction = data.action == EventVcUserAction.VcAction.Mute ? VoiceTask.Mute : VoiceTask.Deafen;
 
+                WorkerTaskCreator.CreateTask(vcAction, data.targetUser, data.value);
+            }
         }
         private async Task GuildMemberUpdated(SocketGuildUser arg1, SocketGuildUser arg2)
         {

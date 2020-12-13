@@ -7,15 +7,10 @@ using System.Threading.Tasks;
 
 namespace SwissbotCore.Handlers.EventVC
 {
-    public enum WorkerTask
-    {
-        Mute,
-        Deafen
-    }
-
+    
     public class QueuedItem
     {
-        public WorkerTask Task { get; set; }
+        public VoiceTask Task { get; set; }
         public ulong UserId { get; set; }
         public bool Value { get; set; }
     }
@@ -30,7 +25,7 @@ namespace SwissbotCore.Handlers.EventVC
         private static int _workerCount = Global.Workers.Length;
         private static ConcurrentQueue<QueuedItem> _queue = new ConcurrentQueue<QueuedItem>();
 
-        public static void CreateTask(WorkerTask task, ulong user, bool value)
+        public static void CreateTask(VoiceTask task, ulong user, bool value)
         {
             QueuedItem q = new QueuedItem()
             {
@@ -41,10 +36,39 @@ namespace SwissbotCore.Handlers.EventVC
 
             _queue.Enqueue(q);
 
-                
-
+            HandleDequeue();
         }
 
-        
+        private static async void HandleDequeue()
+        {
+            while(_queue.TryDequeue(out var item))
+            {
+                CurrentWorker++;
+
+                if (CurrentWorker == Global.Workers.Length)
+                    CurrentWorker = -1;
+
+                if(CurrentWorker == -1)
+                {
+                    var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(item.UserId);
+                    if (user == null)
+                        continue;
+
+                    switch (item.Task)
+                    {
+                        case VoiceTask.Deafen:
+                            await user.ModifyAsync(x => x.Deaf = item.Value);
+                            break;
+                        case VoiceTask.Mute:
+                            await user.ModifyAsync(x => x.Mute = item.Value);
+                            break;
+                    }
+                }
+                else
+                {
+                    await SwissbotWorkerHandler.AssignTask(item.Task, item.Value, CurrentWorker, item.UserId);
+                }
+            }
+        }       
     }
 }

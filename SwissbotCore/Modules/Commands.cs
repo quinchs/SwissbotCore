@@ -656,6 +656,10 @@ namespace SwissbotCore.Modules
             await Context.Channel.SendMessageAsync("", false, b.Build());
 
         }
+        [DiscordCommand("praisetmodking")]
+        public async Task pmk()
+            => await Context.Channel.SendMessageAsync("god bless Danny the king of the tmods");
+
         [DiscordCommand("guess", description = "Guesses a image", commandHelp = "Parameters - `(PREFIX)guess <imagelink>` or use `(PREFIX)guess` with an image attachment")]
         public async Task guess(params string[] arg)
         {

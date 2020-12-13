@@ -25,6 +25,10 @@ namespace SwissbotCore.Handlers
         private static Dictionary<(int id, string auth), (Process proc, WebSocket client)> Workers = new Dictionary<(int id, string auth), (Process proc, WebSocket client)>();
 
         private static Random random = new Random();
+
+        public static int WorkerCount 
+            => Global.Workers.Length;
+
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -76,45 +80,44 @@ namespace SwissbotCore.Handlers
             Workers.Add((worker.Key.id, auth), (proc, null));
         }
 
+        public static async Task AssignTask(VoiceTask task, bool value, int workerId, params ulong[] users)
+        {
+            var worker = Workers.ElementAt(workerId);
+
+            string content = JsonConvert.SerializeObject(new MuteUsers()
+            {
+                Type = "MuteUsers",
+                Action = task.ToString(),
+                Value = value,
+                Users = users
+            });
+
+            byte[] packet = Encoding.UTF8.GetBytes(content);
+
+            await worker.Value.client.SendAsync(packet, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
        
         public static async Task AssignTasks(VoiceTask task, bool value, params ulong[] users)
         {
-            if(users.Length < 3)
+            var items = Split(users, WorkerCount);
+
+            foreach (var worker in Workers)
             {
-                var worker = Workers.First();
+                var workerUsers = items[worker.Key.id];
+                if (workerUsers.Length == 0)
+                    continue;
+
                 string content = JsonConvert.SerializeObject(new MuteUsers()
                 {
                     Type = "MuteUsers",
                     Action = task.ToString(),
                     Value = value,
-                    Users = users
+                    Users = workerUsers
                 });
 
                 byte[] packet = Encoding.UTF8.GetBytes(content);
 
                 await worker.Value.client.SendAsync(packet, WebSocketMessageType.Text, true, CancellationToken.None);
-            }
-            else
-            {
-                var items = Split(users, 3);
-
-                foreach (var worker in Workers)
-                {
-                    var workerUsers = items[worker.Key.id];
-                    if (workerUsers.Length == 0)
-                        continue;
-
-                    string content = JsonConvert.SerializeObject(new MuteUsers() {
-                        Type = "MuteUsers",
-                        Action = task.ToString(),
-                        Value = value,
-                        Users = workerUsers
-                    });
-
-                    byte[] packet = Encoding.UTF8.GetBytes(content);
-
-                    await worker.Value.client.SendAsync(packet, WebSocketMessageType.Text, true, CancellationToken.None);
-                }
             }
         }
         public static ulong[][] Split(ulong[] array, int size)
@@ -149,7 +152,7 @@ namespace SwissbotCore.Handlers
             client = c;
 
             // Start the workers
-            for (int i = 0; i != 3; i++)
+            for (int i = 0; i != WorkerCount; i++)
             {
                 string auth = RandomString(32);
                 var proc = new Process();

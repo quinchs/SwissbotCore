@@ -1,1049 +1,1056 @@
 <html>
-  <head>
-    <style>
-      body {
-        background-color: #36393f;
-        margin: 0rem 1rem;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-          "Segoe UI Symbol";
-        display: flex;
-        justify-content: center;
-      }
-      .content {
-        width: 100%;
-        max-width: 1100px;
-        margin: auto;
-      }
-      .head {
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-      }
-      .panel-container {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 80%;
-      }
-      .left-content {
-        width: 65%;
-        background-color: #23272a;
-        border-radius: 15px;
-        height: 100%;
-        margin: 1rem;
-        overflow: hidden;
-      }
-      .right-content {
-        width: 35%;
-        margin: 1rem;
-        background-color: #23272a;
-        border-radius: 15px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: end;
-      }
 
-      .mute-channel p {
-        margin: 0;
-      }
-      .voice-channel {
-        margin: 1rem;
-      }
-      .voice-channel-header {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: row;
-        color: white;
-        width: 90%;
-        margin: auto;
-        border-bottom: 1px dashed white;
-      }
-      .voice-channel-header h1 {
-        margin-left: 0.5rem;
-        font-size: 16px;
-        line-height: 20px;
-        font-weight: 500;
-        white-space: nowrap;
-      }
-      .user-container {
-        display: flex;
-        flex-direction: column;
-        width: 90%;
-        align-items: center;
-        margin: auto;
-        overflow: hidden;
-        max-height: 90%;
-        overflow: hidden scroll;
-        padding: 0 0.5rem;
-      }
-      .user-container::-webkit-scrollbar {
-        width: 5px;
-      }
-      .user-container::-webkit-scrollbar-track {
-        opacity: 0;
-      }
-      .user-container::-webkit-scrollbar-thumb {
-        background-color: #7289da;
-        border-radius: 3px;
-        cursor: pointer;
-      }
-      .user {
-        height: 45px;
-        width: 100%;
-        margin: 0.5rem;
-        background-color: #2c2f33;
-        color: white;
-        border-radius: 22.5px;
-        display: flex;
-        align-items: center;
-      }
-      .user-name {
-        margin-left: 1rem;
-        font-size: 1.2rem;
-      }
-      .voice-status {
-        display: flex;
-        flex-direction: row;
-        margin-left: auto;
-        margin-right: 1rem;
-      }
-      .options {
-        margin-right: 1rem;
-        cursor: pointer;
-      }
-      .vc-options-popup {
-        background-color: #18191c;
-        border-radius: 5px;
-        color: #d83030;
-        font-size: 1.2rem;
-        padding: 0.5rem;
-        user-select: none;
-        z-index: 3;
-      }
-      .vc-options-popup p {
-        margin: 0rem;
-        padding-right: 1rem;
-        margin-left: 0.25rem;
-      }
-      .mute,
-      .deafen,
-      .disconnect,
-      .voicekick {
-        display: flex;
-        flex-direction: row;
-        margin: 0.2rem;
-        cursor: pointer;
-        border-radius: 2px;
-      }
-      .mute:hover,
-      .deafen:hover,
-      .disconnect:hover,
-      .voicekick:hover {
-        color: white;
-        background-color: #f04747;
-      }
-      .voicekick-menu {
-        position: absolute;
-        display: flex;
-        top: 50%;
+<head>
+  <style>
+    body {
+      background-color: #36393f;
+      margin: 0rem 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+        "Segoe UI Symbol";
+      display: flex;
+      justify-content: center;
+    }
 
-        left: 50%;
-        border-radius: 15px;
-        background-color: #18191c;
-        z-index: 10;
-        color: white;
-        align-items: center;
-        margin-left: auto;
-        margin-right: auto;
-        transform: translate(-50%, -50%);
-        flex-direction: column;
-      }
-      .voicekick-menu h3 {
-        font-size: 1.9rem;
-        margin-bottom: 0.1rem;
-      }
-      .input-container {
-        display: flex;
-        flex-direction: row;
-        max-width: 70%;
-        margin: 1rem;
-        padding: 2rem;
-        border: 1px dashed white;
-        width: 100%;
-        align-items: center;
-        justify-content: center;
-      }
-      .input-container p {
-        margin: 0;
-      }
-      .input-container input {
-        max-width: 40px;
-        color: white;
-        background-color: #36393f;
-        border-radius: 4px;
-        outline: none;
-        appearance: none;
-        box-sizing: content-box;
-        border: none;
-        margin: 0rem 0.5rem;
-        padding: 1px;
-      }
-      .voicekick-contianer {
-        position: absolute;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: rgba(0, 0, 0, 0.4);
-        height: 100%;
-        z-index: 9;
-      }
-      .button-container {
-        display: flex;
-        margin-top: auto;
-        width: 100%;
-        background-color: #23272a;
-        border-radius: 0 0 15px 15px;
-      }
-      .button-container .cancel,
-      .confirm {
-        width: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 50px;
-        border-radius: 15px;
-        font-size: 1.4rem;
-        margin: 0.5rem;
-        user-select: none;
-        cursor: pointer;
-      }
-      .button-container .cancel:hover {
-        background-color: #7289da;
-      }
-      .button-container .confirm:hover {
-        background-color: #d83030;
-      }
-      .mute-controlls {
-        display: flex;
-        width: 100%;
-        border-bottom: 1px solid white;
-      }
-      .mute-channel {
-        margin: 0.5rem;
-        height: 35px;
-        border-radius: 10px;
-        color: white;
-        background-color: #36393f;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-        font-size: 1rem;
-        margin-right: 0.25rem;
-      }
-      .mute-channel:hover {
-        background-color: #f04747;
-      }
-      .unmute-channel:hover {
-        background-color: #43b581;
-      }
-      .unmute-channel {
-        margin: 0.5rem;
-        margin-left: 0.25rem;
-        background-color: #36393f;
+    .content {
+      width: 100%;
+      max-width: 1100px;
+      margin: auto;
+    }
 
-        height: 35px;
-        border-radius: 10px;
-        color: white;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-        font-size: 1rem;
-      }
-      .vc-kicked-container {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        height: 60%;
-      }
-      .vc-kicked-list {
-        width: 60%;
-        border-radius: 15px;
-        background-color: #202225;
-        margin: 0.5rem;
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        overflow: hidden scroll;
-      }
-      .vc-kick-controlls {
-        width: 33%;
-        margin-bottom: 1rem;
-      }
-      .voice-kick-title {
-        margin: 0.2rem;
-        color: white;
-        align-self: center;
-        font-size: 1.3rem;
-      }
+    .head {
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
 
-      .vc-kicked-user p {
-        margin-left: 0.3rem;
-      }
-      .vc-kicked-list::-webkit-scrollbar {
-        width: 5px;
-      }
-      .vc-kicked-list::-webkit-scrollbar-track {
-        opacity: 0;
-      }
-      .vc-kicked-list::-webkit-scrollbar-thumb {
-        background-color: #7289da;
-        border-radius: 3px;
-        cursor: pointer;
-      }
-      .add-vc-kick:hover {
-        background-color: #43b581;
-      }
-      .add-vc-kick {
-        height: 27px;
-        user-select: none;
-        cursor: pointer;
-        margin: 0.5rem 0;
-        color: white;
-        width: 95%;
-        text-align: center;
-        padding-top: 2px;
-        background-color: #36393f;
-        border-radius: 14px;
-      }
-      .user-selector-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-      }
-      .user-selector-container p {
-        font-size: 1.5rem;
-        margin-bottom: 0rem;
-      }
-      .user-selector {
-        display: flex;
-        flex-direction: column;
-        max-width: 70%;
-        margin: 1rem;
-        padding: 0.7rem;
-        width: 100%;
-        align-items: center;
-        max-height: 200px;
-        height: 100%;
-        overflow: hidden scroll;
-      }
-      .user-selector::-webkit-scrollbar {
-        width: 5px;
-      }
-      .user-selector::-webkit-scrollbar-track {
-        opacity: 0;
-      }
-      .user-selector::-webkit-scrollbar-thumb {
-        background-color: #7289da;
-        border-radius: 3px;
-        cursor: pointer;
-      }
-      .vc-kick-target-user {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        height: 40px;
-        width: 100%;
-        background-color: #36393f;
-        border-radius: 20px;
-        user-select: none;
-        cursor: pointer;
-        margin: 0.3rem 0;
-      }
-      .vc-kick-target-user p {
-        margin: 0 0 0 0.5rem;
-      }
-      .voicekick-menu-container {
-        width: 100%;
-        display: flex;
-        overflow: hidden;
-        position: relative;
-        justify-content: center;
-        align-items: center;
-      }
-      .vc-kicked-user {
-        margin-top: 0.5rem;
-        width: 90%;
-        display: flex;
-        flex-direction: column;
-        color: white;
-        align-items: center;
-        background-color: #36393f;
-        border-radius: 15px;
-        height: 30px;
-        overflow: hidden;
-        user-select: none;
-      }
+    .panel-container {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 80%;
+    }
 
-      .head-content {
-        display: flex;
-        flex-direction: row;
-        height: 30px;
-        width: 100%;
-        cursor: pointer;
-        align-items: center;
-      }
-      .head-content p {
-        margin: 0 0 0 0.4rem;
-      }
-      .body-content {
-        display: flex;
-        flex-direction: row;
-        height: 30px;
-        width: 100%;
-        align-items: center;
-      }
-      .body-content p:last-of-type {
-        text-decoration: underline;
-        cursor: pointer;
-      }
-    </style>
-    <script>
-      function createAlert(title, message) {
-        var elm = document.getElementById("alert");
-        elm.style.display = "block";
+    .left-content {
+      width: 65%;
+      background-color: #23272a;
+      border-radius: 15px;
+      height: 100%;
+      margin: 1rem;
+      overflow: hidden;
+    }
 
-        elm.innerHTML =
-          '<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span><strong>' +
-          title +
-          "</strong> " +
-          message;
+    .right-content {
+      width: 35%;
+      margin: 1rem;
+      background-color: #23272a;
+      border-radius: 15px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: end;
+    }
 
-        elm.animate(
-          [
-            {
-              opacity: 0,
-            },
-            {
-              opacity: 1,
-            },
-          ],
+    .mute-channel p {
+      margin: 0;
+    }
+
+    .voice-channel {
+      margin: 1rem;
+    }
+
+    .voice-channel-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: row;
+      color: white;
+      width: 90%;
+      margin: auto;
+      border-bottom: 1px dashed white;
+    }
+
+    .voice-channel-header h1 {
+      margin-left: 0.5rem;
+      font-size: 16px;
+      line-height: 20px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .user-container {
+      display: flex;
+      flex-direction: column;
+      width: 90%;
+      align-items: center;
+      margin: auto;
+      overflow: hidden;
+      max-height: 90%;
+      overflow: hidden scroll;
+      padding: 0 0.5rem;
+    }
+
+    .user-container::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .user-container::-webkit-scrollbar-track {
+      opacity: 0;
+    }
+
+    .user-container::-webkit-scrollbar-thumb {
+      background-color: #7289da;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .user {
+      height: 45px;
+      width: 100%;
+      margin: 0.5rem;
+      background-color: #2c2f33;
+      color: white;
+      border-radius: 22.5px;
+      display: flex;
+      align-items: center;
+    }
+
+    .user-name {
+      margin-left: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .voice-status {
+      display: flex;
+      flex-direction: row;
+      margin-left: auto;
+      margin-right: 1rem;
+    }
+
+    .options {
+      margin-right: 1rem;
+      cursor: pointer;
+    }
+
+    .vc-options-popup {
+      background-color: #18191c;
+      border-radius: 5px;
+      color: #d83030;
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      user-select: none;
+      z-index: 3;
+    }
+
+    .vc-options-popup p {
+      margin: 0rem;
+      padding-right: 1rem;
+      margin-left: 0.25rem;
+    }
+
+    .mute,
+    .deafen,
+    .disconnect,
+    .voicekick,
+    .perma-mute {
+      display: flex;
+      flex-direction: row;
+      margin: 0.2rem;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+
+    .mute:hover,
+    .deafen:hover,
+    .disconnect:hover,
+    .voicekick:hover,
+    .perma-mute:hover {
+      color: white;
+      background-color: #f04747;
+    }
+
+    .perma-mute {
+      align-items: center;
+    }
+
+    .voicekick-menu {
+      position: absolute;
+      display: flex;
+      top: 50%;
+
+      left: 50%;
+      border-radius: 15px;
+      background-color: #18191c;
+      z-index: 10;
+      color: white;
+      align-items: center;
+      margin-left: auto;
+      margin-right: auto;
+      transform: translate(-50%, -50%);
+      flex-direction: column;
+    }
+
+    .voicekick-menu h3 {
+      font-size: 1.9rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .input-container {
+      display: flex;
+      flex-direction: row;
+      max-width: 70%;
+      margin: 1rem;
+      padding: 2rem;
+      border: 1px dashed white;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .input-container p {
+      margin: 0;
+    }
+
+    .input-container input {
+      max-width: 40px;
+      color: white;
+      background-color: #36393f;
+      border-radius: 4px;
+      outline: none;
+      appearance: none;
+      box-sizing: content-box;
+      border: none;
+      margin: 0rem 0.5rem;
+      padding: 1px;
+    }
+
+    .voicekick-contianer {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      height: 100%;
+      z-index: 9;
+    }
+
+    .button-container {
+      display: flex;
+      margin-top: auto;
+      width: 100%;
+      background-color: #23272a;
+      border-radius: 0 0 15px 15px;
+    }
+
+    .button-container .cancel,
+    .confirm {
+      width: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 50px;
+      border-radius: 15px;
+      font-size: 1.4rem;
+      margin: 0.5rem;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .button-container .cancel:hover {
+      background-color: #7289da;
+    }
+
+    .button-container .confirm:hover {
+      background-color: #d83030;
+    }
+
+    .mute-controlls {
+      display: flex;
+      width: 100%;
+      border-bottom: 1px solid white;
+    }
+
+    .mute-channel {
+      margin: 0.5rem;
+      height: 35px;
+      border-radius: 10px;
+      color: white;
+      background-color: #36393f;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      font-size: 1rem;
+      margin-right: 0.25rem;
+    }
+
+    .mute-channel:hover {
+      background-color: #f04747;
+    }
+
+    .unmute-channel:hover {
+      background-color: #43b581;
+    }
+
+    .unmute-channel {
+      margin: 0.5rem;
+      margin-left: 0.25rem;
+      background-color: #36393f;
+
+      height: 35px;
+      border-radius: 10px;
+      color: white;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      font-size: 1rem;
+    }
+
+    .vc-kicked-container {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      height: 60%;
+    }
+
+    .vc-kicked-list {
+      width: 60%;
+      border-radius: 15px;
+      background-color: #202225;
+      margin: 0.5rem;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      overflow: hidden scroll;
+    }
+
+    .vc-kick-controlls {
+      width: 33%;
+      margin-bottom: 1rem;
+    }
+
+    .voice-kick-title {
+      margin: 0.2rem;
+      color: white;
+      align-self: center;
+      font-size: 1.3rem;
+      user-select: none;
+    }
+
+    .vc-kicked-user p {
+      margin-left: 0.3rem;
+    }
+
+    .vc-kicked-list::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .vc-kicked-list::-webkit-scrollbar-track {
+      opacity: 0;
+    }
+
+    .vc-kicked-list::-webkit-scrollbar-thumb {
+      background-color: #7289da;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .add-vc-kick:hover {
+      background-color: #43b581;
+    }
+
+    .add-vc-kick {
+      height: 27px;
+      user-select: none;
+      cursor: pointer;
+      margin: 0.5rem 0;
+      color: white;
+      width: 95%;
+      text-align: center;
+      padding-top: 2px;
+      background-color: #36393f;
+      border-radius: 14px;
+    }
+
+    .user-selector-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .user-selector-container p {
+      font-size: 1.5rem;
+      margin-bottom: 0rem;
+    }
+
+    .user-selector {
+      display: flex;
+      flex-direction: column;
+      max-width: 70%;
+      margin: 1rem;
+      padding: 0.7rem;
+      width: 100%;
+      align-items: center;
+      max-height: 200px;
+      height: 100%;
+      overflow: hidden scroll;
+    }
+
+    .user-selector::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .user-selector::-webkit-scrollbar-track {
+      opacity: 0;
+    }
+
+    .user-selector::-webkit-scrollbar-thumb {
+      background-color: #7289da;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .vc-kick-target-user {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      height: 40px;
+      width: 100%;
+      background-color: #36393f;
+      border-radius: 20px;
+      user-select: none;
+      cursor: pointer;
+      margin: 0.3rem 0;
+    }
+
+    .vc-kick-target-user p {
+      margin: 0 0 0 0.5rem;
+    }
+
+    .voicekick-menu-container {
+      width: 100%;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .vc-kicked-user {
+      margin-top: 0.5rem;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      color: white;
+      align-items: center;
+      background-color: #36393f;
+      border-radius: 15px;
+      height: 30px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .head-content {
+      display: flex;
+      flex-direction: row;
+      height: 30px;
+      width: 100%;
+      cursor: pointer;
+      align-items: center;
+    }
+
+    .head-content p {
+      margin: 0 0 0 0.4rem;
+    }
+
+    .body-content {
+      display: flex;
+      flex-direction: row;
+      height: 30px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .body-content p:last-of-type {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+  <script>
+    function createAlert(title, message) {
+      var elm = document.getElementById("alert");
+      elm.style.display = "block";
+
+      elm.innerHTML =
+        '<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span><strong>' +
+        title +
+        "</strong> " +
+        message;
+
+      elm.animate(
+        [
           {
-            duration: 350,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-      }
-    </script>
-    <style>
-      .alert {
-        opacity: 0;
-        display: none;
-        position: absolute;
-        top: 10px;
-        left: 30%;
-        right: 30%;
-        width: 40%;
-        padding: 20px;
-        z-index: 4;
-        background-color: #f44336;
-        color: white;
-      }
-
-      .closebtn {
-        margin-left: 15px;
-        color: white;
-        font-weight: bold;
-        float: right;
-        font-size: 22px;
-        line-height: 20px;
-        cursor: pointer;
-        transition: 0.3s;
-      }
-
-      .closebtn:hover {
-        color: black;
-      }
-    </style>
-    <!--Close alert script-->
-    <script>
-      function closeAlert(element) {
-        element.parentElement.style.display = "none";
-      }
-    </script>
-
-    <script>
-      async function getUserElement(userId) {
-        const resp = await fetch(
-          `/apprentice/v1/event/user?id=${encodeURIComponent(userId)}`
-        );
-        if (resp.status == 400) {
-          createAlert(
-            "Error",
-            "An error occured fetching modlogs with this id: " + userId
-          );
-          return;
-        } else if (resp.status == 404) {
-          console.log(
-            "Failed to get VC user  " + userId + ", Server responded with a 404"
-          );
-          return;
-        } else if (resp.status != 200) {
-          createAlert(
-            "Uh oh",
-            "Let quin know that a fetch for " +
-              userId +
-              "'s modlogs returned a " +
-              resp.status
-          );
-          return;
-        }
-        const content = await resp.text();
-        const tempdiv = document.createElement("div");
-        tempdiv.innerHTML = content;
-
-        return tempdiv.firstChild;
-      }
-
-      let UserList = [];
-
-      async function loadData() {
-        // Fetch the data
-
-        console.log("[ LOAD ] - Staring init load");
-        const request = await fetch("/apprentice/v1/event.json");
-
-        if (request.status === 401 || request.status === 403) {
-          // Reload the page, unauthed
-          location.reload();
-        } else if (request.status !== 200) {
-          // Unknow error, create the alert
-          createAlert(
-            "Uh oh",
-            "Looks like we failed to init the page, let quin know the error code was " +
-              request.status
-          );
-        } else if (request.status === 200) {
-          // Read the body
-          const body = JSON.parse(await request.text());
-          console.log("[ LOAD ] - Finished load, staring insert of items");
-          body.users.forEach((item) => {
-            const user = new User(item);
-            UserList.push(user);
-          });
-
-          body.kicks.forEach((item) => {
-            const kickedUsers = new VcKickedUser(item);
-            VcKickedUsers.push(kickedUsers);
-          });
-
-          console.log("[ LOAD ] - Finished init load");
-        }
-      }
-
-      class User {
-        displayName = "";
-        id = "0";
-        isSelfDeafened = false;
-        isSelfMuted = false;
-        isServerMuted = false;
-        isServerDeafened = false;
-        isConnected = true;
-        constructor(userData) {
-          this.displayName = userData.displayName;
-          this.id = userData.id;
-          this.isSelfDeafened = userData.isSelfDeafened;
-          this.isSelfMuted = userData.isSelfMuted;
-          this.isServerMuted = userData.isServerMuted;
-          this.isServerDeafened = userData.isServerDeafened;
-          this.isConnected = true;
-          // fetch our element;
-          getUserElement(this.id).then((data) => {
-            // insert into the user container
-            const container = document.getElementById("user-container");
-            if (container.children.length === 0) {
-              container.appendChild(data);
-            } else {
-              container.insertBefore(data, container.firstChild);
-            }
-            const rawElement = container.getElementsByClassName(this.id)[0];
-            // Animate the enterance! :D
-
-            rawElement.animate(
-              [
-                {
-                  height: "0px",
-                  marginRight: "1000px",
-                },
-                {
-                  height: "45px",
-                  marginRight: "1000px",
-                },
-                {
-                  height: "45px",
-                  margin: "0.5rem",
-                },
-              ],
-              {
-                duration: 400,
-                easing: "ease-in-out",
-                direction: "alternate",
-                delay: 0,
-                iterations: 1,
-                fill: "forwards",
-              }
-            );
-            this.element = rawElement;
-            this.updateElement();
-          });
-        }
-
-        updateElement() {
-          const popup = document.getElementById("vc-popup");
-
-          // Self Mute
-          const muted = this.element.getElementsByClassName("muted")[0];
-          if (this.isSelfMuted) {
-            muted.style.color = "white";
-          } else {
-            muted.style.color = "#ffffff22";
-          }
-
-          // Self Deafen
-          const deafen = this.element.getElementsByClassName("deafened")[0];
-          if (this.isSelfDeafened) {
-            deafen.style.color = "white";
-          } else {
-            deafen.style.color = "#ffffff22";
-          }
-
-          // Server Mute
-          if (this.isServerMuted) {
-            muted.style.color = "#f04747";
-          }
-
-          // Server deafen
-          if (this.isServerDeafened) {
-            deafen.style.color = "#f04747";
-          }
-
-          // Username
-          const username = this.element.getElementsByClassName("user-name")[0];
-          if (this.displayName !== username.innerHTML) {
-            username.innerHTML = this.displayName;
-          }
-
-          popup.getElementsByClassName("mute-unchecked")[0].style.display = this
-            .isServerMuted
-            ? "none"
-            : "block";
-          popup.getElementsByClassName("mute-check")[0].style.display = this
-            .isServerMuted
-            ? "block"
-            : "none";
-          popup.getElementsByClassName(
-            "mute-check-outer"
-          )[0].style.display = this.isServerMuted ? "block" : "none";
-
-          popup.getElementsByClassName(
-            "deafen-unchecked"
-          )[0].style.display = this.isServerDeafened ? "none" : "block";
-          popup.getElementsByClassName("deafen-check")[0].style.display = this
-            .isServerDeafened
-            ? "block"
-            : "none";
-          popup.getElementsByClassName(
-            "deafen-check-outer"
-          )[0].style.display = this.isServerDeafened ? "block" : "none";
-
-          // Disconnected
-          if (!this.isConnected) {
-            // Remove
-            const container = document.getElementById("user-container");
-            UserList.splice(UserList.indexOf(this), 1);
-            this.element.animate(
-              {
-                height: "0px",
-                margin: "0 0.5rem",
-              },
-              {
-                duration: 200,
-                easing: "ease-in-out",
-                direction: "alternate",
-                delay: 0,
-                iterations: 1,
-                fill: "forwards",
-              }
-            );
-            setTimeout(() => {
-              container.removeChild(this.element);
-            }, 205);
-          }
-        }
-
-        updateData(userData) {
-          this.displayName = userData.displayName;
-          this.id = userData.id;
-          this.isSelfDeafened = userData.isSelfDeafened;
-          this.isSelfMuted = userData.isSelfMuted;
-          this.isServerMuted = userData.isServerMuted;
-          this.isServerDeafened = userData.isServerDeafened;
-          this.isConnected = userData.isConnected;
-          // Update the element;
-          this.updateElement();
-        }
-      }
-
-      document.addEventListener("click", (event) => {
-        if (popupOpen) {
-          if (!isOverPopup) {
-            const popup = document.getElementById("vc-popup");
-            popup.style.display = "none";
-            popupOpen = false;
-          }
-        }
-
-        if (currentSelectedVcKickedUser) {
-          if (currentSelectedVcKickedUser.offsetHeight === 60) {
-            const rect = currentSelectedVcKickedUser.getBoundingClientRect();
-            const isHit =
-              rect.x < event.clientX &&
-              rect.x + rect.width > event.clientX &&
-              rect.y < event.clientY &&
-              rect.y + rect.height > event.clientY;
-            if (isHit === false) {
-              currentSelectedVcKickedUser.style.backgroundColor = "#36393f";
-              currentSelectedVcKickedUser.animate(
-                {
-                  height: "30px",
-                },
-                {
-                  duration: 150,
-                  easing: "ease-in-out",
-                  direction: "alternate",
-                  delay: 0,
-                  iterations: 1,
-                  fill: "forwards",
-                }
-              );
-              previousSelectedVcKickedUser = currentSelectedVcKickedUser;
-              currentSelectedVcKickedUser = undefined;
-            }
-          }
-        }
-      });
-      let isOverPopup = false;
-      let popupOpen = false;
-      function handleVCOptions(element) {
-        const rect = element.getBoundingClientRect();
-        const popup = document.getElementById("vc-popup");
-        // get the user
-        const id = element.parentElement.getElementsByClassName("user-id")[0]
-          .innerHTML;
-        userMenuId = id;
-
-        const user = UserList.find((x) => x.id === id);
-
-        if (user) {
-          popup.getElementsByClassName(
-            "mute-unchecked"
-          )[0].style.display = user.isServerMuted ? "none" : "block";
-          popup.getElementsByClassName(
-            "mute-check"
-          )[0].style.display = user.isServerMuted ? "block" : "none";
-          popup.getElementsByClassName(
-            "mute-check-outer"
-          )[0].style.display = user.isServerMuted ? "block" : "none";
-
-          popup.getElementsByClassName(
-            "deafen-unchecked"
-          )[0].style.display = user.isServerDeafened ? "none" : "block";
-          popup.getElementsByClassName(
-            "deafen-check"
-          )[0].style.display = user.isServerDeafened ? "block" : "none";
-          popup.getElementsByClassName(
-            "deafen-check-outer"
-          )[0].style.display = user.isServerDeafened ? "block" : "none";
-        }
-
-        popup.style.top = rect.top;
-        popup.style.left = rect.left + 40;
-        popup.animate(
-          {
-            left: rect.left + 30 + "px",
+            opacity: 0,
           },
           {
-            duration: 150,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "none",
-          }
+            opacity: 1,
+          },
+        ],
+        {
+          duration: 350,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+    }
+  </script>
+  <style>
+    .alert {
+      opacity: 0;
+      display: none;
+      position: absolute;
+      top: 10px;
+      left: 30%;
+      right: 30%;
+      width: 40%;
+      padding: 20px;
+      z-index: 4;
+      background-color: #f44336;
+      color: white;
+    }
+
+    .closebtn {
+      margin-left: 15px;
+      color: white;
+      font-weight: bold;
+      float: right;
+      font-size: 22px;
+      line-height: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .closebtn:hover {
+      color: black;
+    }
+  </style>
+  <!--Close alert script-->
+  <script>
+    function closeAlert(element) {
+      element.parentElement.style.display = "none";
+    }
+  </script>
+
+  <script>
+    async function getUserElement(userId) {
+      const resp = await fetch(
+        `/apprentice/v1/event/user?id=${encodeURIComponent(userId)}`
+      );
+      if (resp.status == 400) {
+        createAlert(
+          "Error",
+          "An error occured fetching modlogs with this id: " + userId
         );
-        setTimeout(() => {
-          popup.style.left = rect.left + 30;
-        }, 130);
-        popup.style.display = "block";
-        popupOpen = true;
+        return;
+      } else if (resp.status == 404) {
+        console.log(
+          "Failed to get VC user  " + userId + ", Server responded with a 404"
+        );
+        return;
+      } else if (resp.status != 200) {
+        createAlert(
+          "Uh oh",
+          "Let quin know that a fetch for " +
+          userId +
+          "'s modlogs returned a " +
+          resp.status
+        );
+        return;
       }
-    </script>
-    <!--Swissbot websocket scripts-->
-    <script>
-      // The list of events we want to receive
-      const swissbotEvents = [
-        "event.user.added",
-        "event.user.updated",
-        "events.voicekick.user.remove",
-        "events.voicekick.user.add",
-      ];
+      const content = await resp.text();
+      const tempdiv = document.createElement("div");
+      tempdiv.innerHTML = content;
 
-      // This script will handle the Swissbot websocket protocol:
-      let socket = undefined;
-      function connect() {
-        socket = new WebSocket("wss://api.swissdev.team/apprentice/v1/socket");
+      return tempdiv.firstChild;
+    }
 
-        socket.onopen = function (event) {
-          console.log("[ OPENED ] - Opened Websocket! sending handshake...");
+    let UserList = [];
 
-          socket.send(
-            JSON.stringify({
-              session: document.cookie,
-              page: location.pathname,
-              type: "handshake",
-              events: swissbotEvents,
-            })
+    async function loadData() {
+      // Fetch the data
+
+      console.log("[ LOAD ] - Staring init load");
+      const request = await fetch("/apprentice/v1/event.json");
+
+      if (request.status === 401 || request.status === 403) {
+        // Reload the page, unauthed
+        location.reload();
+      } else if (request.status !== 200) {
+        // Unknow error, create the alert
+        createAlert(
+          "Uh oh",
+          "Looks like we failed to init the page, let quin know the error code was " +
+          request.status
+        );
+      } else if (request.status === 200) {
+        // Read the body
+        const body = JSON.parse(await request.text());
+        console.log("[ LOAD ] - Finished load, staring insert of items");
+        body.users.forEach((item) => {
+          const user = new User(item);
+          UserList.push(user);
+        });
+
+        body.kicks.forEach((item) => {
+          const kickedUsers = new VcKickedUser(item);
+          VcKickedUsers.push(kickedUsers);
+        });
+
+        console.log("[ LOAD ] - Finished init load");
+      }
+    }
+
+    class User {
+      displayName = "";
+      id = "0";
+      isSelfDeafened = false;
+      isSelfMuted = false;
+      isServerMuted = false;
+      isServerDeafened = false;
+      isConnected = true;
+      constructor(userData) {
+        this.displayName = userData.displayName;
+        this.id = userData.id;
+        this.isSelfDeafened = userData.isSelfDeafened;
+        this.isSelfMuted = userData.isSelfMuted;
+        this.isServerMuted = userData.isServerMuted;
+        this.isServerDeafened = userData.isServerDeafened;
+        this.isConnected = true;
+        // fetch our element;
+        getUserElement(this.id).then((data) => {
+          // insert into the user container
+          const container = document.getElementById("user-container");
+          if (container.children.length === 0) {
+            container.appendChild(data);
+          } else {
+            container.insertBefore(data, container.firstChild);
+          }
+          const rawElement = container.getElementsByClassName(this.id)[0];
+          // Animate the enterance! :D
+
+          rawElement.animate(
+            [
+              {
+                height: "0px",
+                marginRight: "1000px",
+              },
+              {
+                height: "45px",
+                marginRight: "1000px",
+              },
+              {
+                height: "45px",
+                margin: "0.5rem",
+              },
+            ],
+            {
+              duration: 400,
+              easing: "ease-in-out",
+              direction: "alternate",
+              delay: 0,
+              iterations: 1,
+              fill: "forwards",
+            }
           );
-        };
+          this.element = rawElement;
+          this.updateElement();
+        });
+      }
 
-        socket.onclose = function (event) {
-          const state = event.wasClean ? "Cleanly" : "Forcibly";
-          console.log(
-            "[ CLOSED ] - Socket closed " + state + ": Code: " + event.code
+      updateElement() {
+        const popup = document.getElementById("vc-popup");
+
+        // Self Mute
+        const muted = this.element.getElementsByClassName("muted")[0];
+        if (this.isSelfMuted) {
+          muted.style.color = "white";
+        } else {
+          muted.style.color = "#ffffff22";
+        }
+
+        // Self Deafen
+        const deafen = this.element.getElementsByClassName("deafened")[0];
+        if (this.isSelfDeafened) {
+          deafen.style.color = "white";
+        } else {
+          deafen.style.color = "#ffffff22";
+        }
+
+        // Server Mute
+        if (this.isServerMuted) {
+          muted.style.color = "#f04747";
+        }
+
+        // Server deafen
+        if (this.isServerDeafened) {
+          deafen.style.color = "#f04747";
+        }
+
+        // Username
+        const username = this.element.getElementsByClassName("user-name")[0];
+        if (this.displayName !== username.innerHTML) {
+          username.innerHTML = this.displayName;
+        }
+
+        popup.getElementsByClassName("mute-unchecked")[0].style.display = this
+          .isServerMuted
+          ? "none"
+          : "block";
+        popup.getElementsByClassName("mute-check")[0].style.display = this
+          .isServerMuted
+          ? "block"
+          : "none";
+        popup.getElementsByClassName(
+          "mute-check-outer"
+        )[0].style.display = this.isServerMuted ? "block" : "none";
+
+        popup.getElementsByClassName(
+          "deafen-unchecked"
+        )[0].style.display = this.isServerDeafened ? "none" : "block";
+        popup.getElementsByClassName("deafen-check")[0].style.display = this
+          .isServerDeafened
+          ? "block"
+          : "none";
+        popup.getElementsByClassName(
+          "deafen-check-outer"
+        )[0].style.display = this.isServerDeafened ? "block" : "none";
+
+        // Disconnected
+        if (!this.isConnected) {
+          // Remove
+          const container = document.getElementById("user-container");
+          UserList.splice(UserList.indexOf(this), 1);
+          this.element.animate(
+            {
+              height: "0px",
+              margin: "0 0.5rem",
+            },
+            {
+              duration: 200,
+              easing: "ease-in-out",
+              direction: "alternate",
+              delay: 0,
+              iterations: 1,
+              fill: "forwards",
+            }
           );
-
           setTimeout(() => {
-            console.log("[ SOCKET ] - Reconnecting...");
-            connect();
-          }, 5000);
-        };
+            container.removeChild(this.element);
+          }, 205);
+        }
+      }
 
-        socket.onerror = function (error) {
-          console.log("[ ERROR ] - Got websocket error: " + error.message);
-          console.error(error);
-        };
-        socket.onmessage = async function (event) {
-          console.log("[ MESSAGE ] - Message received: ");
-          // This function will be responsible for handling events
-          const content = JSON.parse(event.data);
+      updateData(userData) {
+        this.displayName = userData.displayName;
+        this.id = userData.id;
+        this.isSelfDeafened = userData.isSelfDeafened;
+        this.isSelfMuted = userData.isSelfMuted;
+        this.isServerMuted = userData.isServerMuted;
+        this.isServerDeafened = userData.isServerDeafened;
+        this.isConnected = userData.isConnected;
+        // Update the element;
+        this.updateElement();
+      }
+    }
 
-          console.log(content);
+    document.addEventListener("click", (event) => {
+      if (popupOpen) {
+        if (!isOverPopup) {
+          const popup = document.getElementById("vc-popup");
+          popup.style.display = "none";
+          popupOpen = false;
+        }
+      }
 
-          switch (content.type) {
-            case "handshake_accept":
-              console.log(
-                `Handshake with the server accepted : ${content.status}`
-              );
-              break;
-            case "event.user.added":
-              console.log("New user in event vc");
-              const newUser = new User(content.data);
-              UserList.push(newUser);
-              break;
-            case "event.user.updated":
-              const user = UserList.find((x) => x.id === content.data.id);
-              user.updateData(content.data);
-              break;
-            case "error.invalid.target":
-              // We got an error
-              console.log(
-                `Error recieve: ${content.type} - ${content.error}\nPacket: ${content.packet}`
-              );
-
-              break;
-            case "events.voicekick.user.remove":
-              // TODO: add the handler here
-              const vcKickeduser = VcKickedUsers.find(
-                (x) => x.id === content.data.id
-              );
-              if (vcKickeduser !== undefined) {
-                vcKickeduser.kill();
+      if (currentSelectedVcKickedUser) {
+        if (currentSelectedVcKickedUser.offsetHeight === 60) {
+          const rect = currentSelectedVcKickedUser.getBoundingClientRect();
+          const isHit =
+            rect.x < event.clientX &&
+            rect.x + rect.width > event.clientX &&
+            rect.y < event.clientY &&
+            rect.y + rect.height > event.clientY;
+          if (isHit === false) {
+            currentSelectedVcKickedUser.style.backgroundColor = "#36393f";
+            currentSelectedVcKickedUser.animate(
+              {
+                height: "30px",
+              },
+              {
+                duration: 150,
+                easing: "ease-in-out",
+                direction: "alternate",
+                delay: 0,
+                iterations: 1,
+                fill: "forwards",
               }
-              break;
-            case "events.voicekick.user.add":
-              // TODO: add handler
-              const newVcKickedUser = new VcKickedUser(content.data);
-              VcKickedUsers.push(newVcKickedUser);
-
-              break;
-          }
-        };
-      }
-      connect();
-
-      let userMenuId = "";
-      function toggleMute(id) {
-        let user = undefined;
-
-        if (id == undefined) {
-          user = UserList.find((x) => x.id === userMenuId);
-        } else {
-          user = UserList.find((x) => x.id === id);
-        }
-
-        const value = user.isServerMuted === true ? false : true;
-        socket.send(
-          JSON.stringify({
-            session: document.cookie,
-            type: "event.user.mute",
-            action: "Mute",
-            value: value,
-            targetUser: user.id,
-          })
-        );
-      }
-      function toggleDeafen(id) {
-        let user = undefined;
-
-        if (id == undefined) {
-          user = UserList.find((x) => x.id === userMenuId);
-        } else {
-          user = UserList.find((x) => x.id === id);
-        }
-        const value = user.isServerDeafened === true ? false : true;
-        socket.send(
-          JSON.stringify({
-            session: document.cookie,
-            type: "event.user.deafen",
-            action: "Deafen",
-            value: value,
-            targetUser: user.id,
-          })
-        );
-      }
-      function disconnect() {
-        const user = UserList.find((x) => x.id === userMenuId);
-
-        socket.send(
-          JSON.stringify({
-            session: document.cookie,
-            type: "event.user.deafen",
-            action: "Disconnect",
-            value: true,
-            targetUser: user.id,
-          })
-        );
-      }
-
-      let voicekickIsOpen = false;
-      async function voiceKickMenuToggle(isMenuOpen) {
-        if (popupOpen) {
-          CurrentVoiceKickSelectedUser = userMenuId;
-        }
-
-        const element = document.getElementsByClassName(
-          "voicekick-contianer"
-        )[0];
-        const userSelectContainer = document.getElementsByClassName(
-          "user-selector-container"
-        )[0];
-        const inputContainer = document.getElementsByClassName(
-          "input-container"
-        )[0];
-
-        const voicekickMenuContainer = document.getElementsByClassName(
-          "voicekick-menu-container"
-        )[0];
-
-        if (isMenuOpen === true) {
-          // Go strait to the time selector
-          userSelectContainer.style.display = "none";
-          inputContainer.style.display = "flex";
-          inputContainer.style.position = "relative";
-          voicekickMenuContainer.animate(
-            { height: "auto" },
-            {
-              duration: 0,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-          inputContainer.animate(
-            {
-              left: "0px",
-              position: "relative",
-            },
-            {
-              duration: 0,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-        } else {
-          userSelectContainer.style.display = "flex";
-          inputContainer.style.display = "none";
-
-          // Populate the user list
-          const req = await fetch(`/apprentice/v1/events/users`);
-
-          if (req.status === 401 || req.status === 403) {
-            // Reload
-            location.reload();
-            return;
-          } else if (req.status !== 200) {
-            createAlert(
-              "Uh oh",
-              "Looks like we failed to get the current event users, let quin know the error code was " +
-                req.status
             );
-            return;
+            previousSelectedVcKickedUser = currentSelectedVcKickedUser;
+            currentSelectedVcKickedUser = undefined;
           }
-
-          userSelectContainer.getElementsByClassName(
-            "user-selector"
-          )[0].innerHTML = await req.text();
         }
+      }
+    });
+    let isOverPopup = false;
+    let popupOpen = false;
+    function handleVCOptions(element) {
+      const rect = element.getBoundingClientRect();
+      const popup = document.getElementById("vc-popup");
+      // get the user
+      const id = element.parentElement.getElementsByClassName("user-id")[0]
+        .innerHTML;
+      userMenuId = id;
 
-        voicekickIsOpen = true;
-        document.getElementById("vc-popup").style.display = "none";
-        element.style.display = "flex";
+      const user = UserList.find((x) => x.id === id);
 
-        const content = document.getElementsByClassName("content")[0];
-        content.animate(
-          [
-            {
-              filter: "blur(0px)",
-            },
-            { filter: "blur(10px)" },
-          ],
+      if (user) {
+        popup.getElementsByClassName(
+          "mute-unchecked"
+        )[0].style.display = user.isServerMuted ? "none" : "block";
+        popup.getElementsByClassName(
+          "mute-check"
+        )[0].style.display = user.isServerMuted ? "block" : "none";
+        popup.getElementsByClassName(
+          "mute-check-outer"
+        )[0].style.display = user.isServerMuted ? "block" : "none";
+
+        popup.getElementsByClassName(
+          "deafen-unchecked"
+        )[0].style.display = user.isServerDeafened ? "none" : "block";
+        popup.getElementsByClassName(
+          "deafen-check"
+        )[0].style.display = user.isServerDeafened ? "block" : "none";
+        popup.getElementsByClassName(
+          "deafen-check-outer"
+        )[0].style.display = user.isServerDeafened ? "block" : "none";
+      }
+
+      popup.style.top = rect.top;
+      popup.style.left = rect.left + 40;
+      popup.animate(
+        {
+          left: rect.left + 30 + "px",
+        },
+        {
+          duration: 150,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "none",
+        }
+      );
+      setTimeout(() => {
+        popup.style.left = rect.left + 30;
+      }, 130);
+      popup.style.display = "block";
+      popupOpen = true;
+    }
+  </script>
+  <!--Swissbot websocket scripts-->
+  <script>
+    function getCookie(name) {
+      return (name = (document.cookie + ';').match(new RegExp(name + '=.*;'))) && name[0].split(/=|;/)[1];
+    }
+    // The list of events we want to receive
+    const swissbotEvents = [
+      "event.user.added",
+      "event.user.updated",
+      "events.voicekick.user.remove",
+      "events.voicekick.user.add",
+    ];
+
+    // This script will handle the Swissbot websocket protocol:
+    let socket = undefined;
+    function connect() {
+      socket = new WebSocket("wss://api.swissdev.team/apprentice/v1/socket");
+      socket.onopen = function (event) {
+        console.log("[ OPENED ] - Opened Websocket! sending handshake...");
+
+        socket.send(
+          JSON.stringify({
+            session: getCookie("csSessionID"),
+            page: location.pathname,
+            type: "handshake",
+            events: swissbotEvents,
+          })
+        );
+      };
+
+      socket.onclose = function (event) {
+        const state = event.wasClean ? "Cleanly" : "Forcibly";
+        console.log(
+          "[ CLOSED ] - Socket closed " + state + ": Code: " + event.code
+        );
+
+        setTimeout(() => {
+          console.log("[ SOCKET ] - Reconnecting...");
+          connect();
+        }, 5000);
+      };
+
+      socket.onerror = function (error) {
+        console.log("[ ERROR ] - Got websocket error: " + error.message);
+        console.error(error);
+      };
+      socket.onmessage = async function (event) {
+        console.log("[ MESSAGE ] - Message received: ");
+        // This function will be responsible for handling events
+        const content = JSON.parse(event.data);
+
+        console.log(content);
+
+        switch (content.type) {
+          case "handshake_accept":
+            console.log(
+              `Handshake with the server accepted : ${content.status}`
+            );
+            break;
+          case "event.user.added":
+            console.log("New user in event vc");
+            const newUser = new User(content.data);
+            UserList.push(newUser);
+            break;
+          case "event.user.updated":
+            const user = UserList.find((x) => x.id === content.data.id);
+            user.updateData(content.data);
+            break;
+          case "error.invalid.target":
+            // We got an error
+            console.log(
+              `Error recieve: ${content.type} - ${content.error}\nPacket: ${content.packet}`
+            );
+
+            break;
+          case "events.voicekick.user.remove":
+            // TODO: add the handler here
+            const vcKickeduser = VcKickedUsers.find(
+              (x) => x.id === content.data.id
+            );
+            if (vcKickeduser !== undefined) {
+              vcKickeduser.kill();
+            }
+            break;
+          case "events.voicekick.user.add":
+            // TODO: add handler
+            const newVcKickedUser = new VcKickedUser(content.data);
+            VcKickedUsers.push(newVcKickedUser);
+
+            break;
+        }
+      };
+    }
+    connect();
+
+    let userMenuId = "";
+    function toggleMute(id) {
+      let user = undefined;
+
+      if (id == undefined) {
+        user = UserList.find((x) => x.id === userMenuId);
+      } else {
+        user = UserList.find((x) => x.id === id);
+      }
+
+      const value = user.isServerMuted === true ? false : true;
+      socket.send(
+        JSON.stringify({
+          session: getCookie("csSessionID"),
+          type: "event.user.mute",
+          action: "Mute",
+          value: value,
+          targetUser: user.id,
+        })
+      );
+    }
+    function toggleDeafen(id) {
+      let user = undefined;
+
+      if (id == undefined) {
+        user = UserList.find((x) => x.id === userMenuId);
+      } else {
+        user = UserList.find((x) => x.id === id);
+      }
+      const value = user.isServerDeafened === true ? false : true;
+      socket.send(
+        JSON.stringify({
+          session: getCookie("csSessionID"),
+          type: "event.user.deafen",
+          action: "Deafen",
+          value: value,
+          targetUser: user.id,
+        })
+      );
+    }
+    function disconnect() {
+      const user = UserList.find((x) => x.id === userMenuId);
+
+      socket.send(
+        JSON.stringify({
+          session: getCookie("csSessionID"),
+          type: "event.user.deafen",
+          action: "Disconnect",
+          value: true,
+          targetUser: user.id,
+        })
+      );
+    }
+
+    let voicekickIsOpen = false;
+    async function voiceKickMenuToggle(isMenuOpen) {
+      if (popupOpen) {
+        CurrentVoiceKickSelectedUser = userMenuId;
+      }
+
+      const element = document.getElementsByClassName(
+        "voicekick-contianer"
+      )[0];
+      const userSelectContainer = document.getElementsByClassName(
+        "user-selector-container"
+      )[0];
+      const inputContainer = document.getElementsByClassName(
+        "input-container"
+      )[0];
+
+      const voicekickMenuContainer = document.getElementsByClassName(
+        "voicekick-menu-container"
+      )[0];
+
+      if (isMenuOpen === true) {
+        // Go strait to the time selector
+        userSelectContainer.style.display = "none";
+        inputContainer.style.display = "flex";
+        inputContainer.style.position = "relative";
+        voicekickMenuContainer.animate(
+          { height: "auto" },
           {
-            duration: 100,
+            duration: 0,
             easing: "ease-in-out",
             direction: "alternate",
             delay: 0,
@@ -1051,182 +1058,10 @@
             fill: "forwards",
           }
         );
-        element.animate(
-          [
-            {
-              opacity: 0,
-            },
-            {
-              opacity: 1,
-            },
-          ],
-          {
-            duration: 100,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-      }
-
-      let isValid = false;
-      let voicekickValue = "";
-      function handleVoicekickInput(element) {
-        voicekickValue = element.value;
-        if (voicekickValue.length === 0) {
-          isValid = false;
-        } else if (isNaN(voicekickValue)) {
-          isValid = false;
-        } else {
-          isValid = true;
-        }
-
-        element.style.border = isValid ? "none" : "1px solid red";
-        element.style.padding = isValid ? "1px" : "0px";
-      }
-
-      function closeVoiceKickMenu(element) {
-        if (isBackButton) {
-          // Animate back
-
-          const userSelectorContainer = document.getElementsByClassName(
-            "user-selector-container"
-          )[0];
-          const inputContainer = document.getElementsByClassName(
-            "input-container"
-          )[0];
-          const voicekickMenuContainer = document.getElementsByClassName(
-            "voicekick-menu-container"
-          )[0];
-
-          const inputRect = inputContainer.getBoundingClientRect();
-          userSelectorContainer.style.display = "flex";
-
-          const uscRect = userSelectorContainer.getBoundingClientRect();
-
-          isBackButton = false;
-          document.getElementsByClassName("cancel")[0].innerHTML = "Cancel";
-
-          voicekickMenuContainer.animate(
-            [
-              {
-                height: voicekickMenuContainer.offsetHeight + "px",
-              },
-              {
-                height: `${
-                  voicekickMenuContainer.offsetHeight -
-                  inputContainer.offsetHeight +
-                  userSelectorContainer.offsetHeight -
-                  20
-                }px`,
-              },
-            ],
-            {
-              duration: 400,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-          inputContainer.animate(
-            {
-              left: `${inputRect.x + inputRect.width + 20}px`,
-            },
-            {
-              duration: 400,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-          userSelectorContainer.animate(
-            [
-              {
-                transform: `translateX(-${uscRect.width}px)`,
-              },
-              {
-                transform: `translateX(0px)`,
-              },
-            ],
-            {
-              duration: 400,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-          setTimeout(() => {
-            inputContainer.style.display = "none";
-          }, 400);
-        } else {
-          voicekickIsOpen = false;
-
-          const content = document.getElementsByClassName("content")[0];
-          content.animate(
-            [
-              {
-                filter: "blur(10px)",
-              },
-              { filter: "blur(0px)" },
-            ],
-            {
-              duration: 100,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-
-          element.parentElement.parentElement.parentElement.animate(
-            {
-              opacity: "0",
-            },
-            {
-              duration: 100,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-          setTimeout(() => {
-            element.parentElement.parentElement.parentElement.style.display =
-              "none";
-          }, 100);
-        }
-      }
-
-      let isBackButton = false;
-      function handleVoiceKickUserSelecterClick(element) {
-        CurrentVoiceKickSelectedUser = element.getElementsByClassName(
-          "user-id"
-        )[0].innerHTML;
-        const userSelectorContainer = document.getElementsByClassName(
-          "user-selector-container"
-        )[0];
-        const inputContainer = document.getElementsByClassName(
-          "input-container"
-        )[0];
-        const voicekickMenuContainer = document.getElementsByClassName(
-          "voicekick-menu-container"
-        )[0];
-
-        const rect = userSelectorContainer.getBoundingClientRect();
         inputContainer.animate(
           {
-            position: "absolute",
-            left: `${rect.x + rect.width + 20}px`,
+            left: "0px",
+            position: "relative",
           },
           {
             duration: 0,
@@ -1237,20 +1072,109 @@
             fill: "forwards",
           }
         );
-        inputContainer.style.position = "absolute";
-        inputContainer.style.left = `${rect.x + rect.width + 20}px`;
-        const inputRect = inputContainer.getBoundingClientRect();
-        userSelectorContainer.style.width = rect.width + "px";
-        userSelectorContainer.style.height = rect.height + "px";
-        // userSelectorContainer.style.top = rect.top;
-        // userSelectorContainer.style.left = rect.left;
-        // userSelectorContainer.style.position = "absolute";
-        inputContainer.style.display = "flex";
-        const desiredWidth =
-          voicekickMenuContainer.offsetWidth - inputContainer.offsetWidth;
+      } else {
+        userSelectContainer.style.display = "flex";
+        inputContainer.style.display = "none";
 
-        isBackButton = true;
-        document.getElementsByClassName("cancel")[0].innerHTML = "Back";
+        // Populate the user list
+        const req = await fetch(`/apprentice/v1/events/users`);
+
+        if (req.status === 401 || req.status === 403) {
+          // Reload
+          location.reload();
+          return;
+        } else if (req.status !== 200) {
+          createAlert(
+            "Uh oh",
+            "Looks like we failed to get the current event users, let quin know the error code was " +
+            req.status
+          );
+          return;
+        }
+
+        userSelectContainer.getElementsByClassName(
+          "user-selector"
+        )[0].innerHTML = await req.text();
+      }
+
+      voicekickIsOpen = true;
+      document.getElementById("vc-popup").style.display = "none";
+      element.style.display = "flex";
+
+      const content = document.getElementsByClassName("content")[0];
+      content.animate(
+        [
+          {
+            filter: "blur(0px)",
+          },
+          { filter: "blur(10px)" },
+        ],
+        {
+          duration: 100,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+      element.animate(
+        [
+          {
+            opacity: 0,
+          },
+          {
+            opacity: 1,
+          },
+        ],
+        {
+          duration: 100,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+    }
+
+    let isValid = false;
+    let voicekickValue = "";
+    function handleVoicekickInput(element) {
+      voicekickValue = element.value;
+      if (voicekickValue.length === 0) {
+        isValid = false;
+      } else if (isNaN(voicekickValue)) {
+        isValid = false;
+      } else {
+        isValid = true;
+      }
+
+      element.style.border = isValid ? "none" : "1px solid red";
+      element.style.padding = isValid ? "1px" : "0px";
+    }
+
+    function closeVoiceKickMenu(element) {
+      if (isBackButton) {
+        // Animate back
+
+        const userSelectorContainer = document.getElementsByClassName(
+          "user-selector-container"
+        )[0];
+        const inputContainer = document.getElementsByClassName(
+          "input-container"
+        )[0];
+        const voicekickMenuContainer = document.getElementsByClassName(
+          "voicekick-menu-container"
+        )[0];
+
+        const inputRect = inputContainer.getBoundingClientRect();
+        userSelectorContainer.style.display = "flex";
+
+        const uscRect = userSelectorContainer.getBoundingClientRect();
+
+        isBackButton = false;
+        document.getElementsByClassName("cancel")[0].innerHTML = "Cancel";
 
         voicekickMenuContainer.animate(
           [
@@ -1258,12 +1182,11 @@
               height: voicekickMenuContainer.offsetHeight + "px",
             },
             {
-              height: `${
-                voicekickMenuContainer.offsetHeight -
-                userSelectorContainer.offsetHeight +
+              height: `${voicekickMenuContainer.offsetHeight -
                 inputContainer.offsetHeight +
+                userSelectorContainer.offsetHeight -
                 20
-              }px`,
+                }px`,
             },
           ],
           {
@@ -1277,7 +1200,7 @@
         );
         inputContainer.animate(
           {
-            left: `${desiredWidth / 4}px`,
+            left: `${inputRect.x + inputRect.width + 20}px`,
           },
           {
             duration: 400,
@@ -1289,142 +1212,12 @@
           }
         );
         userSelectorContainer.animate(
-          {
-            transform: `translateX(-${rect.width}px)`,
-          },
-          {
-            duration: 400,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-        setTimeout(() => {
-          userSelectorContainer.style.display = "none";
-        }, 400);
-      }
-
-      let CurrentVoiceKickSelectedUser = "";
-      function confirmVcKick(element) {
-        const menu = document.getElementsByClassName(
-          "voicekick-menu-container"
-        )[0];
-        if (!isValid) {
-          menu.animate(
-            [
-              {
-                marginLeft: "15px",
-              },
-              {
-                marginLeft: "-12px",
-              },
-              {
-                marginLeft: "9px",
-              },
-              {
-                marginLeft: "-4px",
-              },
-              {
-                marginLeft: "0px",
-              },
-            ],
-            {
-              duration: 150,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-        } else {
-          // Get the time
-          const date = Date.now() + parseInt(voicekickValue) * 60000;
-
-          socket.send(
-            JSON.stringify({
-              type: "events.voicekick.add",
-              session: document.cookie,
-              target: CurrentVoiceKickSelectedUser,
-              expires: date,
-            })
-          );
-          isBackButton = false;
-          closeVoiceKickMenu(element);
-        }
-      }
-      let currentSelectedVcKickedUserId = "";
-      let currentSelectedVcKickedUser = undefined;
-      let previousSelectedVcKickedUser = undefined;
-
-      function handleVcKickListHighlight(element) {
-        const id = element.getElementsByClassName("user-id")[0].innerHTML;
-
-        currentSelectedVcKickedUserId = id;
-
-        currentSelectedVcKickedUser = element;
-
-        element.style.backgroundColor = "#7289da";
-
-        if (previousSelectedVcKickedUser) {
-          if (previousSelectedVcKickedUser !== element) {
-            previousSelectedVcKickedUser.style.backgroundColor = "#36393f";
-            if (previousSelectedVcKickedUser.offsetHeight === 60) {
-              previousSelectedVcKickedUser.animate(
-                {
-                  height: "30px",
-                },
-                {
-                  duration: 150,
-                  easing: "ease-in-out",
-                  direction: "alternate",
-                  delay: 0,
-                  iterations: 1,
-                  fill: "forwards",
-                }
-              );
-            }
-          }
-        }
-
-        if (currentSelectedVcKickedUser.offsetHeight === 30) {
-          element.animate(
-            {
-              height: "60px",
-            },
-            {
-              duration: 150,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-        }
-
-        previousSelectedVcKickedUser = element;
-      }
-
-      function removevcKickedItem(element) {
-        element.animate(
           [
             {
+              transform: `translateX(-${uscRect.width}px)`,
+            },
+            {
               transform: `translateX(0px)`,
-              height: "60px",
-              marginTop: "0.5rem",
-            },
-            {
-              height: "60px",
-              transform: `translateX(${element.offsetWidth + 50}px)`,
-              marginTop: "0.5rem",
-            },
-            {
-              height: `0px`,
-              marginTop: "0rem",
-              transform: `translateX(${element.offsetWidth + 50}px)`,
             },
           ],
           {
@@ -1436,331 +1229,694 @@
             fill: "forwards",
           }
         );
-
         setTimeout(() => {
-          element.parentElement.removeChild(element);
+          inputContainer.style.display = "none";
         }, 400);
-      }
+      } else {
+        voicekickIsOpen = false;
 
-      async function revokeVoiceKick(element) {
-        const user = element.parentElement.parentElement;
-        const id = user.getElementsByClassName("user-id")[0].innerHTML;
+        const content = document.getElementsByClassName("content")[0];
+        content.animate(
+          [
+            {
+              filter: "blur(10px)",
+            },
+            { filter: "blur(0px)" },
+          ],
+          {
+            duration: 100,
+            easing: "ease-in-out",
+            direction: "alternate",
+            delay: 0,
+            iterations: 1,
+            fill: "forwards",
+          }
+        );
+
+        element.parentElement.parentElement.parentElement.animate(
+          {
+            opacity: "0",
+          },
+          {
+            duration: 100,
+            easing: "ease-in-out",
+            direction: "alternate",
+            delay: 0,
+            iterations: 1,
+            fill: "forwards",
+          }
+        );
+        setTimeout(() => {
+          element.parentElement.parentElement.parentElement.style.display =
+            "none";
+        }, 100);
+      }
+    }
+
+    let isBackButton = false;
+    function handleVoiceKickUserSelecterClick(element) {
+      CurrentVoiceKickSelectedUser = element.getElementsByClassName(
+        "user-id"
+      )[0].innerHTML;
+      const userSelectorContainer = document.getElementsByClassName(
+        "user-selector-container"
+      )[0];
+      const inputContainer = document.getElementsByClassName(
+        "input-container"
+      )[0];
+      const voicekickMenuContainer = document.getElementsByClassName(
+        "voicekick-menu-container"
+      )[0];
+
+      const rect = userSelectorContainer.getBoundingClientRect();
+      inputContainer.animate(
+        {
+          position: "absolute",
+          left: `${rect.x + rect.width + 20}px`,
+        },
+        {
+          duration: 0,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+      inputContainer.style.position = "absolute";
+      inputContainer.style.left = `${rect.x + rect.width + 20}px`;
+      const inputRect = inputContainer.getBoundingClientRect();
+      userSelectorContainer.style.width = rect.width + "px";
+      userSelectorContainer.style.height = rect.height + "px";
+      // userSelectorContainer.style.top = rect.top;
+      // userSelectorContainer.style.left = rect.left;
+      // userSelectorContainer.style.position = "absolute";
+      inputContainer.style.display = "flex";
+      const desiredWidth =
+        voicekickMenuContainer.offsetWidth - inputContainer.offsetWidth;
+
+      isBackButton = true;
+      document.getElementsByClassName("cancel")[0].innerHTML = "Back";
+
+      voicekickMenuContainer.animate(
+        [
+          {
+            height: voicekickMenuContainer.offsetHeight + "px",
+          },
+          {
+            height: `${voicekickMenuContainer.offsetHeight -
+              userSelectorContainer.offsetHeight +
+              inputContainer.offsetHeight +
+              20
+              }px`,
+          },
+        ],
+        {
+          duration: 400,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+      inputContainer.animate(
+        {
+          left: `${desiredWidth / 4}px`,
+        },
+        {
+          duration: 400,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+      userSelectorContainer.animate(
+        {
+          transform: `translateX(-${rect.width}px)`,
+        },
+        {
+          duration: 400,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+      setTimeout(() => {
+        userSelectorContainer.style.display = "none";
+      }, 400);
+    }
+
+    let CurrentVoiceKickSelectedUser = "";
+    function confirmVcKick(element) {
+      const menu = document.getElementsByClassName(
+        "voicekick-menu-container"
+      )[0];
+      if (!isValid) {
+        menu.animate(
+          [
+            {
+              marginLeft: "15px",
+            },
+            {
+              marginLeft: "-12px",
+            },
+            {
+              marginLeft: "9px",
+            },
+            {
+              marginLeft: "-4px",
+            },
+            {
+              marginLeft: "0px",
+            },
+          ],
+          {
+            duration: 150,
+            easing: "ease-in-out",
+            direction: "alternate",
+            delay: 0,
+            iterations: 1,
+            fill: "forwards",
+          }
+        );
+      } else {
+        // Get the time
+        const date = Date.now() + parseInt(voicekickValue) * 60000;
 
         socket.send(
           JSON.stringify({
-            session: document.cookie,
-            type: "events.voicekick.revoke",
-            target: id,
-            expires: "0",
+            type: "events.voicekick.add",
+            session: getCookie("csSessionID"),
+            target: CurrentVoiceKickSelectedUser,
+            expires: date,
           })
         );
-
-        var usr = VcKickedUsers.find((x) => x.id === id);
-        VcKickedUsers.slice(VcKickedUsers.indexOf(usr), 1);
-        usr.kill();
+        isBackButton = false;
+        closeVoiceKickMenu(element);
       }
+    }
+    let currentSelectedVcKickedUserId = "";
+    let currentSelectedVcKickedUser = undefined;
+    let previousSelectedVcKickedUser = undefined;
 
-      async function fetchVoiceKickUser(id) {
-        const req = await fetch(
-          `/apprentice/v1/events/voicekick/users?id=${encodeURIComponent(id)}`
-        );
+    function handleVcKickListHighlight(element) {
+      const id = element.getElementsByClassName("user-id")[0].innerHTML;
 
-        if (req.status === 404) {
-          // Couldnt find it, just going to return and cry
-          return undefined;
-        } else if (req.status === 401 || req.status === 403) {
-          // Refresh
-          location.reload();
-          return undefined;
-        } else if (req.status !== 200) {
-          createAlert(
-            "Uh oh",
-            "Looks like we got an error for fething a voicekicked user, let quin know the error code was " +
-              req.status
-          );
-          return undefined;
-        }
+      currentSelectedVcKickedUserId = id;
 
-        // Create the element and return it
-        const content = await req.text();
-        const tempdiv = document.createElement("div");
-        tempdiv.innerHTML = content;
+      currentSelectedVcKickedUser = element;
 
-        return tempdiv.firstChild;
-      }
+      element.style.backgroundColor = "#7289da";
 
-      let VcKickedUsers = [];
-
-      class VcKickedUser {
-        expires = undefined;
-        id = 0;
-        constructor(data) {
-          this.expires = new Date(data.expires);
-          this.id = data.id;
-          fetchVoiceKickUser(this.id).then((data) => {
-            if (data) {
-              // Insert into our list
-              const list = document.getElementsByClassName("vc-kicked-list")[0];
-              data.style.height = "0px";
-              data.style.marginTop = "0rem";
-              data.style.transform = `translateX(-${data.offsetWidth + 50}px)`;
-              if (list.hasChildNodes()) {
-                list.insertBefore(data, list.childNodes[0]);
-              } else {
-                list.appendChild(data);
+      if (previousSelectedVcKickedUser) {
+        if (previousSelectedVcKickedUser !== element) {
+          previousSelectedVcKickedUser.style.backgroundColor = "#36393f";
+          if (previousSelectedVcKickedUser.offsetHeight === 60) {
+            previousSelectedVcKickedUser.animate(
+              {
+                height: "30px",
+              },
+              {
+                duration: 150,
+                easing: "ease-in-out",
+                direction: "alternate",
+                delay: 0,
+                iterations: 1,
+                fill: "forwards",
               }
-              this.element = list.getElementsByClassName(this.id)[0];
+            );
+          }
+        }
+      }
 
-              // Animate the enterance
-              this.element.animate(
-                [
-                  {
-                    height: "0px",
-                    transform: `translateX(-${data.offsetWidth + 50}px)`,
-                    marginTop: "0rem",
-                  },
-                  {
-                    height: "30px",
-                    transform: `translateX(-${data.offsetWidth + 50}px)`,
-                    marginTop: "0.5rem",
-                  },
-                  {
-                    height: "30px",
-                    transform: `translateX(0px)`,
-                    marginTop: "0.5rem",
-                  },
-                ],
-                {
-                  duration: 400,
-                  easing: "ease-in-out",
-                  direction: "alternate",
-                  delay: 0,
-                  iterations: 1,
-                  fill: "forwards",
-                }
-              );
+      if (currentSelectedVcKickedUser.offsetHeight === 30) {
+        element.animate(
+          {
+            height: "60px",
+          },
+          {
+            duration: 150,
+            easing: "ease-in-out",
+            direction: "alternate",
+            delay: 0,
+            iterations: 1,
+            fill: "forwards",
+          }
+        );
+      }
 
-              this.interval = setInterval(this.handleUpdateTime, 1000, this);
+      previousSelectedVcKickedUser = element;
+    }
+
+    function removevcKickedItem(element) {
+      element.animate(
+        [
+          {
+            transform: `translateX(0px)`,
+            height: "60px",
+            marginTop: "0.5rem",
+          },
+          {
+            height: "60px",
+            transform: `translateX(${element.offsetWidth + 50}px)`,
+            marginTop: "0.5rem",
+          },
+          {
+            height: `0px`,
+            marginTop: "0rem",
+            transform: `translateX(${element.offsetWidth + 50}px)`,
+          },
+        ],
+        {
+          duration: 400,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+
+      setTimeout(() => {
+        element.parentElement.removeChild(element);
+      }, 400);
+    }
+
+    async function revokeVoiceKick(element) {
+      const user = element.parentElement.parentElement;
+      const id = user.getElementsByClassName("user-id")[0].innerHTML;
+
+      socket.send(
+        JSON.stringify({
+          session: getCookie("csSessionID"),
+          type: "events.voicekick.revoke",
+          target: id,
+          expires: "0",
+        })
+      );
+
+      var usr = VcKickedUsers.find((x) => x.id === id);
+      VcKickedUsers.slice(VcKickedUsers.indexOf(usr), 1);
+      usr.kill();
+    }
+
+    async function fetchVoiceKickUser(id) {
+      const req = await fetch(
+        `/apprentice/v1/events/voicekick/users?id=${encodeURIComponent(id)}`
+      );
+
+      if (req.status === 404) {
+        // Couldnt find it, just going to return and cry
+        return undefined;
+      } else if (req.status === 401 || req.status === 403) {
+        // Refresh
+        location.reload();
+        return undefined;
+      } else if (req.status !== 200) {
+        createAlert(
+          "Uh oh",
+          "Looks like we got an error for fething a voicekicked user, let quin know the error code was " +
+          req.status
+        );
+        return undefined;
+      }
+
+      // Create the element and return it
+      const content = await req.text();
+      const tempdiv = document.createElement("div");
+      tempdiv.innerHTML = content;
+
+      return tempdiv.firstChild;
+    }
+
+    let VcKickedUsers = [];
+
+    class VcKickedUser {
+      expires = undefined;
+      id = 0;
+      constructor(data) {
+        this.expires = new Date(data.expires);
+        this.id = data.id;
+        fetchVoiceKickUser(this.id).then((data) => {
+          if (data) {
+            // Insert into our list
+            const list = document.getElementsByClassName("vc-kicked-list")[0];
+            data.style.height = "0px";
+            data.style.marginTop = "0rem";
+            data.style.transform = `translateX(-${data.offsetWidth + 50}px)`;
+            if (list.hasChildNodes()) {
+              list.insertBefore(data, list.childNodes[0]);
+            } else {
+              list.appendChild(data);
             }
-          });
-        }
+            this.element = list.getElementsByClassName(this.id)[0];
 
-        kill() {
-          clearInterval(this.interval);
-          removevcKickedItem(this.element);
+            // Animate the enterance
+            this.element.animate(
+              [
+                {
+                  height: "0px",
+                  transform: `translateX(-${data.offsetWidth + 50}px)`,
+                  marginTop: "0rem",
+                },
+                {
+                  height: "30px",
+                  transform: `translateX(-${data.offsetWidth + 50}px)`,
+                  marginTop: "0.5rem",
+                },
+                {
+                  height: "30px",
+                  transform: `translateX(0px)`,
+                  marginTop: "0.5rem",
+                },
+              ],
+              {
+                duration: 400,
+                easing: "ease-in-out",
+                direction: "alternate",
+                delay: 0,
+                iterations: 1,
+                fill: "forwards",
+              }
+            );
 
-          const indx = VcKickedUsers.indexOf(this);
-          if (indx !== -1) {
-            VcKickedUsers.splice(indx, 1);
+            this.interval = setInterval(this.handleUpdateTime, 1000, this);
           }
-        }
+        });
+      }
 
-        handleUpdateTime(me) {
-          // get the minutes and seconds
-          const timeLeft = me.expires - new Date().getTime();
-          const minutes = Math.floor(
-            (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
-          );
-          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-          if (timeLeft < 0) {
-            me.kill();
-          }
-          me.element.getElementsByClassName(
-            "time-left"
-          )[0].innerHTML = `Kicked for ${minutes}:${seconds}.`;
+      kill() {
+        clearInterval(this.interval);
+        removevcKickedItem(this.element);
+
+        const indx = VcKickedUsers.indexOf(this);
+        if (indx !== -1) {
+          VcKickedUsers.splice(indx, 1);
         }
       }
-      function muteEveryone() {
-        socket.send(
-          JSON.stringify({
-            type: "event.channel.mute",
-            session: document.cookie,
-          })
+
+      handleUpdateTime(me) {
+        // get the minutes and seconds
+        const timeLeft = me.expires - new Date().getTime();
+        const minutes = Math.floor(
+          (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
         );
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+        if (timeLeft < 0) {
+          me.kill();
+        }
+        me.element.getElementsByClassName(
+          "time-left"
+        )[0].innerHTML = `Kicked for ${minutes}:${seconds}.`;
       }
-      function unmuteEveryone() {
-        socket.send(
-          JSON.stringify({
-            type: "event.channel.unmute",
-            session: document.cookie,
-          })
-        );
+    }
+
+    class EventSettings {
+      autoMuteNewUsers = false;
+
+      constructor(data) {
+        this.autoMuteNewUsers = data.AutoMuteNewUsers;
+
+        this.updateGui();
       }
-    </script>
-  </head>
-  <body onload="loadData()">
-    <div id="alert" class="alert" style="position: fixed; z-index: 30">
-      <span class="closebtn" onclick="closeAlert(this)">&times;</span>
+
+      updateGui() {
+
+      }
+
+    }
+
+
+    function muteEveryone() {
+      socket.send(
+        JSON.stringify({
+          type: "event.channel.mute",
+          session: getCookie("csSessionID"),
+        })
+      );
+    }
+    function unmuteEveryone() {
+      socket.send(
+        JSON.stringify({
+          type: "event.channel.unmute",
+          session: getCookie("csSessionID"),
+        })
+      );
+    }
+  </script>
+</head>
+
+<body onload="loadData()">
+  <div id="alert" class="alert" style="position: fixed; z-index: 30">
+    <span class="closebtn" onclick="closeAlert(this)">&times;</span>
+  </div>
+  <div class="voicekick-contianer" style="display: none">
+    <div class="voicekick-menu">
+      <h3>Voice kick</h3>
+      <p style="padding: 0 1rem">
+        Blocks a user from joining the voice channel for x amount of minutes
+      </p>
+      <div class="voicekick-menu-container">
+        <div class="user-selector-container">
+          <p style="margin-top: 0.2rem">Select a user</p>
+          <div class="user-selector"></div>
+        </div>
+        <div class="input-container" style="display: none">
+          <p>Voice kick for&nbsp;</p>
+          <input id="voicekick-time" type="text" oninput="handleVoicekickInput(this)" />
+          <p>Minutes</p>
+        </div>
+      </div>
+      <div class="button-container">
+        <div class="cancel" onclick="closeVoiceKickMenu(this)">Cancel</div>
+        <div class="confirm" onclick="confirmVcKick(this)">Confirm</div>
+      </div>
     </div>
-    <div class="voicekick-contianer" style="display: none">
-      <div class="voicekick-menu">
-        <h3>Voice kick</h3>
-        <p style="padding: 0 1rem">
-          Blocks a user from joining the voice channel for x amount of minutes
-        </p>
-        <div class="voicekick-menu-container">
-          <div class="user-selector-container">
-            <p style="margin-top: 0.2rem">Select a user</p>
-            <div class="user-selector"></div>
+  </div>
+  <div id="vc-popup" onmouseover="isOverPopup=true" onmouseout="isOverPopup=false" class="vc-options-popup"
+    style="position: absolute; display: none">
+    <div class="mute" onmouseover="this.getElementsByClassName('mute-check')[0].style.fill='#f04747'"
+      onmouseout="this.getElementsByClassName('mute-check')[0].style.fill='white'" onclick="toggleMute(undefined)">
+      <p>Server Mute</p>
+      <svg aria-hidden="false" class="mute-icon" width="24" height="24" viewBox="0 0 24 24" style="margin-left: auto">
+        <path fill-rule="evenodd" clip-rule="evenodd" class="mute-unchecked"
+          d="M18.625 3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V5.375C21.0057 4.08803 19.9197 3 18.625 3ZM19 19V5H4.99999V19H19Z"
+          fill="currentColor"></path>
+        <path fill-rule="evenodd" clip-rule="evenodd" class="mute-check-outer" style="display: none"
+          d="M5.37499 3H18.625C19.9197 3 21.0056 4.08803 21 5.375V18.625C21 19.936 19.9359 21 18.625 21H5.37499C4.06518 21 3 19.936 3 18.625V5.375C3 4.06519 4.06518 3 5.37499 3Z"
+          class="checkbox-3s5GYZ" fill="currentColor"></path>
+        <path
+          d="M9.58473 14.8636L6.04944 11.4051L4.50003 12.9978L9.58473 18L19.5 8.26174L17.9656 6.64795L9.58473 14.8636Z"
+          class="mute-check" fill="white" style="display: none"></path>
+      </svg>
+    </div>
+    <div class="deafen" onmouseover="this.getElementsByClassName('deafen-check')[0].style.fill='#f04747'"
+      onmouseout="this.getElementsByClassName('deafen-check')[0].style.fill='white'" onclick="toggleDeafen(undefined)">
+      <p>Server Deafen</p>
+      <svg aria-hidden="false" class="deafen-icon" width="24" height="24" viewBox="0 0 24 24" style="margin-left: auto">
+        <path fill-rule="evenodd" clip-rule="evenodd" class="deafen-unchecked"
+          d="M18.625 3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V5.375C21.0057 4.08803 19.9197 3 18.625 3ZM19 19V5H4.99999V19H19Z"
+          fill="currentColor"></path>
+        <path fill-rule="evenodd" clip-rule="evenodd" class="deafen-check-outer" style="display: none"
+          d="M5.37499 3H18.625C19.9197 3 21.0056 4.08803 21 5.375V18.625C21 19.936 19.9359 21 18.625 21H5.37499C4.06518 21 3 19.936 3 18.625V5.375C3 4.06519 4.06518 3 5.37499 3Z"
+          class="checkbox-3s5GYZ" fill="currentColor"></path>
+        <path
+          d="M9.58473 14.8636L6.04944 11.4051L4.50003 12.9978L9.58473 18L19.5 8.26174L17.9656 6.64795L9.58473 14.8636Z"
+          class="deafen-check" fill="white" style="display: none"></path>
+      </svg>
+    </div>
+    <div class="disconnect" onclick="disconnect()">
+      <p>Disconnect</p>
+    </div>
+    <div class="voicekick" onclick="voiceKickMenuToggle(true)">
+      <p>Voice kick</p>
+    </div>
+    <!-- <div class="perma-mute">
+      <p>Perma Mute</p>
+      <div class="switch-container" tabindex=" -1" style="opacity: 1; background-color:rgb(114, 118, 125);">
+        <svg class="slider" viewBox="0 0 28 20" preserveAspectRatio="xMinYMid meet" style="left: -3px;">
+          <rect fill="white" x="4" y="0" height="20" width="20" rx="10"></rect>
+          <svg class="slider-inner-svg" viewBox="0 0 20 20" fill="none">
+            <path class="line-one" fill="rgb(114, 118, 125)"
+              d="M5.13231 6.72963L6.7233 5.13864L14.855 13.2704L13.264 14.8614L5.13231 6.72963Z"></path>
+            <path class="line-two" fill="rgb(114, 118, 125)"
+              d="M13.2704 5.13864L14.8614 6.72963L6.72963 14.8614L5.13864 13.2704L13.2704 5.13864Z"></path>
+          </svg>
+        </svg>
+        <input type="checkbox" class="checkbox" tabindex="0" onclick="handleCheck(this)">
+      </div>
+    </div> -->
+  </div>
+  <div class="content">
+    <div class="head">
+      <h1>Event VC Manager</h1>
+    </div>
+    <div class="panel-container">
+      <div class="left-content">
+        <div class="voice-channel">
+          <div class="voice-channel-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" class="icon-1DeIlz">
+              <path fill="white" fill-rule="evenodd" clip-rule="evenodd"
+                d="M15 12C15 12.0007 15 12.0013 15 12.002C15 12.553 14.551 13.002 14 13.002V15.002C15.654 15.002 17 13.657 17 12.002C17 12.0013 17 12.0007 17 12H15ZM19 12C19 12.0007 19 12.0013 19 12.002C19 14.759 16.757 17.002 14 17.002V19.002C17.86 19.002 21 15.863 21 12.002C21 12.0013 21 12.0007 21 12H19ZM10.293 3.29604C10.579 3.01004 11.009 2.92504 11.383 3.07904C11.757 3.23204 12 3.59904 12 4.00204V20.002C12 20.407 11.757 20.772 11.383 20.927C11.009 21.082 10.579 20.996 10.293 20.71L6 16.002H3C2.45 16.002 2 15.552 2 15.002V9.00204C2 8.45304 2.45 8.00204 3 8.00204H6L10.293 3.29604Z">
+              </path>
+              <path fill="white"
+                d="M21.025 5V4C21.025 2.88 20.05 2 19 2C17.95 2 17 2.88 17 4V5C16.4477 5 16 5.44772 16 6V9C16 9.55228 16.4477 10 17 10H19H21C21.5523 10 22 9.55228 22 9V5.975C22 5.43652 21.5635 5 21.025 5ZM20 5H18V4C18 3.42857 18.4667 3 19 3C19.5333 3 20 3.42857 20 4V5Z">
+              </path>
+            </svg>
+            <h1>Event VC</h1>
           </div>
-          <div class="input-container" style="display: none">
-            <p>Voice kick for&nbsp;</p>
-            <input
-              id="voicekick-time"
-              type="text"
-              oninput="handleVoicekickInput(this)"
-            />
-            <p>Minutes</p>
+          <div id="user-container" class="user-container"></div>
+        </div>
+      </div>
+      <div class="right-content">
+        <div class="mute-controlls">
+          <div class="mute-channel" onclick="muteEveryone()">
+            <p>Mute channel</p>
+          </div>
+          <div class="unmute-channel" onclick="unmuteEveryone()">
+            <p>Unmute channel</p>
           </div>
         </div>
-        <div class="button-container">
-          <div class="cancel" onclick="closeVoiceKickMenu(this)">Cancel</div>
-          <div class="confirm" onclick="confirmVcKick(this)">Confirm</div>
+        <p class="voice-kick-title">Voice kicks</p>
+        <div class="vc-kicked-container">
+          <div class="vc-kicked-list"></div>
+          <div class="vc-kick-controlls">
+            <div onclick="voiceKickMenuToggle(false)" class="add-vc-kick">
+              Add
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div
-      id="vc-popup"
-      onmouseover="isOverPopup=true"
-      onmouseout="isOverPopup=false"
-      class="vc-options-popup"
-      style="position: absolute; display: none"
-    >
-      <div
-        class="mute"
-        onmouseover="this.getElementsByClassName('mute-check')[0].style.fill='#f04747'"
-        onmouseout="this.getElementsByClassName('mute-check')[0].style.fill='white'"
-        onclick="toggleMute(undefined)"
-      >
-        <p>Server Mute</p>
-        <svg
-          aria-hidden="false"
-          class="mute-icon"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          style="margin-left: auto"
-        >
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            class="mute-unchecked"
-            d="M18.625 3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V5.375C21.0057 4.08803 19.9197 3 18.625 3ZM19 19V5H4.99999V19H19Z"
-            fill="currentColor"
-          ></path>
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            class="mute-check-outer"
-            style="display: none"
-            d="M5.37499 3H18.625C19.9197 3 21.0056 4.08803 21 5.375V18.625C21 19.936 19.9359 21 18.625 21H5.37499C4.06518 21 3 19.936 3 18.625V5.375C3 4.06519 4.06518 3 5.37499 3Z"
-            class="checkbox-3s5GYZ"
-            fill="currentColor"
-          ></path>
-          <path
-            d="M9.58473 14.8636L6.04944 11.4051L4.50003 12.9978L9.58473 18L19.5 8.26174L17.9656 6.64795L9.58473 14.8636Z"
-            class="mute-check"
-            fill="white"
-            style="display: none"
-          ></path>
-        </svg>
-      </div>
-      <div
-        class="deafen"
-        onmouseover="this.getElementsByClassName('deafen-check')[0].style.fill='#f04747'"
-        onmouseout="this.getElementsByClassName('deafen-check')[0].style.fill='white'"
-        onclick="toggleDeafen(undefined)"
-      >
-        <p>Server Deafen</p>
-        <svg
-          aria-hidden="false"
-          class="deafen-icon"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          style="margin-left: auto"
-        >
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            class="deafen-unchecked"
-            d="M18.625 3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V5.375C21.0057 4.08803 19.9197 3 18.625 3ZM19 19V5H4.99999V19H19Z"
-            fill="currentColor"
-          ></path>
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            class="deafen-check-outer"
-            style="display: none"
-            d="M5.37499 3H18.625C19.9197 3 21.0056 4.08803 21 5.375V18.625C21 19.936 19.9359 21 18.625 21H5.37499C4.06518 21 3 19.936 3 18.625V5.375C3 4.06519 4.06518 3 5.37499 3Z"
-            class="checkbox-3s5GYZ"
-            fill="currentColor"
-          ></path>
-          <path
-            d="M9.58473 14.8636L6.04944 11.4051L4.50003 12.9978L9.58473 18L19.5 8.26174L17.9656 6.64795L9.58473 14.8636Z"
-            class="deafen-check"
-            fill="white"
-            style="display: none"
-          ></path>
-        </svg>
-      </div>
-      <div class="disconnect" onclick="disconnect()">
-        <p>Disconnect</p>
-      </div>
-      <div class="voicekick" onclick="voiceKickMenuToggle(true)">
-        <p>Voice kick</p>
-      </div>
-    </div>
-    <div class="content">
-      <div class="head">
-        <h1>Event VC Manager</h1>
-      </div>
-      <div class="panel-container">
-        <div class="left-content">
-          <div class="voice-channel">
-            <div class="voice-channel-header">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                class="icon-1DeIlz"
-              >
-                <path
-                  fill="white"
-                  fill-rule="evenodd"
-                  clip-rule="evenodd"
-                  d="M15 12C15 12.0007 15 12.0013 15 12.002C15 12.553 14.551 13.002 14 13.002V15.002C15.654 15.002 17 13.657 17 12.002C17 12.0013 17 12.0007 17 12H15ZM19 12C19 12.0007 19 12.0013 19 12.002C19 14.759 16.757 17.002 14 17.002V19.002C17.86 19.002 21 15.863 21 12.002C21 12.0013 21 12.0007 21 12H19ZM10.293 3.29604C10.579 3.01004 11.009 2.92504 11.383 3.07904C11.757 3.23204 12 3.59904 12 4.00204V20.002C12 20.407 11.757 20.772 11.383 20.927C11.009 21.082 10.579 20.996 10.293 20.71L6 16.002H3C2.45 16.002 2 15.552 2 15.002V9.00204C2 8.45304 2.45 8.00204 3 8.00204H6L10.293 3.29604Z"
-                ></path>
-                <path
-                  fill="white"
-                  d="M21.025 5V4C21.025 2.88 20.05 2 19 2C17.95 2 17 2.88 17 4V5C16.4477 5 16 5.44772 16 6V9C16 9.55228 16.4477 10 17 10H19H21C21.5523 10 22 9.55228 22 9V5.975C22 5.43652 21.5635 5 21.025 5ZM20 5H18V4C18 3.42857 18.4667 3 19 3C19.5333 3 20 3.42857 20 4V5Z"
-                ></path>
+        <!-- <div class="auto-mute-container">
+          <p class="auto-mute-title">Auto mute new users</p>
+
+          <style>
+            .auto-mute-container {
+              display: flex;
+              flex-direction: row;
+              border-top: 1px solid white;
+              height: 24px;
+              align-items: center;
+              justify-content: space-between;
+              padding: 0.5rem 1rem;
+            }
+
+            .auto-mute-title {
+              color: white;
+              align-self: center;
+              font-size: 1.3rem;
+              user-select: none;
+              text-align: center
+            }
+
+            .switch-container {
+              position: relative;
+              width: 40px;
+              height: 24px;
+              border-radius: 14px;
+              cursor: pointer;
+            }
+
+            .slider {
+              display: block;
+              position: absolute;
+              left: 0;
+              width: 28px;
+              height: 18px;
+              margin: 3px;
+            }
+
+            .checkbox {
+              position: absolute;
+              opacity: 0;
+              width: 100%;
+              height: 100%;
+              border-radius: 14px;
+              cursor: pointer;
+            }
+          </style>
+
+          <script>
+            let isChecked = false
+            function handleCheck(element) {
+              isChecked = element.checked;
+              console.log(isChecked);
+              const slider = element.parentElement.getElementsByClassName("slider")[0];
+
+              element.parentElement.animate({
+                backgroundColor: isChecked ? "rgb(67, 181, 129)" : "rgb(114, 118, 125)"
+              }, {
+                duration: 150,
+                easing: "ease-in-out",
+                direction: "alternate",
+                delay: 0,
+                iterations: 1,
+                fill: "forwards",
+              });
+
+              slider.animate({
+                left: isChecked ? "12px" : "-3px",
+              }, {
+                duration: 150,
+                easing: "ease-in-out",
+                direction: "alternate",
+                delay: 0,
+                iterations: 1,
+                fill: "forwards",
+              });
+
+              const inner = element.parentElement.getElementsByClassName("slider-inner-svg")[0];
+
+              const line1 = inner.getElementsByClassName("line-one")[0];
+              const line2 = inner.getElementsByClassName("line-two")[0];
+
+              line1.animate({
+                d: isChecked ? "path('M7.89561 14.8538L6.30462 13.2629L14.3099 5.25755L15.9009 6.84854L7.89561 14.8538Z')" : "path('M5.13231 6.72963L6.7233 5.13864L14.855 13.2704L13.264 14.8614L5.13231 6.72963Z')",
+                fill: isChecked ? "rgb(67, 181, 129)" : "rgb(114, 118, 125)"
+              }, {
+                duration: 150,
+                easing: "ease-in-out",
+                direction: "alternate",
+                delay: 0,
+                iterations: 1,
+                fill: "forwards",
+              })
+
+              line2.animate({
+                d: isChecked ? "path('M4.08643 11.0903L5.67742 9.49929L9.4485 13.2704L7.85751 14.8614L4.08643 11.0903Z')" : "path('M13.2704 5.13864L14.8614 6.72963L6.72963 14.8614L5.13864 13.2704L13.2704 5.13864Z')",
+                fill: isChecked ? "rgb(67, 181, 129)" : "rgb(114, 118, 125)"
+              }, {
+                duration: 150,
+                easing: "ease-in-out",
+                direction: "alternate",
+                delay: 0,
+                iterations: 1,
+                fill: "forwards",
+              })
+
+            }
+          </script>
+
+          <div class="switch-container" tabindex=" -1" style="opacity: 1; background-color:rgb(114, 118, 125);">
+            <svg class="slider" viewBox="0 0 28 20" preserveAspectRatio="xMinYMid meet" style="left: -3px;">
+              <rect fill="white" x="4" y="0" height="20" width="20" rx="10"></rect>
+              <svg class="slider-inner-svg" viewBox="0 0 20 20" fill="none">
+                <path class="line-one" fill="rgb(114, 118, 125)"
+                  d="M5.13231 6.72963L6.7233 5.13864L14.855 13.2704L13.264 14.8614L5.13231 6.72963Z"></path>
+                <path class="line-two" fill="rgb(114, 118, 125)"
+                  d="M13.2704 5.13864L14.8614 6.72963L6.72963 14.8614L5.13864 13.2704L13.2704 5.13864Z"></path>
               </svg>
-              <h1>Event VC</h1>
-            </div>
-            <div id="user-container" class="user-container"></div>
-          </div>
-        </div>
-        <div class="right-content">
-          <div class="mute-controlls">
-            <div class="mute-channel" onclick="muteEveryone()">
-              <p>Mute channel</p>
-            </div>
-            <div class="unmute-channel" onclick="unmuteEveryone()">
-              <p>Unmute channel</p>
-            </div>
-          </div>
-          <p class="voice-kick-title">Voice kicks</p>
-          <div class="vc-kicked-container">
-            <div class="vc-kicked-list"></div>
-            <div class="vc-kick-controlls">
-              <div onclick="voiceKickMenuToggle(false)" class="add-vc-kick">
-                Add
-              </div>
-            </div>
-          </div>
-        </div>
+            </svg>
+            <input type="checkbox" class="checkbox" tabindex="0" onclick="handleCheck(this)">
+          </div> 
+        </div> -->
       </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

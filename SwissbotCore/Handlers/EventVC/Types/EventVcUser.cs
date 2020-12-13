@@ -19,6 +19,10 @@ namespace SwissbotCore.Handlers.EventVC
         public bool isConnected { get; set; }
         private SocketGuildUser _user { get;}
 
+        public SocketGuildUser GetUser()
+            => _user;
+
+
         public EventVcUser(SocketGuildUser user, SocketVoiceState state)
         {
             this._user = user;
