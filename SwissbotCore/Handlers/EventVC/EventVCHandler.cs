@@ -81,7 +81,7 @@ namespace SwissbotCore.Handlers
             {
                 // find all users who left
                 var leftUsers = users.Where(x => !CurrentVcUsers.Any(y => y.Id.ToString() == x.id));
-                foreach(var user in leftUsers)
+                foreach(var user in leftUsers.ToArray())
                 {
                     if (user == null)
                         return;
@@ -165,7 +165,7 @@ namespace SwissbotCore.Handlers
 
             if (data.action == EventVcUserAction.VcAction.Disconnect)
             {
-                var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(data.targetUser);
+                var user = await Global.GetSwissbotUser(data.targetUser);
                 if (user == null)
                     return;
                 await user.ModifyAsync(x => x.Channel = null);

@@ -89,6 +89,7 @@ namespace SwissbotCore.HTTP.Websocket
                 await e.socket.CloseAsync(WebSocketCloseStatus.InvalidMessageType, "Bad Handshake", CancellationToken.None);
                 return;
             }
+
             switch (message.type)
             {
                 case "handshake":

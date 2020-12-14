@@ -16,6 +16,8 @@ using System.Runtime.InteropServices.ComTypes;
 using RedditNet.Extensions;
 using SwissbotCore.Handlers;
 using SwissbotCore.HTTP.Websocket;
+using System.Globalization;
+using SwissbotCore.Handlers.AutoMod;
 
 namespace SwissbotCore.Modules
 {
@@ -178,24 +180,29 @@ namespace SwissbotCore.Modules
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        static async Task AddModlogs(ulong userID, Action action, ulong ModeratorID, string reason, string username)
+        static async Task<UserModLogs> AddModlogs(ulong userID, Action action, ulong ModeratorID, string reason, string username)
         {
             bool newUser = currentLogs.Users.Any(x => x.userId == userID);
             string infracId = RandomString(32);
+
+            UserModLogs returnLog;
+
             if (currentLogs.Users.Any(x => x.userId == userID))
             {
-                currentLogs.Users[currentLogs.Users.FindIndex(x => x.userId == userID)].Logs.Add(new UserModLogs()
+                var ml = new UserModLogs()
                 {
                     Action = action,
                     ModeratorID = ModeratorID,
                     Reason = reason,
                     Date = DateTime.UtcNow.ToString("r"),
                     InfractionID = infracId
-                });
+                };
+                currentLogs.Users[currentLogs.Users.FindIndex(x => x.userId == userID)].Logs.Add(ml);
+                returnLog = ml;
             }
             else
             {
-                currentLogs.Users.Add(new User()
+                var ml = new User()
                 {
                     Logs = new List<UserModLogs>()
                     {
@@ -209,7 +216,9 @@ namespace SwissbotCore.Modules
                     },
                     userId = userID,
                     username = username
-                });
+                };
+                currentLogs.Users.Add(ml);
+                returnLog = ml.Logs[0];
             }
             SaveModLogs();
 
@@ -221,6 +230,8 @@ namespace SwissbotCore.Modules
                 moderatorId = ModeratorID,
                 reason = reason,
             });
+
+            return returnLog;
         }
         public async Task<bool> HasPerms(SocketGuildUser user)
         {
@@ -355,7 +366,7 @@ namespace SwissbotCore.Modules
                 {
                     b.Footer = new EmbedFooterBuilder()
                     {
-                        Text = "To appeal your ban, visit [https://swissdev.team/bans](https://swissdev.team/bans)"
+                        Text = "To appeal your ban, visit (https://swissdev.team/bans)[https://swissdev.team/bans]"
                     };
                 }
 
@@ -949,27 +960,17 @@ namespace SwissbotCore.Modules
         [DiscordCommand("purge", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)purge <ammount>`", description = "Deletes `x` ammount of messages")]
         public async Task purge(uint amount)
         {
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == Global.ModeratorRoleID).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
-            {
-                var messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
-                await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
-                const int delay = 2000;
-                var m = await Context.Channel.SendMessageAsync($"Purge completed!");
-                await Task.Delay(delay);
-                await m.DeleteAsync();
-            }
-            else
-            {
-                await Context.Channel.SendMessageAsync("You do not have permission to use this command!");
-            }
+            var messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
+            await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
+            const int delay = 2000;
+            var m = await Context.Channel.SendMessageAsync($"Purge completed!");
+            await Task.Delay(delay);
+            await m.DeleteAsync();
         }
         [DiscordCommand("purge")]
         public async Task purge(string usr, uint ammount)
         {
-            if(!HasExecutePermission)
+            if (!HasExecutePermission)
             {
                 await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
                 {
@@ -996,7 +997,7 @@ namespace SwissbotCore.Modules
                 return;
             }
             var user = Context.Guild.GetUser(id);
-            if(user == null)
+            if (user == null)
             {
                 await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
                 {
@@ -1007,7 +1008,7 @@ namespace SwissbotCore.Modules
                 return;
             }
             var tmp = await Context.Channel.GetMessagesAsync(100).FlattenAsync();
-            if(!tmp.Any(x => x.Author.Id == id))
+            if (!tmp.Any(x => x.Author.Id == id))
             {
                 await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
                 {
@@ -1025,6 +1026,192 @@ namespace SwissbotCore.Modules
             await m.DeleteAsync();
 
         }
+
+        [DiscordCommand("tempban", RequiredPermission = true, commandHelp = "`*tempban <user> <time> <reason>`", description = "Temporarily ban a user from seeing channels")]
+        public async Task Tempban(params string[] args)
+        {
+            var unverified = Context.Guild.GetRole(627683033151176744);
+            var user = Context.User as SocketGuildUser;
+            var member = Context.Guild.GetRole(Global.MemberRoleID);
+            var banned = Context.Guild.GetRole(783462878976016385);
+
+
+            if (args.Length == 0) // *tempban
+            {
+                var error = new EmbedBuilder();
+                error.WithTitle("Error");
+                error.WithDescription("Who would you like to temporarily ban?");
+                error.WithColor(Color.Red);
+                await Context.Channel.SendMessageAsync("", false, error.Build());
+                return;
+            }
+
+            if (args.Length == 1) // *tempban Liege
+            {
+                var error = new EmbedBuilder();
+                error.WithTitle("Error");
+                error.WithDescription("How long do you want to ban this user for?");
+                error.WithColor(Color.Red);
+                await Context.Channel.SendMessageAsync("", false, error.Build());
+                return;
+            }
+
+            if (args.Length == 2) // *tempban Liege 2
+            {
+                var error = new EmbedBuilder();
+                error.WithTitle("Error");
+                error.WithDescription("Please provide a reason!");
+                error.WithColor(Color.Red);
+                await Context.Channel.SendMessageAsync("", false, error.Build());
+                return;
+            }
+
+            TimeSpan t;
+
+            // 7d
+            string[] formats = new string[] { @"h\h", @"s\s", @"m\m", @"d\d" };
+
+            if (!TimeSpan.TryParseExact(args[1], formats, CultureInfo.CurrentCulture, out t))
+            {
+                var error = new EmbedBuilder();
+                error.WithTitle("Error");
+                error.WithDescription("Please provide a valid duration!");
+                error.WithColor(Color.Red);
+                await Context.Channel.SendMessageAsync("", false, error.Build());
+                return;
+            }
+
+            string reason = string.Join(' ', args.Skip(2));
+            SocketGuildUser userAccount = GetUser(args[0]);
+            DateTime unbanTime = DateTime.UtcNow.Add(t);
+
+            if (userAccount == null)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "User not found!",
+                    Description = $"The user account \"{args[0]}\" was not found, please make sure you have the correct ID or spelling",
+                    Color = Color.Red
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+
+            if (userAccount.Roles.Contains(banned))
+            {
+                var error = new EmbedBuilder();
+                error.WithTitle("Error");
+                error.WithDescription("This user is already banned!");
+                error.WithColor(Color.Red);
+                await Context.Channel.SendMessageAsync("", false, error.Build());
+                return;
+            }
+
+            var roles = userAccount.Roles.ToArray();
+
+            await userAccount.RemoveRolesAsync(roles.Where(x => !x.IsEveryone));
+            
+            await userAccount.AddRoleAsync(banned);
+            await userAccount.AddRoleAsync(unverified);
+
+            var log = await AddModlogs(userAccount.Id, Action.TempBan, user.Id, reason, userAccount.ToString());
+
+            var inst = HandlerService.GetHandlerInstance<TempBanHandler>();
+
+            inst.AddTempBan(userAccount, unbanTime, log, roles.Where(x => !x.IsEveryone).Select(x => x.Id).ToArray());
+
+            bool notified = false;
+
+            try
+            {
+                var dm = new EmbedBuilder();
+                dm.WithTitle("You have been Temporaily Banned from the Swiss001 Official Discord Server");
+                dm.AddField("Moderator", user.Username, true);
+                dm.AddField("Reason", reason, true);
+                dm.AddField("Duration", t.ToString());
+                await userAccount.SendMessageAsync("", false, dm.Build());
+                notified = true;
+            }
+            catch { }
+
+
+            var embed = new EmbedBuilder();
+            embed.WithTitle($"Successfully temporaily banned {userAccount} ({userAccount.Id})");
+            embed.WithDescription($"The user {userAccount.Mention} has been successfully **Temporaily Banned**");
+            embed.AddField("Moderator", $"{user}", true);
+            embed.AddField("Reason", reason, true);
+            embed.AddField("Notified in dms?", notified, true);
+            await Context.Channel.SendMessageAsync("", false, embed.Build());
+        }
+
+        [DiscordCommand("tempunban", RequiredPermission = true, commandHelp = "`*untempban <user>`", description = "Removes a user from their temporary ban")]
+        public async Task Tempunban(params string[] args)
+        {
+            var unverified = Context.Guild.GetRole(627683033151176744);
+            var user = Context.User as SocketGuildUser;
+            var member = Context.Guild.GetRole(Global.MemberRoleID);
+            var banned = Context.Guild.GetRole(783462878976016385);
+
+            if (args.Length == 0) // *tempban
+            {
+                var error = new EmbedBuilder();
+                error.WithTitle("Error");
+                error.WithDescription("Who would you like to unban?");
+                error.WithColor(Color.Red);
+                await Context.Channel.SendMessageAsync("", false, error.Build());
+                return;
+            }
+
+            SocketGuildUser userAccount = GetUser(args[0]);
+
+            if(userAccount == null)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "User not found!",
+                    Description = $"The user account \"{args[0]}\" was not found, please make sure you have the correct ID or spelling",
+                    Color = Color.Red
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+
+            if (TempBanHandler.TempBans.Any(x => x.UserId == userAccount.Id))
+            {
+                var error = new EmbedBuilder();
+                error.WithTitle("Error");
+                error.WithDescription("This user is already unbanned!");
+                error.WithColor(Color.Red);
+                await Context.Channel.SendMessageAsync("", false, error.Build());
+                return;
+            }
+
+            if(userAccount.Roles.Contains(banned))
+                await userAccount.RemoveRoleAsync(banned);
+            if (userAccount.Roles.Contains(unverified))
+                await userAccount.RemoveRoleAsync(unverified);
+
+            HandlerService.GetHandlerInstance<TempBanHandler>().RemoveTempBan(userAccount);
+
+            bool notified = false;
+
+            try
+            {
+                var dm = new EmbedBuilder();
+                dm.WithTitle("Your temporary ban has been revoked by a moderator!");
+                dm.AddField("Moderator", user.ToString(), true);
+                await userAccount.SendMessageAsync("", false, dm.Build());
+                notified = true;
+            }
+            catch { }
+
+            var embed = new EmbedBuilder();
+            embed.WithTitle($"Successfully unbanned {userAccount} ({userAccount.Id})");
+            embed.WithDescription($"The user {userAccount.Mention} has been successfully **Unbanned**");
+            embed.AddField("Moderator", $"{user}", true);
+            embed.AddField("Notified?", notified, true);
+            await Context.Channel.SendMessageAsync("", false, embed.Build());
+        }
+
+
         [DiscordCommand("rule", 
             BotCanExecute = false, 
             commandHelp = "`(PREIFX)rule <rule_number>`", 

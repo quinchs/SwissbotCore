@@ -54,7 +54,7 @@ namespace SwissbotCore.Handlers
         }
         public static bool UserIsStaff(DiscordUser u)
         {
-            var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(u.ID);
+            var user = Global.GetSwissbotUser(u.ID).Result;
 
             return Program.UserHasPerm(user);
         }

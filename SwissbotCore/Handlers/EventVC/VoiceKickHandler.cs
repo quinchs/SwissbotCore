@@ -156,7 +156,7 @@ namespace SwissbotCore.Handlers.EventVC
         {
             var req = VoicekickPacket.FromRaw(msg.rawMessage);
 
-            var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(req.target);
+            var user = await Global.GetSwissbotUser(req.target);
 
             if (user == null)
             {

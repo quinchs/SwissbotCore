@@ -39,6 +39,6 @@ namespace SwissbotCore.Handlers.EventVC.Types
                 .Replace("{user.id}", user.Id.ToString());
         }
         public SocketGuildUser GetUser()
-            => Global.Client.GetGuild(Global.SwissGuildId).GetUser(ulong.Parse(this.id));
+            => Global.GetSwissbotUser(ulong.Parse(this.id)).GetAwaiter().GetResult();
     }
 }

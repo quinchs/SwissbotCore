@@ -282,7 +282,7 @@ namespace SwissbotCore.Handlers
             // Get role color
             string scolor = "white";
 
-            var su = Global.Client.GetGuild(Global.SwissGuildId).GetUser(TicketAuther);
+            var su = Global.GetSwissbotUser(TicketAuther).Result;
             if (su != null)
             {
                 var sr = Global.Client.GetGuild(Global.SwissGuildId).Roles.First(x => x.Position == su.Hierarchy);
@@ -329,7 +329,7 @@ namespace SwissbotCore.Handlers
                 // Get role color
                 string color = "white";
 
-                var u = Global.Client.GetGuild(Global.SwissGuildId).GetUser(msg.Author);
+                var u = Global.GetSwissbotUser(msg.Author).Result;
                 if(u != null)
                 {
                     var r = Global.Client.GetGuild(Global.SwissGuildId).Roles.First(x => x.Position == u.Hierarchy);

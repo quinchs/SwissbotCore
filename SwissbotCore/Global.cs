@@ -87,6 +87,16 @@ namespace SwissbotCore
         public static string ApiKey { get; set; }
         internal static Dictionary<string, string> jsonItemsList { get; private set; }
         internal static Dictionary<string, string> JsonItemsListDevOps { get; private set; }
+        internal static SocketGuild SwissGuild
+            => Client.GetGuild(Global.SwissGuildId);
+
+        public static async Task<SocketGuildUser> GetSwissbotUser(ulong id)
+        {
+            await SwissGuild.DownloadUsersAsync();
+
+            return SwissGuild.GetUser(id);
+        }
+
         public struct GiveAway
         {
             public int Seconds { get; set; }

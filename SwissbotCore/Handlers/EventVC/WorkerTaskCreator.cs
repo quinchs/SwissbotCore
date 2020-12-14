@@ -50,7 +50,7 @@ namespace SwissbotCore.Handlers.EventVC
 
                 if(CurrentWorker == -1)
                 {
-                    var user = Global.Client.GetGuild(Global.SwissGuildId).GetUser(item.UserId);
+                    var user = await Global.GetSwissbotUser(item.UserId);
                     if (user == null)
                         continue;
 

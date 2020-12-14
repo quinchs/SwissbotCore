@@ -70,7 +70,7 @@ namespace SwissbotCore.HTTP
             }
             else
             {
-                var discordUser = Global.Client.GetGuild(Global.SwissGuildId).GetUser(user.ID);
+                var discordUser = Global.GetSwissbotUser(user.ID).Result;
                 if (discordUser == null)
                 {
                     c.Response.StatusCode = 401;

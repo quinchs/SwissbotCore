@@ -79,8 +79,8 @@ namespace SwissbotCore
                 {
                     { 592458779006730264, HasPerms},
                     { 622150031092350976, (SocketCommandContext c) => { return true; } },
-                    {726857672942420070, (SocketCommandContext c) => { return false;} },
-                    {706397254000443392, (SocketCommandContext c) => { return true; } }
+                    { 726857672942420070, (SocketCommandContext c) => { return false;} },
+                    { 706397254000443392, (SocketCommandContext c) => { return true; } }
                 },
                 AllowCommandExecutionOnInvalidPermissions = true,
                 DMCommands = false
@@ -104,7 +104,7 @@ namespace SwissbotCore
         public static bool HasPerms(SocketCommandContext c)
         {
             if (c.Guild.Id == Global.SwissBotDevGuildID) { return true; }
-            else return UserHasPerm(Global.Client.GetGuild(Global.SwissGuildId).GetUser(c.User.Id));
+            else return UserHasPerm(Global.GetSwissbotUser(c.User.Id).Result);
         }
         public static bool UserHasPerm(SocketGuildUser user)
         {

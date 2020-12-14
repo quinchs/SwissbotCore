@@ -48,7 +48,7 @@ namespace SwissbotCore.HTTP
             }
             else
             {
-                var discordUser = Global.Client.GetGuild(Global.SwissGuildId).GetUser(this.ID);
+                var discordUser = Global.GetSwissbotUser(this.ID).Result;
                 if (discordUser == null)
                 {
                     return;

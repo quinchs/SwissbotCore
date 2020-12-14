@@ -69,7 +69,7 @@ namespace SwissbotCore.HTTP.Routes
             var id = ulong.Parse(m[0].Groups[1].Value);
 
             // Get the user
-            var gm = Global.Client.GetGuild(Global.SwissGuildId).GetUser(id);
+            var gm = await Global.GetSwissbotUser(id);
 
             if(gm == null)
             {
