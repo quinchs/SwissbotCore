@@ -80,7 +80,7 @@ namespace SwissbotCore.Handlers
             Workers.Add((worker.Key.id, auth), (proc, null));
         }
 
-        public static async Task AssignTask(VoiceTask task, bool value, int workerId, params ulong[] users)
+        public static async Task AssignTask(WorkerTask task, bool value, int workerId, params ulong[] users)
         {
             var worker = Workers.ElementAt(workerId);
 
@@ -96,8 +96,47 @@ namespace SwissbotCore.Handlers
 
             await worker.Value.client.SendAsync(packet, WebSocketMessageType.Text, true, CancellationToken.None);
         }
-       
-        public static async Task AssignTasks(VoiceTask task, bool value, params ulong[] users)
+        public static async Task AssignTask(WorkerTask task, string action, ulong[] roles, int workerId, ulong user)
+        {
+            var worker = Workers.ElementAt(workerId);
+
+            string content = JsonConvert.SerializeObject(new RolesUpdate()
+            {
+                Type = task.ToString(),
+                Action = action,
+                Roles = roles,
+                User = user
+            });
+
+            byte[] packet = Encoding.UTF8.GetBytes(content);
+
+            await worker.Value.client.SendAsync(packet, WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+        public static async Task AssignTasks(WorkerTask task, string action, ulong[] roles, ulong user)
+        {
+            var items = Split(roles, WorkerCount);
+
+            foreach (var worker in Workers)
+            {
+                var workerUsers = items[worker.Key.id];
+                if (workerUsers.Length == 0)
+                    continue;
+
+                string content = JsonConvert.SerializeObject(new RolesUpdate()
+                {
+                    Type = task.ToString(),
+                    Action = action,
+                    Roles = workerUsers,
+                    User = user
+                });
+
+                byte[] packet = Encoding.UTF8.GetBytes(content);
+
+                await worker.Value.client.SendAsync(packet, WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+
+        public static async Task AssignTasks(WorkerTask task, bool value, params ulong[] users)
         {
             var items = Split(users, WorkerCount);
 
@@ -178,11 +217,20 @@ namespace SwissbotCore.Handlers
             public bool Value { get; set; }
             public ulong[] Users { get; set; }
         }
+        public class RolesUpdate
+        {
+            public string Type { get; set; } = "RolesUpdate";
+            public string Action { get; set; }
+            public ulong User { get; set; }
+            public ulong[] Roles { get; set; }
+        }
     }
 
-    public enum VoiceTask
+    public enum WorkerTask
     {
         Mute,
-        Deafen
+        Deafen,
+        RemoveRoles,
+        AddRoles
     }
 }

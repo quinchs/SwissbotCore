@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discord;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,13 @@ namespace SwissbotCore.Handlers.EventVC
     
     public class QueuedItem
     {
-        public VoiceTask Task { get; set; }
+        public WorkerTask Task { get; set; }
         public ulong UserId { get; set; }
         public bool Value { get; set; }
+        public ulong[] Roles { get; set; }
     }
+
+
 
     class WorkerTaskCreator
     {
@@ -25,13 +29,26 @@ namespace SwissbotCore.Handlers.EventVC
         private static int _workerCount = Global.Workers.Length;
         private static ConcurrentQueue<QueuedItem> _queue = new ConcurrentQueue<QueuedItem>();
 
-        public static void CreateTask(VoiceTask task, ulong user, bool value)
+        public static void CreateTask(WorkerTask task, ulong user, bool value)
         {
             QueuedItem q = new QueuedItem()
             {
                 Task = task,
                 UserId = user,
                 Value = value
+            };
+
+            _queue.Enqueue(q);
+
+            HandleDequeue();
+        }
+        public static void CreateTask(WorkerTask task, ulong user, string action, params ulong[] roles)
+        {
+            QueuedItem q = new QueuedItem()
+            {
+                Task = task,
+                UserId = user,
+                Roles = roles,
             };
 
             _queue.Enqueue(q);
@@ -56,17 +73,34 @@ namespace SwissbotCore.Handlers.EventVC
 
                     switch (item.Task)
                     {
-                        case VoiceTask.Deafen:
+                        case WorkerTask.Deafen:
                             await user.ModifyAsync(x => x.Deaf = item.Value);
                             break;
-                        case VoiceTask.Mute:
+                        case WorkerTask.Mute:
                             await user.ModifyAsync(x => x.Mute = item.Value);
+                            break;
+                        case WorkerTask.AddRoles:
+                            List<IRole> roles = new List<IRole>();
+                            foreach (var r in item.Roles)
+                                roles.Add(user.Guild.GetRole(r));
+                            await user.AddRolesAsync(roles);
+                            break;
+                        case WorkerTask.RemoveRoles:
+                            List<IRole> rs = new List<IRole>();
+                            foreach (var r in item.Roles)
+                                rs.Add(user.Guild.GetRole(r));
+                            await user.RemoveRolesAsync(rs);
                             break;
                     }
                 }
                 else
                 {
-                    await SwissbotWorkerHandler.AssignTask(item.Task, item.Value, CurrentWorker, item.UserId);
+                    if(item.Task == WorkerTask.RemoveRoles || item.Task == WorkerTask.AddRoles)
+                    {
+                        await SwissbotWorkerHandler.AssignTask(item.Task, item.Task == WorkerTask.AddRoles ? "add" : "remove", item.Roles, CurrentWorker, item.UserId);
+                    }
+                    else
+                        await SwissbotWorkerHandler.AssignTask(item.Task, item.Value, CurrentWorker, item.UserId);
                 }
             }
         }       

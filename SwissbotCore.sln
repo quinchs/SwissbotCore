@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.960
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30717.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SwissbotCore", "SwissbotCore\SwissbotCore.csproj", "{AA1325D3-C654-4693-A3EB-6F3F9ADE6CCD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.WebSocket", "Discord\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj", "{FCF566EC-03E9-45E5-9F4A-7007D47F00DC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.Rest", "Discord\src\Discord.Net.Rest\Discord.Net.Rest.csproj", "{FD480550-FE34-484A-AE26-D64935D43DF9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.Core", "Discord\src\Discord.Net.Core\Discord.Net.Core.csproj", "{4626E2BE-F1D3-44D3-80B2-D6A39D2377A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +21,18 @@ Global
 		{AA1325D3-C654-4693-A3EB-6F3F9ADE6CCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA1325D3-C654-4693-A3EB-6F3F9ADE6CCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA1325D3-C654-4693-A3EB-6F3F9ADE6CCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCF566EC-03E9-45E5-9F4A-7007D47F00DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCF566EC-03E9-45E5-9F4A-7007D47F00DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCF566EC-03E9-45E5-9F4A-7007D47F00DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCF566EC-03E9-45E5-9F4A-7007D47F00DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD480550-FE34-484A-AE26-D64935D43DF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD480550-FE34-484A-AE26-D64935D43DF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD480550-FE34-484A-AE26-D64935D43DF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD480550-FE34-484A-AE26-D64935D43DF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4626E2BE-F1D3-44D3-80B2-D6A39D2377A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4626E2BE-F1D3-44D3-80B2-D6A39D2377A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4626E2BE-F1D3-44D3-80B2-D6A39D2377A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4626E2BE-F1D3-44D3-80B2-D6A39D2377A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

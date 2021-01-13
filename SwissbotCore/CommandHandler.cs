@@ -54,7 +54,8 @@ namespace SwissbotCore
 
             //_client.UserJoined += _client_UserLeft;
 
-            _client.UserJoined += WelcomeMessage;
+            // deprecated
+            //_client.UserJoined += WelcomeMessage;
 
             //_client.MessageReceived += responce;
 
@@ -408,22 +409,6 @@ namespace SwissbotCore
                 }
             }
         }
-        private async Task WelcomeMessage(SocketGuildUser arg)
-        {
-            //george
-            //if (arg.Id == 370660333783613441)
-            //{
-            //    await arg.BanAsync();
-            //    _client.GetGuild(Global.SwissGuildId).GetTextChannel(592768337407115264).SendMessageAsync("@everyone BLACK ALERT: George has tried to join the server and has been banned! ");
-            //    return;
-            //}
-            if (arg.Guild.Id != Global.SwissGuildId)
-                return;
-            var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
-            await arg.AddRoleAsync(unVertRole);
-            Console.WriteLine($"The member {arg.Username}#{arg.Discriminator} joined the guild");
-            
-        }
         
         public static async Task SendMilestone(int count, ulong chanid = 0)
         {
@@ -569,11 +554,6 @@ namespace SwissbotCore
        
         private async Task AddUnVert()
         {
-            var noRoleUsers = _client.GetGuild(Global.SwissGuildId).Users.Where(x => x.Roles.Count == 1).ToList();
-            Global.ConsoleLog($"Found {noRoleUsers.Count} Users without verification, Adding the Unverivied role...", ConsoleColor.Cyan);
-            var unVertRole = _client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.UnverifiedRoleID);
-            int i = 0;
-            foreach (var user in noRoleUsers) { await user.AddRoleAsync(unVertRole); i++; Global.ConsoleLog($"Gave Unvert role to {user.Username}, {noRoleUsers.Count - i} users left", ConsoleColor.White, ConsoleColor.DarkBlue); }
         }
         private async Task UserSubCashing()
         {
@@ -613,84 +593,8 @@ namespace SwissbotCore
         private async Task LogMessage(SocketMessage arg)
         {
             Global.ConsoleLog("Message from: " + arg.Author, ConsoleColor.Magenta);
-            //dothing();
-            try
-            {
-                var msg = arg as SocketUserMessage;
-                if (msg == null)
-                    return;
-                
-                if (CheckCensor(arg).Result)
-                {
-                    var smsg = arg.Content;
-                    if(smsg.Length > 1023)
-                    {
-                        var s = smsg.Take(1020);
-                        smsg = new string(s.ToArray()) + "...";
-                    }
-                    EmbedBuilder b = new EmbedBuilder()
-                    {
-                        Title = "Censor Alert",
-                        Color = Color.Orange,
-                        Fields = new List<EmbedFieldBuilder>()
-                        {
-                            {new EmbedFieldBuilder()
-                            {
-                                Name = "Message",
-                                Value = smsg
-                            } },
-                            {new EmbedFieldBuilder()
-                            {
-                                Name = "Author",
-                                Value = arg.Author.ToString() + $" ({arg.Author.Id})"
-                            } },
-                            {new EmbedFieldBuilder()
-                            {
-                                Name = "Action",
-                                Value = "Message Deleted",
-                            } },
-                            {new EmbedFieldBuilder()
-                            {
-                                Name = "Channel",
-                                Value = $"<#{arg.Channel.Id}>"
-                            } },
-                            { new EmbedFieldBuilder()
-                            {
-                                Name = "Jump to timeline",
-                                Value = arg.Channel.GetMessagesAsync(2).FlattenAsync().Result.Last().GetJumpUrl()
-                            } }
-
-                        }
-                    };
-                    await arg.DeleteAsync();
-                    foreach (var item in Global.CensoredWords)
-                        if (arg.Content.ToLower().Contains(item.ToLower()))
-                            b.Fields.Add(new EmbedFieldBuilder() { Name = "Field", Value = item });
-
-                            await _client.GetGuild(Global.SwissGuildId).GetTextChannel(665647956816429096).SendMessageAsync("", false, b.Build());
-                    
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
         }
-        public async Task<bool> CheckCensor(SocketMessage arg)
-        {
-            if (arg.Author.IsBot) { return false; }
-            var r = _client.GetGuild(Global.SwissGuildId).GetUser(arg.Author.Id).Roles;
-            var adminrolepos =_client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.ModeratorRoleID).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.Contains(_client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
-            { return false; }
-
-            string cont = arg.Content.ToLower();
-            foreach (var item in Global.CensoredWords)
-                if (cont.Contains(item.ToLower()))
-                    return true;
-            return false;
-        }
+        
         public async Task EchoMessage(SocketCommandContext Context)
         {
             try

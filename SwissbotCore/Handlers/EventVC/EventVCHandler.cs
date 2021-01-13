@@ -140,7 +140,7 @@ namespace SwissbotCore.Handlers
                 return;
 
             // Mute them!
-            await SwissbotWorkerHandler.AssignTasks(VoiceTask.Mute, true, channel.Users.Where(x => !x.IsMuted).Select(x => x.Id).ToArray());
+            await SwissbotWorkerHandler.AssignTasks(WorkerTask.Mute, true, channel.Users.Where(x => !x.IsMuted).Select(x => x.Id).ToArray());
         }
         private async Task HandleEntireChannelUnmute(RawWebsocketMessage msg)
         {
@@ -154,7 +154,7 @@ namespace SwissbotCore.Handlers
                 return;
 
             // Unmute them!
-            await SwissbotWorkerHandler.AssignTasks(VoiceTask.Mute, false, channel.Users.Where(x => x.IsMuted).Select(x => x.Id).ToArray());
+            await SwissbotWorkerHandler.AssignTasks(WorkerTask.Mute, false, channel.Users.Where(x => x.IsMuted).Select(x => x.Id).ToArray());
         }
 
         private async Task HandleUserActionEvent(RawWebsocketMessage msg)
@@ -172,7 +172,7 @@ namespace SwissbotCore.Handlers
             }
             else
             {
-                var vcAction = data.action == EventVcUserAction.VcAction.Mute ? VoiceTask.Mute : VoiceTask.Deafen;
+                var vcAction = data.action == EventVcUserAction.VcAction.Mute ? WorkerTask.Mute : WorkerTask.Deafen;
 
                 WorkerTaskCreator.CreateTask(vcAction, data.targetUser, data.value);
             }

@@ -18,6 +18,7 @@ namespace SwissbotCore.Handlers
             t.Elapsed += HandleUserCount;
             t.Start();
             Global.ConsoleLog("Started Member count timer!", ConsoleColor.Blue);
+            HandleUserCount(null, null); 
         }
 
         private async void HandleUserCount(object sender, ElapsedEventArgs e)
@@ -29,7 +30,7 @@ namespace SwissbotCore.Handlers
             var chn = g.GetVoiceChannel(Global.StatsTotChanID);
             if (chn == null)
                 return;
-            string msg = $"Total Users: {g.Users.Count}";
+            string msg = $"Total Users: {g.Users.Count + 1000}";
             Global.ConsoleLog($"{msg}!", ConsoleColor.Blue);
 
             if (chn.Name != msg)

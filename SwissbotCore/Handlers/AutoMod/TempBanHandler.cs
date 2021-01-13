@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using SwissbotCore.Handlers.EventVC;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,11 @@ namespace SwissbotCore.Handlers.AutoMod
     {
         public record TempBan(ulong UserId, DateTime Time, UserModLogs log, ulong[] PreviousRoles);
         public static List<TempBan> TempBans = new List<TempBan>();
+        private static Dictionary<ulong, bool> RoleRevokes = new Dictionary<ulong, bool>();
+        private SocketRole bannedRole
+            => client.GetGuild(Global.SwissGuildId).GetRole(783462878976016385);
+        private SocketRole unverified 
+            => client.GetGuild(Global.SwissGuildId).GetRole(627683033151176744);
 
         private DiscordSocketClient client;
 
@@ -29,6 +35,7 @@ namespace SwissbotCore.Handlers.AutoMod
             }
             catch { }
 
+            client.GuildMemberUpdated += Client_GuildMemberUpdated;
 
             Timer t = new Timer();
 
@@ -39,6 +46,17 @@ namespace SwissbotCore.Handlers.AutoMod
             t.Start();
         }
 
+        private async Task Client_GuildMemberUpdated(SocketGuildUser arg1, SocketGuildUser arg2)
+        {
+            if(RoleRevokes.Any(x => x.Key == arg2.Id && !x.Value))
+            {
+                if(arg2.Roles.Count == 3 && arg2.Roles.Contains(bannedRole) && arg2.Roles.Contains(unverified))
+                {
+                    RoleRevokes[arg2.Id] = true;
+                }
+            }
+        }
+
         private async void T_Elapsed(object sender, ElapsedEventArgs e)
         {
             bool modified = false;
@@ -47,8 +65,8 @@ namespace SwissbotCore.Handlers.AutoMod
             {
                 if ((DateTime.UtcNow - item.Time).TotalMilliseconds > 0)
                 {
-                    var bannedRole = client.GetGuild(Global.SwissGuildId).GetRole(783462878976016385);
-                    var memberRole = client.GetGuild(Global.SwissGuildId).GetRole(Global.MemberRoleID);
+                    SocketRole bannedRole = client.GetGuild(Global.SwissGuildId).GetRole(783462878976016385);
+                    SocketRole memberRole = client.GetGuild(Global.SwissGuildId).GetRole(Global.MemberRoleID);
                     var unverifiedRole = client.GetGuild(Global.SwissGuildId).GetRole(Global.UnverifiedRoleID);
 
                     var userAccount = await Global.GetSwissbotUser(item.UserId);
@@ -76,8 +94,8 @@ namespace SwissbotCore.Handlers.AutoMod
                     embed.WithTitle("Your temporary ban has expired on the Swiss001 Official Discord Server!");
                     embed.WithDescription("You may now access the server normally.");
                     embed.AddField("Reason", item.log.Reason, true);
-                    embed.AddField("Duration", (item.Time - DateTime.Parse(item.log.Date)).ToString());
-                    embed.AddField("Moderator", $"<@{item.log.ModeratorID}>");
+                    embed.AddField("Duration", (item.Time - DateTime.Parse(item.log.Date), true).ToString());
+                    embed.AddField("Moderator", $"<@{item.log.ModeratorID}>", true);
                     embed.WithCurrentTimestamp();
 
                     try { await userAccount.SendMessageAsync("", false, embed.Build()); } catch { }
@@ -92,6 +110,52 @@ namespace SwissbotCore.Handlers.AutoMod
         private static void SaveTempBans()
         {
             SwissbotStateHandler.SaveObject("TempBans.json", TempBans);
+        }
+
+        public static async Task<ulong[]> ClearAndAddTempbanRoles(ulong id)
+        {
+            var user = await Global.GetSwissbotUser(id);
+            if (user == null)
+                return null;
+
+            SocketRole[] roles = null;
+
+            RoleRevokes.Add(id, false);
+
+            while (RoleRevokes.Any(x => x.Key == id && !x.Value))
+            {
+                user = await Global.GetSwissbotUser(id);
+                roles = user.Roles.Where(x => !x.IsEveryone && x.Id != 627683033151176744 && x.Id != 783462878976016385).ToArray();
+
+                await SwissbotWorkerHandler.AssignTasks(WorkerTask.RemoveRoles, "remove", roles.Select(x => x.Id).ToArray(), user.Id);
+
+                if (!user.Roles.Any(x => x.Id == 783462878976016385))
+                    WorkerTaskCreator.CreateTask(WorkerTask.AddRoles, user.Id, "add", 783462878976016385);
+                if (!user.Roles.Any(x => x.Id == 627683033151176744))
+                    WorkerTaskCreator.CreateTask(WorkerTask.AddRoles, user.Id, "add", 627683033151176744);
+
+                await Task.Delay(1000);
+            }
+
+            RoleRevokes.Remove(id);
+
+            return roles.Select(x => x.Id).ToArray();
+        }
+        public static async Task RestoreTempbanRoles(ulong id)
+        {
+            var user = await Global.GetSwissbotUser(id);
+            if (user == null)
+                return;
+
+            var tmban = TempBans.FirstOrDefault(x => x.UserId == id);
+
+            if (tmban == null)
+                return;
+
+            await SwissbotWorkerHandler.AssignTasks(WorkerTask.AddRoles, "add", tmban.PreviousRoles, user.Id);
+
+            WorkerTaskCreator.CreateTask(WorkerTask.RemoveRoles, user.Id, "remove", 783462878976016385);
+            WorkerTaskCreator.CreateTask(WorkerTask.RemoveRoles, user.Id, "remove", 627683033151176744);
         }
 
         public async void RemoveTempBan(ulong id)

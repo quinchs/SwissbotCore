@@ -240,15 +240,7 @@ namespace SwissbotCore
             ReadConfig();
         }
 
-        public static void SaveAltCards()
-        {
-            SwissbotStateHandler.SaveObject("AltCards.json", VerificationHandler.FList);
-        }
-        public static Dictionary<ulong, ulong> ReadAltCards()
-        {
-            return SwissbotStateHandler.LoadObject<Dictionary<ulong, ulong>>("AltCards.json").GetAwaiter().GetResult();
-        }
-
+        
         public static void SaveHelpMessageCards()
         {
             string s = "";

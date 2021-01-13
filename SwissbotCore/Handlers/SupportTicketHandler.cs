@@ -458,7 +458,7 @@ namespace SwissbotCore.Handlers
             {
                 if (!HasExecutePermission)
                     return;
-                if (CurrentTickets.Any(x => x.TicketChannel == Context.Channel.Id))
+                if(CurrentTickets.Any(x => x.TicketChannel == Context.Channel.Id))
                 {
                     var ticket = CurrentTickets.Find(x => x.TicketChannel == Context.Channel.Id);
                     var dmchan = await Context.Client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
