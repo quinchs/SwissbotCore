@@ -13,13 +13,24 @@ namespace SwissbotCore.Handlers.EventVC.Types
 
         public List<ulong> PermaMutes { get; set; } = new List<ulong>();
 
+        public MuteMode VoiceMuteMode { get; set; }
 
-        public void Modify(bool AutoMuteNewUsers = false, List<ulong> PermaMutes = null)
+
+        public enum MuteMode
+        {
+            Mute,
+            DeafenAlive
+        }
+
+        public void Modify(bool AutoMuteNewUsers = false, List<ulong> PermaMutes = null, MuteMode? muteMode = null)
         {
             this.AutoMuteNewUsers = AutoMuteNewUsers;
 
             if (PermaMutes != null)
                 this.PermaMutes = PermaMutes;
+
+            if (muteMode.HasValue)
+                this.VoiceMuteMode = muteMode.Value;
 
             Save();
 
@@ -32,7 +43,8 @@ namespace SwissbotCore.Handlers.EventVC.Types
             return new EventVcSettings()
             {
                 AutoMuteNewUsers = this.AutoMuteNewUsers,
-                PermaMutes = this.PermaMutes
+                PermaMutes = this.PermaMutes,
+                VoiceMuteMode = this.VoiceMuteMode
             };
         }
 

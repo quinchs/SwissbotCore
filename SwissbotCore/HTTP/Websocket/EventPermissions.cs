@@ -50,6 +50,8 @@ namespace SwissbotCore.HTTP.Websocket
                             return false;
                     }
                     return true;
+                case HTTP.Types.SessionPermission.None:
+                    return false;
             }
             return false;
         }

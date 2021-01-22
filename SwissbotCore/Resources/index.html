@@ -1,1118 +1,804 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!--CSS Styles-->
-    <style>
-      @keyframes close {
-        from {
-          transform: rotate(-90deg);
-        }
-        to {
-          transform: rotate(0);
-        }
-      }
-      @keyframes open {
-        from {
-          transform: rotate(0);
-        }
-        to {
-          transform: rotate(-90deg);
-        }
-      }
 
-      @keyframes up {
-        from {
-          height: 5rem;
-          display: flex;
-        }
-        to {
-          height: 0rem;
-          display: none;
-        }
-      }
-
-      @keyframes down {
-        from {
-          height: 0rem;
-          display: none;
-        }
-        to {
-          height: 5rem;
-          display: flex;
-        }
-      }
-      .logout-up {
-        animation: up 0.25s ease-in-out 0s 1 alternate-reverse forwards;
-      }
-      .logout-down {
-        animation: down 0.25s ease-in-out 0s 1 alternate-reverse forwards;
-      }
-      .gui-closed {
-        animation: close 0.25s ease-in-out 0s 1 alternate-reverse forwards;
-        transform: rotate(0);
-      }
-      .gui-open {
-        animation: open 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+<head>
+  <!--CSS Styles-->
+  <style>
+    @keyframes close {
+      from {
         transform: rotate(-90deg);
       }
-      .loader {
-        color: #ffffff;
-        font-size: 90px;
-        text-indent: -9999em;
-        overflow: hidden;
-        width: 1em;
-        height: 1em;
-        z-index: 40;
-        border-radius: 50%;
-        margin: 72px auto;
-        position: relative;
-        -webkit-transform: translateZ(0);
-        -ms-transform: translateZ(0);
-        transform: translateZ(0);
-        -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
-        animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+
+      to {
+        transform: rotate(0);
       }
-      @-webkit-keyframes load6 {
-        0% {
-          box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
-            0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
-        }
-        5%,
-        95% {
-          box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
-            0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
-        }
-        10%,
-        59% {
-          box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em,
-            -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em,
-            -0.297em -0.775em 0 -0.477em;
-        }
-        20% {
-          box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em,
-            -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em,
-            -0.749em -0.34em 0 -0.477em;
-        }
-        38% {
-          box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em,
-            -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em,
-            -0.82em -0.09em 0 -0.477em;
-        }
-        100% {
-          box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
-            0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
-        }
-      }
-      @keyframes load6 {
-        0% {
-          box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
-            0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
-        }
-        5%,
-        95% {
-          box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
-            0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
-        }
-        10%,
-        59% {
-          box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em,
-            -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em,
-            -0.297em -0.775em 0 -0.477em;
-        }
-        20% {
-          box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em,
-            -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em,
-            -0.749em -0.34em 0 -0.477em;
-        }
-        38% {
-          box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em,
-            -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em,
-            -0.82em -0.09em 0 -0.477em;
-        }
-        100% {
-          box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
-            0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
-        }
-      }
-      @-webkit-keyframes round {
-        0% {
-          -webkit-transform: rotate(0deg);
-          transform: rotate(0deg);
-        }
-        100% {
-          -webkit-transform: rotate(360deg);
-          transform: rotate(360deg);
-        }
-      }
-      @keyframes round {
-        0% {
-          -webkit-transform: rotate(0deg);
-          transform: rotate(0deg);
-        }
-        100% {
-          -webkit-transform: rotate(360deg);
-          transform: rotate(360deg);
-        }
+    }
+
+    @keyframes open {
+      from {
+        transform: rotate(0);
       }
 
-      .case {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        margin-bottom: 1rem;
+      to {
+        transform: rotate(-90deg);
       }
-      .title {
+    }
+
+    @keyframes up {
+      from {
+        height: 5rem;
         display: flex;
-        flex-direction: row;
-        align-items: center;
-        margin-bottom: 0.5rem;
       }
-      .modlog-id {
+
+      to {
+        height: 0rem;
         display: none;
       }
-      .modlog-action {
-        font-size: 1.2rem;
-        margin-top: 0;
-        margin-bottom: 0;
-        margin-left: 39%;
-      }
-      .modlog-date {
-        color: #72767d;
-        margin-top: 0;
-        margin-left: 1rem;
-        margin-bottom: 0;
-      }
-      .delete-button {
-        margin-left: auto;
-        margin-right: 1rem;
-        cursor: pointer;
-        width: 80px;
-        height: 30px;
-      }
-      .confirm {
-        display: flex;
-        width: 80px;
-        margin-bottom: 0rem;
-        justify-content: center;
-        cursor: auto;
-      }
-      .confirm-delete {
-        font-size: 1.4rem;
-        margin: 0 0.25rem;
-        color: #f04747;
-        cursor: pointer;
-        user-select: none;
-      }
-      .confirm-cancel {
-        font-size: 1.4rem;
-        margin: 0 0.25rem;
-        color: cyan;
-        cursor: pointer;
-        user-select: none;
-      }
-      .icon {
-        position: relative;
-        transform: translateY(-25px);
-        background-color: #2c2f33;
-      }
-      .lid {
-        transform-origin: center;
-      }
-      .inner {
-        display: flex;
-        margin: 0 2rem;
-        border-bottom: 1px dashed white;
-      }
-      .reason {
-        margin: 1rem;
-      }
-      .mod {
-        margin-left: auto;
-        border-left: 1px white dashed;
-        margin-left: auto;
-        margin-top: 0;
-        margin-bottom: 0;
-        padding-top: auto;
-        padding: 1rem;
-        max-width: 10%;
-        width: 100%;
-      }
-      .search-button:focus {
-        outline: none !important;
-      }
-      .search-button {
-        background-color: #7289da;
-        color: black;
-      }
-      .search-button:hover {
-        background-color: #2c2f33;
-        color: white;
-      }
-      .search-button:active {
-        background-color: white;
-        color: black;
-      }
-      .navbar {
-        width: 100%;
-        background-color: #23272a;
-        max-height: 75px;
-        height: 75px;
-        display: flex;
-        align-items: center;
-      }
-
-      button[type="footer-buttons"] {
-        color: white;
-        background-color: #7289da;
-        padding: 10px;
-        border-radius: 50px;
-        border: none;
-        outline: none;
-        display: inline;
-      }
-
-      div[class="header"] {
-        position: sticky;
-        margin: 0 auto;
-        top: 0px;
-        background-color: #2c2f33;
-        width: 100%;
-        padding: 0.25px;
-        color: white;
-        text-align: left;
-        vertical-align: center;
-      }
-
-      p[type="text"] {
-        color: #36393f;
-        font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
-      }
-
-      div[class="footer"] {
-        text-align: center;
-        align-items: center;
-      }
-
-      img[class="footer-image"] {
-        width: 25px;
-        height: 25px;
-        vertical-align: middle;
-      }
-
-      div[class="footer"] {
-        position: relative;
-        margin: 0 auto;
-        background-color: #2c2f33;
-        width: 100%;
-        padding: 2px;
-        color: white;
-      }
-
-      form {
-        margin-left: auto;
-        margin-right: 2.3rem;
-        font-size: 1.2rem;
-        color: white;
-        text-decoration: none;
-        align-items: right;
-      }
-
-      button[type="view"] {
-        background-color: #36393f;
-        font-size: 1.2rem;
-        padding: 0.8rem 1.2rem;
-        color: white;
-        text-decoration: none;
-        border: none;
-        outline: none;
-        border-radius: 50px;
-        cursor: pointer;
-        margin-left: auto;
-        margin-right: 1rem;
-        font-size: 1.2rem;
-        color: white;
-        text-decoration: none;
-        align-items: right;
-        font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
-      }
-
-      button:hover {
-        background-color: #7289da;
-      }
-
-      .modlogs-container {
-        display: flex;
-        max-width: 1100px;
-        justify-content: center;
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-        margin: auto;
-      }
-
-      h1 {
-        text-align: center;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-          "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-          "Helvetica Neue", sans-serif;
-        color: white;
-      }
-
-      body {
-        background-image: url("https://cdn.discordapp.com/attachments/592463507124125706/773703822995488778/rsz_background.png");
-        text-align: center;
-        overflow-x: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-          "Segoe UI Symbol";
-      }
-
-      div[class="box"] {
-        display: flex;
-        margin-top: 1rem;
-        color: white;
-        margin-left: 1rem;
-        background-color: #2c2f33;
-        border-radius: 35px;
-        width: 100%;
-        align-items: baseline;
-        flex-direction: column;
-        height: 80px;
-        overflow: hidden;
-      }
-
-      img {
-        margin-left: 0.75rem;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        overflow: hidden;
-        cursor: pointer;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-        -webkit-box-flex: 0;
-        -ms-flex: 0 0 auto;
-        flex: 0 0 auto;
-        pointer-events: none;
-      }
-    </style>
-    <title>Modlogs</title>
-  </head>
-
-  <!--Create alert script-->
-  <script>
-    function createAlert(title, message) {
-      var elm = document.getElementById("alert");
-      elm.style.display = "block";
-
-      elm.innerHTML =
-        '<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span><strong>' +
-        title +
-        "</strong> " +
-        message;
-
-      elm.animate(
-        [
-          {
-            opacity: 0,
-          },
-          {
-            opacity: 1,
-          },
-        ],
-        {
-          duration: 350,
-          easing: "ease-in-out",
-          direction: "alternate",
-          delay: 0,
-          iterations: 1,
-          fill: "forwards",
-        }
-      );
     }
-  </script>
-  <style>
-    .alert {
-      opacity: 0;
+
+    @keyframes down {
+      from {
+        height: 0rem;
+        display: none;
+      }
+
+      to {
+        height: 5rem;
+        display: flex;
+      }
+    }
+
+    .logout-up {
+      animation: up 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+    }
+
+    .logout-down {
+      animation: down 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+    }
+
+    .gui-closed {
+      animation: close 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+      transform: rotate(0);
+    }
+
+    .gui-open {
+      animation: open 0.25s ease-in-out 0s 1 alternate-reverse forwards;
+      transform: rotate(-90deg);
+    }
+
+    .loader {
+      color: #ffffff;
+      font-size: 90px;
+      text-indent: -9999em;
+      overflow: hidden;
+      width: 1em;
+      height: 1em;
+      z-index: 40;
+      border-radius: 50%;
+      margin: 72px auto;
+      position: relative;
+      -webkit-transform: translateZ(0);
+      -ms-transform: translateZ(0);
+      transform: translateZ(0);
+      -webkit-animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+      animation: load6 1.7s infinite ease, round 1.7s infinite ease;
+    }
+
+    @-webkit-keyframes load6 {
+      0% {
+        box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
+          0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+      }
+
+      5%,
+      95% {
+        box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
+          0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+      }
+
+      10%,
+      59% {
+        box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em,
+          -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em,
+          -0.297em -0.775em 0 -0.477em;
+      }
+
+      20% {
+        box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em,
+          -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em,
+          -0.749em -0.34em 0 -0.477em;
+      }
+
+      38% {
+        box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em,
+          -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em,
+          -0.82em -0.09em 0 -0.477em;
+      }
+
+      100% {
+        box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
+          0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+      }
+    }
+
+    @keyframes load6 {
+      0% {
+        box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
+          0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+      }
+
+      5%,
+      95% {
+        box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
+          0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+      }
+
+      10%,
+      59% {
+        box-shadow: 0 -0.83em 0 -0.4em, -0.087em -0.825em 0 -0.42em,
+          -0.173em -0.812em 0 -0.44em, -0.256em -0.789em 0 -0.46em,
+          -0.297em -0.775em 0 -0.477em;
+      }
+
+      20% {
+        box-shadow: 0 -0.83em 0 -0.4em, -0.338em -0.758em 0 -0.42em,
+          -0.555em -0.617em 0 -0.44em, -0.671em -0.488em 0 -0.46em,
+          -0.749em -0.34em 0 -0.477em;
+      }
+
+      38% {
+        box-shadow: 0 -0.83em 0 -0.4em, -0.377em -0.74em 0 -0.42em,
+          -0.645em -0.522em 0 -0.44em, -0.775em -0.297em 0 -0.46em,
+          -0.82em -0.09em 0 -0.477em;
+      }
+
+      100% {
+        box-shadow: 0 -0.83em 0 -0.4em, 0 -0.83em 0 -0.42em,
+          0 -0.83em 0 -0.44em, 0 -0.83em 0 -0.46em, 0 -0.83em 0 -0.477em;
+      }
+    }
+
+    @-webkit-keyframes round {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes round {
+      0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+    }
+
+    .case {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .title {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .modlog-id {
       display: none;
-      position: absolute;
-      top: 10px;
-      left: 30%;
-      right: 30%;
-      width: 40%;
-      padding: 20px;
-      z-index: 4;
-      background-color: #f44336;
-      color: white;
     }
 
-    .closebtn {
-      margin-left: 15px;
-      color: white;
-      font-weight: bold;
-      float: right;
-      font-size: 22px;
-      line-height: 20px;
+    .modlog-action {
+      font-size: 1.2rem;
+      margin-top: 0;
+      margin-bottom: 0;
+      margin-left: 39%;
+    }
+
+    .modlog-date {
+      color: #72767d;
+      margin-top: 0;
+      margin-left: 1rem;
+      margin-bottom: 0;
+    }
+
+    .delete-button {
+      margin-left: auto;
+      margin-right: 1rem;
       cursor: pointer;
-      transition: 0.3s;
+      width: 80px;
+      height: 30px;
     }
 
-    .closebtn:hover {
+    .confirm {
+      display: flex;
+      width: 80px;
+      margin-bottom: 0rem;
+      justify-content: center;
+      cursor: auto;
+    }
+
+    .confirm-delete {
+      font-size: 1.4rem;
+      margin: 0 0.25rem;
+      color: #f04747;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .confirm-cancel {
+      font-size: 1.4rem;
+      margin: 0 0.25rem;
+      color: cyan;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .icon {
+      position: relative;
+      transform: translateY(-25px);
+      background-color: #2c2f33;
+    }
+
+    .lid {
+      transform-origin: center;
+    }
+
+    .inner {
+      display: flex;
+      margin: 0 2rem;
+      border-bottom: 1px dashed white;
+    }
+
+    .reason {
+      margin: 1rem;
+    }
+
+    .mod {
+      margin-left: auto;
+      border-left: 1px white dashed;
+      margin-left: auto;
+      margin-top: 0;
+      margin-bottom: 0;
+      padding-top: auto;
+      padding: 1rem;
+      max-width: 10%;
+      width: 100%;
+    }
+
+    .search-button:focus {
+      outline: none !important;
+    }
+
+    .search-button {
+      background-color: #7289da;
       color: black;
     }
-  </style>
-  <!--Close alert script-->
-  <script>
-    function closeAlert(element) {
-      element.parentElement.style.display = "none";
+
+    .search-button:hover {
+      background-color: #2c2f33;
+      color: white;
     }
-  </script>
-  <!--Start/Stop loader and search scripts-->
-  <script>
-    function startLoader() {
-      document.getElementById("search").style.display = "none";
-      const element = document.getElementById("search-div");
-      element.className = "loader";
-      element.style.fontSize = "2rem";
-      const button = document.getElementsByClassName("search-button")[0];
+
+    .search-button:active {
+      background-color: white;
+      color: black;
+    }
+
+    .navbar {
+      width: 100%;
+      background-color: #23272a;
+      max-height: 75px;
+      height: 75px;
+      display: flex;
+      align-items: center;
+    }
+
+    button[type="footer-buttons"] {
+      color: white;
+      background-color: #7289da;
+      padding: 10px;
+      border-radius: 50px;
+      border: none;
+      outline: none;
+      display: inline;
+    }
+
+    div[class="header"] {
+      position: sticky;
+      margin: 0 auto;
+      top: 0px;
+      background-color: #2c2f33;
+      width: 100%;
+      padding: 0.25px;
+      color: white;
+      text-align: left;
+      vertical-align: center;
+    }
+
+    p[type="text"] {
+      color: #36393f;
+      font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+    }
+
+    div[class="footer"] {
+      text-align: center;
+      align-items: center;
+    }
+
+    img[class="footer-image"] {
+      width: 25px;
+      height: 25px;
+      vertical-align: middle;
+    }
+
+    div[class="footer"] {
+      position: relative;
+      margin: 0 auto;
+      background-color: #2c2f33;
+      width: 100%;
+      padding: 2px;
+      color: white;
+    }
+
+    form {
+      margin-left: auto;
+      margin-right: 2.3rem;
+      font-size: 1.2rem;
+      color: white;
+      text-decoration: none;
+      align-items: right;
+    }
+
+    button[type="view"] {
+      background-color: #36393f;
+      font-size: 1.2rem;
+      padding: 0.8rem 1.2rem;
+      color: white;
+      text-decoration: none;
+      border: none;
+      outline: none;
+      border-radius: 50px;
+      cursor: pointer;
+      margin-left: auto;
+      margin-right: 1rem;
+      font-size: 1.2rem;
+      color: white;
+      text-decoration: none;
+      align-items: right;
+      font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+    }
+
+    button:hover {
+      background-color: #7289da;
+    }
+
+    .modlogs-container {
+      display: flex;
+      max-width: 1100px;
+      justify-content: center;
+      flex-direction: column;
+      width: 100%;
+      align-items: center;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+      color: white;
+    }
+
+    body {
+      background-image: url("https://cdn.discordapp.com/attachments/592463507124125706/773703822995488778/rsz_background.png");
+      text-align: center;
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+        "Segoe UI Symbol";
+    }
+
+    div[class="box"] {
+      display: flex;
+      margin-top: 1rem;
+      color: white;
+      margin-left: 1rem;
+      background-color: #2c2f33;
+      border-radius: 35px;
+      width: 100%;
+      align-items: baseline;
+      flex-direction: column;
+      height: 80px;
+      overflow: hidden;
+    }
+
+    img {
+      margin-left: 0.75rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      overflow: hidden;
+      cursor: pointer;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-box-flex: 0;
+      -ms-flex: 0 0 auto;
+      flex: 0 0 auto;
+      pointer-events: none;
+    }
+  </style>
+  <title>Modlogs</title>
+</head>
+
+<!--Create alert script-->
+<script>
+  function createAlert(title, message) {
+    var elm = document.getElementById("alert");
+    elm.style.display = "block";
+
+    elm.innerHTML =
+      '<span class="closebtn" onclick="this.parentElement.style.display=\'none\';">&times;</span><strong>' +
+      title +
+      "</strong> " +
+      message;
+
+    elm.animate(
+      [
+        {
+          opacity: 0,
+        },
+        {
+          opacity: 1,
+        },
+      ],
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+  }
+</script>
+<style>
+  .alert {
+    opacity: 0;
+    display: none;
+    position: absolute;
+    top: 10px;
+    left: 30%;
+    right: 30%;
+    width: 40%;
+    padding: 20px;
+    z-index: 4;
+    background-color: #f44336;
+    color: white;
+  }
+
+  .closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .closebtn:hover {
+    color: black;
+  }
+</style>
+<!--Close alert script-->
+<script>
+  function closeAlert(element) {
+    element.parentElement.style.display = "none";
+  }
+</script>
+<!--Start/Stop loader and search scripts-->
+<script>
+  function startLoader() {
+    document.getElementById("search").style.display = "none";
+    const element = document.getElementById("search-div");
+    element.className = "loader";
+    element.style.fontSize = "2rem";
+    const button = document.getElementsByClassName("search-button")[0];
+    button.style.display = "none";
+  }
+  function stopLoader() {
+    const element = document.getElementById("search-div");
+    element.className = "searchbox";
+    document.getElementById("search").style.display = "block";
+    const button = document.getElementsByClassName("search-button")[0];
+    button.display = "block";
+  }
+
+  let currentValue = "";
+  function handleChange(value, element) {
+    const button = element.parentElement.getElementsByClassName(
+      "search-button"
+    )[0];
+
+    if (value != currentValue) {
+      button.style.display = "block";
+    } else {
       button.style.display = "none";
     }
-    function stopLoader() {
-      const element = document.getElementById("search-div");
-      element.className = "searchbox";
-      document.getElementById("search").style.display = "block";
-      const button = document.getElementsByClassName("search-button")[0];
-      button.display = "block";
-    }
+  }
+  async function handleSubmit(value, element) {
+    // Set the button to a loading circle
+    startLoader();
 
-    let currentValue = "";
-    function handleChange(value, element) {
-      const button = element.parentElement.getElementsByClassName(
-        "search-button"
-      )[0];
+    // Create out request
+    let url = `/apprentice/v1/modlogs?q=${encodeURIComponent(value)}`;
+    const resp = await fetch(url, {
+      method: "GET",
+    });
 
-      if (value != currentValue) {
-        button.style.display = "block";
-      } else {
-        button.style.display = "none";
-      }
-    }
-    async function handleSubmit(value, element) {
-      // Set the button to a loading circle
-      startLoader();
-
-      // Create out request
-      let url = `/apprentice/v1/modlogs?q=${encodeURIComponent(value)}`;
-      const resp = await fetch(url, {
-        method: "GET",
-      });
-
-      // Make sure the resp is a 200
-      if (resp.status == 401 || resp.status == 403) {
-        // Bad credentials :/
-        location.reload();
-        stopLoader();
-        return;
-      } else if (resp.status != 200) {
-        stopLoader();
-        createAlert(
-          "Yikes",
-          "Somthing bad happened, tell quin that the API returned a " +
-            resp.status +
-            " on a search query. Thanks!"
-        );
-        return;
-      }
-
-      currentValue = value;
+    // Make sure the resp is a 200
+    if (resp.status == 401 || resp.status == 403) {
+      // Bad credentials :/
+      location.reload();
       stopLoader();
-
-      // Response should be just lists of boxes, so set the inner html to that
-      const container = document.getElementsByClassName("modlogs-container")[0];
-      container.innerHTML = await resp.text();
+      return;
+    } else if (resp.status != 200) {
+      stopLoader();
+      createAlert(
+        "Yikes",
+        "Somthing bad happened, tell quin that the API returned a " +
+        resp.status +
+        " on a search query. Thanks!"
+      );
+      return;
     }
-  </script>
-  <!--Dropdown animation scripts-->
-  <script>
-    function convertRemToPixels(rem) {
-      return (
-        rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
+
+    currentValue = value;
+    stopLoader();
+
+    // Response should be just lists of boxes, so set the inner html to that
+    const container = document.getElementsByClassName("modlogs-container")[0];
+    container.innerHTML = await resp.text();
+  }
+</script>
+<!--Dropdown animation scripts-->
+<script>
+  function convertRemToPixels(rem) {
+    return (
+      rem * parseFloat(getComputedStyle(document.documentElement).fontSize)
+    );
+  }
+  function convertPixelsToRem(px) {
+    return (
+      px / parseFloat(getComputedStyle(document.documentElement).fontSize)
+    );
+  }
+  function dropDown(sender) {
+    const element = sender.parentElement.parentElement;
+    const button = element.getElementsByClassName("dropdown-button")[0];
+    const cases = element.getElementsByClassName("case");
+    const modlogsContent = element.getElementsByClassName(
+      "modlogs-content"
+    )[0];
+
+    if (button.innerHTML.includes("View")) {
+      button.innerHTML = "Close";
+
+      const padding = cases.length > 0 ? 10 : 0;
+      console.log(padding);
+      const dHeight = modlogsContent.offsetHeight + padding;
+
+      // modlogsContent.animate(
+      //   {
+      //     marginTop:
+      //       convertPixelsToRem(dHeight) + convertPixelsToRem(75) + "rem",
+      //     paddingTop: convertPixelsToRem(75) + "rem",
+      //     height: dHeight + 75 + "px",
+      //   },
+      //   {
+      //     duration: 500,
+      //     easing: "ease-in-out",
+      //     direction: "alternate",
+      //     delay: 0,
+      //     iterations: 1,
+      //     fill: "forwards",
+      //   }
+      // );
+
+      element.animate(
+        {
+          height: dHeight + 80 + "px",
+          // marginBottom:
+          //   convertPixelsToRem(dHeight) + convertPixelsToRem(75) + "rem",
+        },
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
+      );
+    } else {
+      button.innerHTML = "View";
+
+      // modlogsContent.animate(
+      //   {
+      //     marginTop: "0rem",
+      //     paddingTop: "0rem",
+      //     height: "75px",
+      //   },
+      //   {
+      //     duration: 500,
+      //     easing: "ease-in-out",
+      //     direction: "alternate",
+      //     delay: 0,
+      //     iterations: 1,
+      //     fill: "forwards",
+      //   }
+      // );
+
+      element.animate(
+        {
+          height: 80 + "px",
+          // marginBottom: "0rem",
+        },
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
       );
     }
-    function convertPixelsToRem(px) {
-      return (
-        px / parseFloat(getComputedStyle(document.documentElement).fontSize)
+  }
+</script>
+<!--Swissbot websocket scripts-->
+<script>
+  // The list of events we want to receive
+  const swissbotEvents = ["modlog.added", "modlog.removed"];
+
+  function getCookie(name) {
+    return (name = (document.cookie + ';').match(new RegExp(name + '=.*;'))) && name[0].split(/=|;/)[1];
+  }
+
+  // This script will handle the Swissbot websocket protocol:
+  function connect() {
+    let socket = new WebSocket(
+      "wss://api.swissdev.team/apprentice/v1/socket"
+    );
+
+    socket.onopen = function (event) {
+      console.log("[ OPENED ] - Opened Websocket! sending handshake...");
+
+      socket.send(
+        JSON.stringify({
+          session: getCookie("csSessionID"),
+          page: location.pathname,
+          type: "handshake",
+          events: swissbotEvents,
+        })
       );
-    }
-    function dropDown(sender) {
-      const element = sender.parentElement.parentElement;
-      const button = element.getElementsByClassName("dropdown-button")[0];
-      const cases = element.getElementsByClassName("case");
-      const modlogsContent = element.getElementsByClassName(
-        "modlogs-content"
-      )[0];
+    };
 
-      if (button.innerHTML.includes("View")) {
-        button.innerHTML = "Close";
-
-        const padding = cases.length > 0 ? 10 : 0;
-        console.log(padding);
-        const dHeight = modlogsContent.offsetHeight + padding;
-
-        // modlogsContent.animate(
-        //   {
-        //     marginTop:
-        //       convertPixelsToRem(dHeight) + convertPixelsToRem(75) + "rem",
-        //     paddingTop: convertPixelsToRem(75) + "rem",
-        //     height: dHeight + 75 + "px",
-        //   },
-        //   {
-        //     duration: 500,
-        //     easing: "ease-in-out",
-        //     direction: "alternate",
-        //     delay: 0,
-        //     iterations: 1,
-        //     fill: "forwards",
-        //   }
-        // );
-
-        element.animate(
-          {
-            height: dHeight + 80 + "px",
-            // marginBottom:
-            //   convertPixelsToRem(dHeight) + convertPixelsToRem(75) + "rem",
-          },
-          {
-            duration: 500,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-      } else {
-        button.innerHTML = "View";
-
-        // modlogsContent.animate(
-        //   {
-        //     marginTop: "0rem",
-        //     paddingTop: "0rem",
-        //     height: "75px",
-        //   },
-        //   {
-        //     duration: 500,
-        //     easing: "ease-in-out",
-        //     direction: "alternate",
-        //     delay: 0,
-        //     iterations: 1,
-        //     fill: "forwards",
-        //   }
-        // );
-
-        element.animate(
-          {
-            height: 80 + "px",
-            // marginBottom: "0rem",
-          },
-          {
-            duration: 500,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-      }
-    }
-  </script>
-  <!--Swissbot websocket scripts-->
-  <script>
-    // The list of events we want to receive
-    const swissbotEvents = ["modlog.added", "modlog.removed"];
-
-    // This script will handle the Swissbot websocket protocol:
-    function connect() {
-      let socket = new WebSocket(
-        "wss://api.swissdev.team/apprentice/v1/socket"
+    socket.onclose = function (event) {
+      const state = event.wasClean ? "Cleanly" : "Forcibly";
+      console.log(
+        "[ CLOSED ] - Socket closed " + state + ": Code: " + event.code
       );
 
-      socket.onopen = function (event) {
-        console.log("[ OPENED ] - Opened Websocket! sending handshake...");
+      setTimeout(() => {
+        console.log("[ SOCKET ] - Reconnecting...");
+        connect();
+      }, 5000);
+    };
 
-        socket.send(
-          JSON.stringify({
-            session: document.cookie,
-            page: location.pathname,
-            type: "handshake",
-            events: swissbotEvents,
-          })
-        );
-      };
+    socket.onerror = function (error) {
+      console.log("[ ERROR ] - Got websocket error: " + error.message);
+      console.error(error);
+    };
+    socket.onmessage = async function (event) {
+      console.log("[ MESSAGE ] - Message received: ");
+      // This function will be responsible for handling events
+      const content = JSON.parse(event.data);
 
-      socket.onclose = function (event) {
-        const state = event.wasClean ? "Cleanly" : "Forcibly";
-        console.log(
-          "[ CLOSED ] - Socket closed " + state + ": Code: " + event.code
-        );
+      console.log(content);
 
-        setTimeout(() => {
-          console.log("[ SOCKET ] - Reconnecting...");
-          connect();
-        }, 5000);
-      };
-
-      socket.onerror = function (error) {
-        console.log("[ ERROR ] - Got websocket error: " + error.message);
-        console.error(error);
-      };
-      socket.onmessage = async function (event) {
-        console.log("[ MESSAGE ] - Message received: ");
-        // This function will be responsible for handling events
-        const content = JSON.parse(event.data);
-
-        console.log(content);
-
-        switch (content.type) {
-          case "handshake_accept":
+      switch (content.type) {
+        case "handshake_accept":
+          console.log(
+            `Handshake with the server accepted : ${content.status}`
+          );
+          break;
+        case "modlog.added":
+          console.log("Modlog was added");
+          const log = await getModlogsForUser(content.data.userId);
+          insertLog(log, content.data);
+          console.log("Inserted Element!");
+          break;
+        case "modlog.removed":
+          // TODO: add molog removed handler
+          if (myDeleted.indexOf(content.data.infracId) === -1) {
+            console.log("Modlog was removed");
+            const logItem = await getModlogsForUser(content.data.userId);
+            updateCase(logItem, content.data.userId);
+          } else {
             console.log(
-              `Handshake with the server accepted : ${content.status}`
+              "[ MODLOGS ] - Confirmed deletion of " + content.data.infracId
             );
-            break;
-          case "modlog.added":
-            console.log("Modlog was added");
-            const log = await getModlogsForUser(content.data.userId);
-            insertLog(log, content.data);
-            console.log("Inserted Element!");
-            break;
-          case "modlog.removed":
-            // TODO: add molog removed handler
-            if (myDeleted.indexOf(content.data.infracId) === -1) {
-              console.log("Modlog was removed");
-              const logItem = await getModlogsForUser(content.data.userId);
-              updateCase(logItem, content.data.userId);
-            } else {
-              console.log(
-                "[ MODLOGS ] - Confirmed deletion of " + content.data.infracId
-              );
-            }
-            break;
-        }
-      };
-    }
-    connect();
-  </script>
-
-  <!--Popup, delete logs, get modlogs for user, and load more scripts-->
-  <script>
-    function updateCase(log, userId) {
-      const container = document.getElementsByClassName("modlogs-container")[0];
-      const arr = [...container.getElementsByClassName("box")];
-
-      if (arr.filter((x) => x.innerHTML.includes(userId)).length === 0) {
-        return;
+          }
+          break;
       }
+    };
+  }
+  connect();
+</script>
 
-      const element = arr.find((x) => x.innerHTML.includes(userId));
+<!--Popup, delete logs, get modlogs for user, and load more scripts-->
+<script>
+  function updateCase(log, userId) {
+    const container = document.getElementsByClassName("modlogs-container")[0];
+    const arr = [...container.getElementsByClassName("box")];
 
-      // Convert the log to a child node
-      const tempdiv = document.createElement("div");
-      tempdiv.innerHTML = log;
-      const logElement = tempdiv.firstChild;
-
-      // figure out what modlogs were removed
-      const cases = element.getElementsByClassName("case");
-      const caseArr = [...cases];
-
-      const newCases = logElement.getElementsByClassName("case");
-      const newCaseArr = [...newCases];
-
-      const missingCases = caseArr.filter(function (obj) {
-        return (
-          newCaseArr.filter((x) =>
-            x.innerHTML.includes(
-              obj.getElementsByClassName("modlog-id")[0].innerHTML
-            )
-          ).length == 0
-        );
-      });
-
-      console.log(missingCases);
-
-      missingCases.forEach(function (obj) {
-        const newHeight =
-          obj.parentElement.offsetHeight -
-          convertRemToPixels(convertPixelsToRem(obj.offsetHeight) + 1);
-
-        obj.animate(
-          {
-            transform: "translateX(" + obj.offsetWidth + "px)",
-          },
-          {
-            duration: 350,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-        obj.animate(
-          [
-            {
-              height: obj.offsetHeight + "px",
-              marginBottom: obj.style.marginBottom,
-            },
-            {
-              height: "0px",
-              marginBottom: "0rem",
-            },
-          ],
-          {
-            duration: 350,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 300,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-
-        if (
-          element.getElementsByClassName("dropdown-button")[0].innerHTML ===
-          "Close"
-        ) {
-          element.animate(
-            {
-              height: newHeight + 80 + "px",
-            },
-            {
-              duration: 350,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 300,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-        }
-
-        setTimeout(() => {
-          const parent = obj.parentElement;
-          obj.parentNode.removeChild(obj);
-
-          if (parent.getElementsByClassName("case").length == 0) {
-            // Remove the log item
-            console.log("removing parent");
-            parent.parentElement.animate(
-              {
-                width: "0rem",
-                marginTop: 0,
-              },
-              {
-                duration: 300,
-                easing: "ease-in-out",
-                direction: "alternate",
-                delay: 0,
-                iterations: 1,
-                fill: "forwards",
-              }
-            );
-
-            setTimeout(() => {
-              parent.parentNode.removeChild(parent);
-            }, 300);
-          }
-        }, 650);
-      });
+    if (arr.filter((x) => x.innerHTML.includes(userId)).length === 0) {
+      return;
     }
 
-    function getStyles(element) {
-      return window.getComputedStyle(element);
-    }
+    const element = arr.find((x) => x.innerHTML.includes(userId));
 
-    function insertLog(log, data) {
-      let boxes = document.getElementsByClassName("box");
-      const container = document.getElementsByClassName("modlogs-container")[0];
-      const arr = [...boxes];
-      // Find our first log in the dom
+    // Convert the log to a child node
+    const tempdiv = document.createElement("div");
+    tempdiv.innerHTML = log;
+    const logElement = tempdiv.firstChild;
 
-      let timeoutAmmount = 0;
-      if (arr.filter((e) => e.innerHTML.includes(data.userId)).length > 0) {
-        timeoutAmmount = 700;
-        var element = arr.find((e) => e.innerHTML.includes(data.userId));
+    // figure out what modlogs were removed
+    const cases = element.getElementsByClassName("case");
+    const caseArr = [...cases];
 
-        element.animate(
-          {
-            width: "0rem",
-          },
-          {
-            duration: 300,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
+    const newCases = logElement.getElementsByClassName("case");
+    const newCaseArr = [...newCases];
 
-        setTimeout(() => {
-          element.animate(
-            {
-              height: 0,
-              marginTop: 0,
-            },
-            {
-              duration: 300,
-              easing: "ease-in-out",
-              direction: "alternate",
-              delay: 0,
-              iterations: 1,
-              fill: "forwards",
-            }
-          );
-          setTimeout(() => {
-            container.removeChild(element);
-          }, 300);
-        }, 300);
-      }
-      setTimeout(() => {
-        const first = boxes[0];
-
-        const top = parseInt(getStyles(first).marginTop);
-
-        const destHeight = first.offsetHeight + top;
-
-        const tempdiv = document.createElement("div");
-        tempdiv.innerHTML = log;
-
-        const logElement = tempdiv.firstChild;
-
-        logElement.style.marginBottom = `-${destHeight}px`;
-        container.insertBefore(logElement, first);
-
-        logElement.animate(
-          [
-            {
-              marginBottom: `-${destHeight}px`,
-            },
-            {
-              marginBottom: "0px",
-            },
-          ],
-          {
-            duration: 750,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-            fill: "forwards",
-          }
-        );
-      }, timeoutAmmount);
-    }
-
-    async function getModlogsForUser(userId) {
-      // Create our request
-      const resp = await fetch(
-        `/apprentice/v1/modlogs?id=${encodeURIComponent(userId)}`
+    const missingCases = caseArr.filter(function (obj) {
+      return (
+        newCaseArr.filter((x) =>
+          x.innerHTML.includes(
+            obj.getElementsByClassName("modlog-id")[0].innerHTML
+          )
+        ).length == 0
       );
+    });
 
-      if (resp.status == 400) {
-        createAlert(
-          "Error",
-          "An error occured fetching modlogs with this id: " + userId
-        );
-        return;
-      } else if (resp.status == 404) {
-        console.log(
-          "Failed to get modlogs for " +
-            userId +
-            ", Server responded with a 404"
-        );
-        return;
-      } else if (resp.status != 200) {
-        createAlert(
-          "Uh oh",
-          "Let quin know that a fetch for " +
-            userId +
-            "'s modlogs returned a " +
-            resp.status
-        );
-        return;
-      }
+    console.log(missingCases);
 
-      const content = await resp.text();
-      return content;
-    }
-
-    function hidePopup(element) {
-      const deleteBox = element.parentElement.parentElement;
-      const lid = deleteBox.getElementsByClassName("lid")[0];
-      const confirm = deleteBox.getElementsByClassName("confirm")[0];
-
-      confirm.animate(
-        {
-          marginBottom: "0rem",
-        },
-        {
-          duration: 350,
-          easing: "ease-in-out",
-          direction: "alternate",
-          delay: 0,
-          iterations: 1,
-          fill: "forwards",
-        }
-      );
-      lid.animate(
-        {
-          transform: "rotate(0deg) translate(0px, 0px)",
-        },
-        {
-          duration: 350,
-          easing: "ease-in-out",
-          direction: "alternate",
-          delay: 0,
-          iterations: 1,
-          fill: "forwards",
-        }
-      );
-      setTimeout(() => {
-        deleteBox.style.cursor = "pointer";
-      }, 100);
-    }
-    function togglePopup(element) {
-      if (element.style.cursor == "auto") {
-        return;
-      }
-      const lid = element.getElementsByClassName("lid")[0];
-      const confirm = element.getElementsByClassName("confirm")[0];
-      element.style.cursor = "auto";
-
-      confirm.animate(
-        {
-          marginBottom: "1.4rem",
-        },
-        {
-          duration: 350,
-          easing: "ease-in-out",
-          direction: "alternate",
-          delay: 0,
-          iterations: 1,
-          fill: "forwards",
-        }
-      );
-      lid.animate(
-        {
-          transform: "rotate(-180deg) translate(18px, 12px)",
-        },
-        {
-          duration: 350,
-          easing: "ease-in-out",
-          direction: "alternate",
-          delay: 0,
-          iterations: 1,
-          fill: "forwards",
-        }
-      );
-    }
-    let myDeleted = [];
-    function removeDeleted(id) {
-      const indx = myDeleted.indexOf(id);
-      if (indx > -1) {
-        myDeleted.splice(indx, 1);
-      }
-    }
-    async function deleteModlog(element) {
-      const caseItem =
-        element.parentElement.parentElement.parentElement.parentElement;
-
-      const modlog = caseItem.getElementsByClassName("modlog-id")[0].innerHTML;
-
-      const box = caseItem.parentElement.parentElement;
-
-      const uid = box.getElementsByClassName("id")[0].innerHTML;
-      element.className = "loader";
-      myDeleted.push(modlog);
-      console.log(`Sending over ${modlog} for ${uid}`);
-      // call the api
-      var resp = await fetch("/apprentice/v1/modlog", {
-        method: "DELETE",
-        body: JSON.stringify({
-          modlog: modlog,
-          uid: uid,
-        }),
-      });
-
-      if (resp.status == 401 || resp.status == 403) {
-        removeDeleted(modlog);
-        location.reload();
-        return;
-      } else if (resp.status == 429) {
-        removeDeleted(modlog);
-        caseItem.animate(
-          [
-            {
-              transform: "translateX(20px)",
-            },
-            {
-              transform: "translateX(-15px)",
-            },
-            {
-              transform: "translateX(10px)",
-            },
-            {
-              transform: "translateX(-5px)",
-            },
-            {
-              transform: "translateX(0px)",
-            },
-          ],
-          {
-            duration: 350,
-            easing: "ease-in-out",
-            direction: "alternate",
-            delay: 0,
-            iterations: 1,
-          }
-        );
-        createAlert("Hey!", "You can only delete 3 modlogs every 15 seconds!");
-        element.className = undefined;
-        return;
-      } else if (resp.status == 404) {
-        removeDeleted(modlog);
-        createAlert(
-          "Uhh",
-          "The requested modlog couldn't be found, it might have been deleted already or the code is big broke, we're just gonna assume its gone :/"
-        );
-      } else if (resp.status == 400) {
-        removeDeleted(modlog);
-        createAlert("Uhm", "Somthing went wrong. Please contact quin asap");
-        element.className = undefined;
-        return;
-      } else if (resp.status != 200) {
-        removeDeleted(modlog);
-        createAlert(
-          "Yikes",
-          "Please let quin know that the delete failed with a " + resp.status
-        );
-        element.className = undefined;
-
-        return;
-      }
-
-      element.className = undefined;
-
+    missingCases.forEach(function (obj) {
       const newHeight =
-        caseItem.parentElement.offsetHeight -
-        convertRemToPixels(convertPixelsToRem(caseItem.offsetHeight) + 1);
+        obj.parentElement.offsetHeight -
+        convertRemToPixels(convertPixelsToRem(obj.offsetHeight) + 1);
 
-      caseItem.animate(
+      obj.animate(
         {
-          transform: "translateX(-" + caseItem.offsetWidth + "px)",
+          transform: "translateX(" + obj.offsetWidth + "px)",
         },
         {
           duration: 350,
@@ -1123,11 +809,11 @@
           fill: "forwards",
         }
       );
-      caseItem.animate(
+      obj.animate(
         [
           {
-            height: caseItem.offsetHeight + "px",
-            marginBottom: caseItem.style.marginBottom,
+            height: obj.offsetHeight + "px",
+            marginBottom: obj.style.marginBottom,
           },
           {
             height: "0px",
@@ -1143,22 +829,29 @@
           fill: "forwards",
         }
       );
-      box.animate(
-        {
-          height: newHeight + 80 + "px",
-        },
-        {
-          duration: 350,
-          easing: "ease-in-out",
-          direction: "alternate",
-          delay: 300,
-          iterations: 1,
-          fill: "forwards",
-        }
-      );
+
+      if (
+        element.getElementsByClassName("dropdown-button")[0].innerHTML ===
+        "Close"
+      ) {
+        element.animate(
+          {
+            height: newHeight + 80 + "px",
+          },
+          {
+            duration: 350,
+            easing: "ease-in-out",
+            direction: "alternate",
+            delay: 300,
+            iterations: 1,
+            fill: "forwards",
+          }
+        );
+      }
+
       setTimeout(() => {
-        const parent = caseItem.parentElement;
-        caseItem.parentNode.removeChild(caseItem);
+        const parent = obj.parentElement;
+        obj.parentNode.removeChild(obj);
 
         if (parent.getElementsByClassName("case").length == 0) {
           // Remove the log item
@@ -1183,71 +876,84 @@
           }, 300);
         }
       }, 650);
-    }
-    async function loadMore() {
-      // Get the current count of modlogs on screen
-      const count = document.getElementsByClassName("box").length;
+    });
+  }
 
-      // We want to fetch the next 25 modlogs
-      const desired = count + 25;
+  function getStyles(element) {
+    return window.getComputedStyle(element);
+  }
 
-      // Make the request
-      const resp = await fetch(
-        `/apprentice/v1/modlogs?f=${encodeURIComponent(
-          count
-        )}&t=${encodeURIComponent(desired)}`
+  function insertLog(log, data) {
+    let boxes = document.getElementsByClassName("box");
+    const container = document.getElementsByClassName("modlogs-container")[0];
+    const arr = [...boxes];
+    // Find our first log in the dom
+
+    let timeoutAmmount = 0;
+    if (arr.filter((e) => e.innerHTML.includes(data.userId)).length > 0) {
+      timeoutAmmount = 700;
+      var element = arr.find((e) => e.innerHTML.includes(data.userId));
+
+      element.animate(
+        {
+          width: "0rem",
+        },
+        {
+          duration: 300,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+          fill: "forwards",
+        }
       );
 
-      if (resp.status == 401 || resp.status == 403) {
-        // Bad credentials :/
-        location.reload();
-        stopLoader();
-        return;
-      } else if (resp.status != 200) {
-        stopLoader();
-        createAlert(
-          "Yikes",
-          "Somthing bad happened, tell quin that the API returned a " +
-            resp.status +
-            " on a search query. Thanks!"
-        );
-        return;
-      }
-
-      // Read the body
-      const modlogs = await resp.text();
-
-      // Add to our container
-      document.getElementsByClassName(
-        "modlogs-container"
-      )[0].innerHTML += modlogs;
-    }
-  </script>
-  <script>
-    let open = false;
-    function handleDropdown(element) {
-      const parent = element.parentElement;
-      const logoutLink = document.getElementById("logout");
-
-      let w = 0 + "px";
-
-      if (open == false) {
-        w = parent.offsetWidth + logoutLink.offsetWidth + 50 + "px";
-      } else {
-        w = parent.offsetWidth - logoutLink.offsetWidth - 50 + "px";
-      }
-
-      parent.animate(
-        [
+      setTimeout(() => {
+        element.animate(
           {
-            width: parent.offsetWidth + "px",
+            height: 0,
+            marginTop: 0,
           },
           {
-            width: w,
+            duration: 300,
+            easing: "ease-in-out",
+            direction: "alternate",
+            delay: 0,
+            iterations: 1,
+            fill: "forwards",
+          }
+        );
+        setTimeout(() => {
+          container.removeChild(element);
+        }, 300);
+      }, 300);
+    }
+    setTimeout(() => {
+      const first = boxes[0];
+
+      const top = parseInt(getStyles(first).marginTop);
+
+      const destHeight = first.offsetHeight + top;
+
+      const tempdiv = document.createElement("div");
+      tempdiv.innerHTML = log;
+
+      const logElement = tempdiv.firstChild;
+
+      logElement.style.marginBottom = `-${destHeight}px`;
+      container.insertBefore(logElement, first);
+
+      logElement.animate(
+        [
+          {
+            marginBottom: `-${destHeight}px`,
+          },
+          {
+            marginBottom: "0px",
           },
         ],
         {
-          duration: 250,
+          duration: 750,
           easing: "ease-in-out",
           direction: "alternate",
           delay: 0,
@@ -1255,86 +961,403 @@
           fill: "forwards",
         }
       );
-      element.animate(
+    }, timeoutAmmount);
+  }
+
+  async function getModlogsForUser(userId) {
+    // Create our request
+    const resp = await fetch(
+      `/apprentice/v1/modlogs?id=${encodeURIComponent(userId)}`
+    );
+
+    if (resp.status == 400) {
+      createAlert(
+        "Error",
+        "An error occured fetching modlogs with this id: " + userId
+      );
+      return;
+    } else if (resp.status == 404) {
+      console.log(
+        "Failed to get modlogs for " +
+        userId +
+        ", Server responded with a 404"
+      );
+      return;
+    } else if (resp.status != 200) {
+      createAlert(
+        "Uh oh",
+        "Let quin know that a fetch for " +
+        userId +
+        "'s modlogs returned a " +
+        resp.status
+      );
+      return;
+    }
+
+    const content = await resp.text();
+    return content;
+  }
+
+  function hidePopup(element) {
+    const deleteBox = element.parentElement.parentElement;
+    const lid = deleteBox.getElementsByClassName("lid")[0];
+    const confirm = deleteBox.getElementsByClassName("confirm")[0];
+
+    confirm.animate(
+      {
+        marginBottom: "0rem",
+      },
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    lid.animate(
+      {
+        transform: "rotate(0deg) translate(0px, 0px)",
+      },
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    setTimeout(() => {
+      deleteBox.style.cursor = "pointer";
+    }, 100);
+  }
+  function togglePopup(element) {
+    if (element.style.cursor == "auto") {
+      return;
+    }
+    const lid = element.getElementsByClassName("lid")[0];
+    const confirm = element.getElementsByClassName("confirm")[0];
+    element.style.cursor = "auto";
+
+    confirm.animate(
+      {
+        marginBottom: "1.4rem",
+      },
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    lid.animate(
+      {
+        transform: "rotate(-180deg) translate(18px, 12px)",
+      },
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+  }
+  let myDeleted = [];
+  function removeDeleted(id) {
+    const indx = myDeleted.indexOf(id);
+    if (indx > -1) {
+      myDeleted.splice(indx, 1);
+    }
+  }
+  async function deleteModlog(element) {
+    const caseItem =
+      element.parentElement.parentElement.parentElement.parentElement;
+
+    const modlog = caseItem.getElementsByClassName("modlog-id")[0].innerHTML;
+
+    const box = caseItem.parentElement.parentElement;
+
+    const uid = box.getElementsByClassName("id")[0].innerHTML;
+    element.className = "loader";
+    myDeleted.push(modlog);
+    console.log(`Sending over ${modlog} for ${uid}`);
+    // call the api
+    var resp = await fetch("/apprentice/v1/modlog", {
+      method: "DELETE",
+      body: JSON.stringify({
+        modlog: modlog,
+        uid: uid,
+      }),
+    });
+
+    if (resp.status == 401 || resp.status == 403) {
+      removeDeleted(modlog);
+      location.reload();
+      return;
+    } else if (resp.status == 429) {
+      removeDeleted(modlog);
+      caseItem.animate(
+        [
+          {
+            transform: "translateX(20px)",
+          },
+          {
+            transform: "translateX(-15px)",
+          },
+          {
+            transform: "translateX(10px)",
+          },
+          {
+            transform: "translateX(-5px)",
+          },
+          {
+            transform: "translateX(0px)",
+          },
+        ],
         {
-          transform: open ? "rotate(0deg)" : "rotate(180deg)",
+          duration: 350,
+          easing: "ease-in-out",
+          direction: "alternate",
+          delay: 0,
+          iterations: 1,
+        }
+      );
+      createAlert("Hey!", "You can only delete 3 modlogs every 15 seconds!");
+      element.className = undefined;
+      return;
+    } else if (resp.status == 404) {
+      removeDeleted(modlog);
+      createAlert(
+        "Uhh",
+        "The requested modlog couldn't be found, it might have been deleted already or the code is big broke, we're just gonna assume its gone :/"
+      );
+    } else if (resp.status == 400) {
+      removeDeleted(modlog);
+      createAlert("Uhm", "Somthing went wrong. Please contact quin asap");
+      element.className = undefined;
+      return;
+    } else if (resp.status != 200) {
+      removeDeleted(modlog);
+      createAlert(
+        "Yikes",
+        "Please let quin know that the delete failed with a " + resp.status
+      );
+      element.className = undefined;
+
+      return;
+    }
+
+    element.className = undefined;
+
+    const newHeight =
+      caseItem.parentElement.offsetHeight -
+      convertRemToPixels(convertPixelsToRem(caseItem.offsetHeight) + 1);
+
+    caseItem.animate(
+      {
+        transform: "translateX(-" + caseItem.offsetWidth + "px)",
+      },
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    caseItem.animate(
+      [
+        {
+          height: caseItem.offsetHeight + "px",
+          marginBottom: caseItem.style.marginBottom,
         },
         {
-          duration: 250,
-          easing: "ease-in-out",
-          direction: "alternate",
-          delay: 0,
-          iterations: 1,
-          fill: "forwards",
-        }
+          height: "0px",
+          marginBottom: "0rem",
+        },
+      ],
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 300,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    box.animate(
+      {
+        height: newHeight + 80 + "px",
+      },
+      {
+        duration: 350,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 300,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    setTimeout(() => {
+      const parent = caseItem.parentElement;
+      caseItem.parentNode.removeChild(caseItem);
+
+      if (parent.getElementsByClassName("case").length == 0) {
+        // Remove the log item
+        console.log("removing parent");
+        parent.parentElement.animate(
+          {
+            width: "0rem",
+            marginTop: 0,
+          },
+          {
+            duration: 300,
+            easing: "ease-in-out",
+            direction: "alternate",
+            delay: 0,
+            iterations: 1,
+            fill: "forwards",
+          }
+        );
+
+        setTimeout(() => {
+          parent.parentNode.removeChild(parent);
+        }, 300);
+      }
+    }, 650);
+  }
+  async function loadMore() {
+    // Get the current count of modlogs on screen
+    const count = document.getElementsByClassName("box").length;
+
+    // We want to fetch the next 25 modlogs
+    const desired = count + 25;
+
+    // Make the request
+    const resp = await fetch(
+      `/apprentice/v1/modlogs?f=${encodeURIComponent(
+        count
+      )}&t=${encodeURIComponent(desired)}`
+    );
+
+    if (resp.status == 401 || resp.status == 403) {
+      // Bad credentials :/
+      location.reload();
+      stopLoader();
+      return;
+    } else if (resp.status != 200) {
+      stopLoader();
+      createAlert(
+        "Yikes",
+        "Somthing bad happened, tell quin that the API returned a " +
+        resp.status +
+        " on a search query. Thanks!"
       );
-      open = !open;
+      return;
     }
-  </script>
-  <div id="alert" class="alert" style="position: fixed; z-index: 30">
-    <span class="closebtn" onclick="closeAlert(this)">&times;</span>
-  </div>
 
-  <div class="header" style="z-index: 10">
-    <div class="navbar">
-      <img
-        style="max-height: 50px; border-radius: 50%; margin-left: 1rem"
-        src="https://images-ext-1.discordapp.net/external/HolZr875D-yHNFP0RwdgB-SzvyM8SnF_dmnmd7VQc7Y/%3Fsize%3D512/https/cdn.discordapp.com/avatars/622148936425275392/5a36c6c12d2d4f46e5d0cf488208f335.png"
-        alt="logo"
-      />
+    // Read the body
+    const modlogs = await resp.text();
 
-      <a
-        style="
+    // Add to our container
+    document.getElementsByClassName(
+      "modlogs-container"
+    )[0].innerHTML += modlogs;
+  }
+</script>
+<script>
+  let open = false;
+  function handleDropdown(element) {
+    const parent = element.parentElement;
+    const logoutLink = document.getElementById("logout");
+
+    let w = 0 + "px";
+
+    if (open == false) {
+      w = parent.offsetWidth + logoutLink.offsetWidth + 50 + "px";
+    } else {
+      w = parent.offsetWidth - logoutLink.offsetWidth - 50 + "px";
+    }
+
+    parent.animate(
+      [
+        {
+          width: parent.offsetWidth + "px",
+        },
+        {
+          width: w,
+        },
+      ],
+      {
+        duration: 250,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    element.animate(
+      {
+        transform: open ? "rotate(0deg)" : "rotate(180deg)",
+      },
+      {
+        duration: 250,
+        easing: "ease-in-out",
+        direction: "alternate",
+        delay: 0,
+        iterations: 1,
+        fill: "forwards",
+      }
+    );
+    open = !open;
+  }
+</script>
+<div id="alert" class="alert" style="position: fixed; z-index: 30">
+  <span class="closebtn" onclick="closeAlert(this)">&times;</span>
+</div>
+
+<div class="header" style="z-index: 10">
+  <div class="navbar">
+    <img style="max-height: 50px; border-radius: 50%; margin-left: 1rem" src="{bot.pfp}" alt="logo" />
+
+    <a style="
           color: white;
           text-decoration: none;
           padding: 0.25rem 1rem;
           margin-left: 1rem;
           border-left: 1px solid white;
           font-size: 1.8rem;
-        "
-        href="/apprentice/v1/tickets"
-        >Tickets</a
-      >
-      <a
-        style="
+        " href="/apprentice/v1/tickets">Tickets</a>
+    <a style="
           color: white;
           text-decoration: none;
           padding: 0.25rem 1rem;
           font-size: 1.8rem;
-        "
-        href="/apprentice/v1/modlogs"
-        title="Modlogs"
-        >Modlogs</a
-      >
-      <a
-        style="
+        " href="/apprentice/v1/modlogs" title="Modlogs">Modlogs</a>
+    <a style="
           color: white;
           text-decoration: none;
           padding: 0.25rem 1rem;
           font-size: 1.8rem;
-        "
-        href="/apprentice/v1/event"
-        title="EventManager"
-        >Event Manager</a
-      >
-      <a
-        style="
+        " href="/apprentice/v1/event" title="EventManager">Event Manager</a>
+    <a style="
           color: white;
           text-decoration: none;
           padding: 0.25rem 1rem;
           font-size: 1.8rem;
           cursor: no-drop;
-        "
-        href=""
-        title="Currently under development"
-        >Action logs</a
-      >
+        " href="" title="Currently under development">Action logs</a>
 
-      <div class="profile-container">
-        <div
-          id="profile"
-          class="profile"
-          style="
+    <div class="profile-container">
+      <div id="profile" class="profile" style="
             border-radius: 25px;
             display: flex;
             background-color: #7289da;
@@ -1342,13 +1365,8 @@
             top: 10px;
             align-items: center;
             right: 10px;
-          "
-        >
-          <img
-            src="{user.profile}"
-            aria-hidden="true"
-            alt=""
-            style="
+          ">
+        <img src="{user.profile}" aria-hidden="true" alt="" style="
               margin: 0.1rem;
               width: 50px;
               height: 50px;
@@ -1364,10 +1382,8 @@
               flex: 0 0 auto;
               pointer-events: none;
               z-index: 1;
-            "
-          />
-          <p
-            style="
+            " />
+        <p style="
               margin-right: 0.5rem;
               margin-left: 0.25rem;
               margin-top: 0;
@@ -1380,26 +1396,17 @@
               z-index: 2;
               background-color: inherit;
               min-width: 80px;
-            "
-          >
-            {user.username}
-          </p>
-          <a
-            id="logout"
-            style="
+            ">
+          {user.username}
+        </p>
+        <a id="logout" style="
               color: #ff3d00;
               font-size: 1.5rem;
               position: absolute;
               top: 10px;
               right: 40px;
-            "
-            href="/apprentice/v1/logout"
-            >Logout</a
-          >
-          <p
-            id="gui-button"
-            class="gui"
-            style="
+            " href="/apprentice/v1/logout">Logout</a>
+        <p id="gui-button" class="gui" style="
               margin-right: 0.5rem;
               margin-left: 0.25rem;
               margin-top: 0;
@@ -1409,47 +1416,36 @@
               cursor: pointer;
               user-select: none;
               transform-origin: 50% 60%;
-            "
-            onclick="handleDropdown(this)"
-          >
-            <b>&lt;</b>
-          </p>
-        </div>
+            " onclick="handleDropdown(this)">
+          <b>&lt;</b>
+        </p>
       </div>
     </div>
   </div>
+</div>
 
-  <!--Header-->
-  <h1>Content below is only accessible by current Swiss001 staff members.</h1>
-  <h2
-    style="
+<!--Header-->
+<h1>Content below is only accessible by current Swiss001 staff members.</h1>
+<h2 style="
       font-size: larger;
       font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
       color: white;
-    "
-  >
-    All datetime formats are in UTC
-  </h2>
-  <body style="background-color: #7289da; margin: 0">
-    <!--SearchBar-->
-    <div
-      id="search-div"
-      class="searchbox"
-      style="
+    ">
+  All datetime formats are in UTC
+</h2>
+
+<body style="background-color: #7289da; margin: 0">
+  <!--SearchBar-->
+  <div id="search-div" class="searchbox" style="
         max-width: 1100px;
         margin: auto;
         display: flex;
         justify-content: center;
         flex-direction: row;
         align-items: center;
-      "
-    >
-      <input
-        id="search"
-        oninput="handleChange(this.value, this)"
-        type="text"
-        placeholder="Search by Username or ID"
-        style="
+      ">
+    <input id="search" oninput="handleChange(this.value, this)" type="text" placeholder="Search by Username or ID"
+      style="
           font-size: 1rem;
           width: 75%;
           margin-bottom: 0.5rem;
@@ -1458,12 +1454,8 @@
           padding: 10px;
           font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial,
             sans-serif;
-        "
-        onsubmit="handleSubmit(document.getElementById('search').value, this)"
-      />
-      <button
-        class="search-button"
-        style="
+        " onsubmit="handleSubmit(document.getElementById('search').value, this)" />
+    <button class="search-button" style="
           display: none;
           font-size: 1rem;
           margin-bottom: 0.5rem;
@@ -1471,46 +1463,36 @@
           padding: 0.4rem;
           border-radius: 10px;
           border: none;
-        "
-        onclick="handleSubmit(document.getElementById('search').value, this)"
-        type="search"
-      >
-        Search
-      </button>
-    </div>
-    <!--Modlogs Container-->
-    <div style="margin-bottom: 1rem" class="modlogs-container">{modlogs}</div>
+        " onclick="handleSubmit(document.getElementById('search').value, this)" type="search">
+      Search
+    </button>
+  </div>
+  <!--Modlogs Container-->
+  <div style="margin-bottom: 1rem" class="modlogs-container">{modlogs}</div>
 
-    <div
-      class="load-more"
-      style="
+  <div class="load-more" style="
         color: white;
         font-size: 1.25rem;
         margin: auto;
         width: fit-content;
         cursor: pointer;
-      "
-      onclick="loadMore()"
-    >
-      <p>V Load more V</p>
+      " onclick="loadMore()">
+    <p>V Load more V</p>
+  </div>
+  <!--Footer-->
+  <div class="footer">
+    <p>Swiss001 Staff Discord Server Website</p>
+    <div class="footer-content">
+      <p>
+        Created By:<img class="footer-image"
+          src="https://cdn.discordapp.com/avatars/259053800755691520/ec872dd5fb2d9664720f69e0df698044.png?size=256" />
+        Quin#3017
+        <img class="footer-image"
+          src="https://cdn.discordapp.com/avatars/619241308912877609/a_f33d3394861049c80520b7e136babc6d.gif?size=256" />
+        Liege#8888
+      </p>
     </div>
-    <!--Footer-->
-    <div class="footer">
-      <p>Swiss001 Staff Discord Server Website</p>
-      <div class="footer-content">
-        <p>
-          Created By:<img
-            class="footer-image"
-            src="https://cdn.discordapp.com/avatars/259053800755691520/ec872dd5fb2d9664720f69e0df698044.png?size=256"
-          />
-          Quin#3017
-          <img
-            class="footer-image"
-            src="https://cdn.discordapp.com/avatars/619241308912877609/a_f33d3394861049c80520b7e136babc6d.gif?size=256"
-          />
-          Liege#8888
-        </p>
-      </div>
-    </div>
-  </body>
+  </div>
+</body>
+
 </html>

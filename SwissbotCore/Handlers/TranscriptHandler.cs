@@ -79,7 +79,8 @@ namespace SwissbotCore.Handlers
 
             html = html.Replace("{user.username}", requestingUser.Username)
                    .Replace("{user.profile}", pfp)
-                   .Replace("{tickets}", ticketLists);
+                   .Replace("{tickets}", ticketLists)
+                   .Replace("{bot.pfp}", Global.Client.CurrentUser.GetAvatarUrl(Discord.ImageFormat.Png));
 
             return html;
         }
@@ -216,7 +217,7 @@ namespace SwissbotCore.Handlers
             var msg = new Message()
             {
                 Author = m.Author.Id,
-                Content = m.Content,
+                Content = m.Content.Replace("<", "&lt;").Replace(">", "&gt;"),
                 Id = m.Id,
                 Timestamp = m.Timestamp
             };
@@ -234,7 +235,7 @@ namespace SwissbotCore.Handlers
             {
                 Author = user.Id,
                 Id = mId,
-                Content = content,
+                Content = content.Replace("<", "&lt;").Replace(">", "&gt;"),
                 Timestamp  = timeOffset
             });
 

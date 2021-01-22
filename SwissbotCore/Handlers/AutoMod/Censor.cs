@@ -248,6 +248,8 @@ namespace SwissbotCore.Handlers.AutoMod
             }
         }
 
+
+
         public bool CheckCensor(SocketMessage arg)
         {
             if (arg.Author.IsBot) { return false; }

@@ -126,32 +126,39 @@ namespace SwissbotCore.Properties {
         /// <summary>
         ///   Looks up a localized string similar to &lt;!DOCTYPE html&gt;
         ///&lt;html lang=&quot;en&quot;&gt;
-        ///  &lt;head&gt;
-        ///    &lt;!--CSS Styles--&gt;
-        ///    &lt;style&gt;
-        ///      @keyframes close {
-        ///        from {
-        ///          transform: rotate(-90deg);
-        ///        }
-        ///        to {
-        ///          transform: rotate(0);
-        ///        }
-        ///      }
-        ///      @keyframes open {
-        ///        from {
-        ///          transform: rotate(0);
-        ///        }
-        ///        to {
-        ///          transform: rotate(-90deg);
-        ///        }
+        ///
+        ///&lt;head&gt;
+        ///  &lt;!--CSS Styles--&gt;
+        ///  &lt;style&gt;
+        ///    @keyframes close {
+        ///      from {
+        ///        transform: rotate(-90deg);
         ///      }
         ///
-        ///      @keyframes up {
-        ///        from {
-        ///          height: 5rem;
-        ///          display: flex;
-        ///        }
-        ///        to {        /// [rest of string was truncated]&quot;;.
+        ///      to {
+        ///        transform: rotate(0);
+        ///      }
+        ///    }
+        ///
+        ///    @keyframes open {
+        ///      from {
+        ///        transform: rotate(0);
+        ///      }
+        ///
+        ///      to {
+        ///        transform: rotate(-90deg);
+        ///      }
+        ///    }
+        ///
+        ///    @keyframes up {
+        ///      from {
+        ///        height: 5rem;
+        ///        display: flex;
+        ///      }
+        ///
+        ///      to {
+        ///        height: 0rem;
+        ///        display: [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string index {
             get {
@@ -161,27 +168,33 @@ namespace SwissbotCore.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to &lt;html&gt;
-        ///  &lt;head&gt;
-        ///    &lt;style&gt;
-        ///      body {
-        ///        font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
-        ///          Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
-        ///          &quot;Segoe UI Symbol&quot;;
+        ///
+        ///&lt;head&gt;
+        ///  &lt;style&gt;
+        ///    body {
+        ///      font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto,
+        ///        Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;,
+        ///        &quot;Segoe UI Symbol&quot;;
+        ///    }
+        ///
+        ///    @keyframes close {
+        ///      from {
+        ///        transform: rotate(-90deg);
         ///      }
-        ///      @keyframes close {
-        ///        from {
-        ///          transform: rotate(-90deg);
-        ///        }
-        ///        to {
-        ///          transform: rotate(0);
-        ///        }
+        ///
+        ///      to {
+        ///        transform: rotate(0);
         ///      }
-        ///      @keyframes open {
-        ///        from {
-        ///          transform: rotate(0);
-        ///        }
-        ///        to {
-        ///          tran [rest of string was truncated]&quot;;.
+        ///    }
+        ///
+        ///    @keyframes open {
+        ///      from {
+        ///        transform: rotate(0);
+        ///      }
+        ///
+        ///      to {
+        ///        transform: rotate(-90deg);
+        ///      }        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string listingTickets {
             get {

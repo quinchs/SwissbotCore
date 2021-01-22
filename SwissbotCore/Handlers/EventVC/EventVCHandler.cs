@@ -18,9 +18,9 @@ namespace SwissbotCore.Handlers
         private static DiscordSocketClient client;
         public static List<EventVcUser> users = new List<EventVcUser>();
         public static EventVcSettings settings;
-        private SocketVoiceChannel eventChannel
+        public static SocketVoiceChannel EventChannel
             => client.GetGuild(Global.SwissGuildId).GetVoiceChannel(627906629047943238);
-        public List<SocketGuildUser> CurrentVcUsers
+        public static List<SocketGuildUser> CurrentVcUsers
             => client.GetGuild(Global.SwissGuildId).GetVoiceChannel(627906629047943238).Users.ToList();
         public EventVCHandler(DiscordSocketClient c)
         {
@@ -38,6 +38,8 @@ namespace SwissbotCore.Handlers
 
             WebSocketServer.AddCustomEvent("event.channel.mute", HandleEntireChannelMute);
             WebSocketServer.AddCustomEvent("event.channel.unmute", HandleEntireChannelUnmute);
+
+            WebSocketServer.AddCustomEvent("event.settings.update", HandleSettingsUpdate);
 
             // Load the event vc settings
             try
@@ -73,6 +75,32 @@ namespace SwissbotCore.Handlers
         public async Task HandlePermaMute(RawWebsocketMessage msg)
         {
 
+        }
+
+        private async Task HandleSettingsUpdate(RawWebsocketMessage msg)
+        {
+            var newSettings = SettingsUpdate.Create(msg);
+
+            if (newSettings.data == null)
+                return;
+
+            var SettingsType = typeof(EventVcSettings);
+            var SettingsProps = SettingsType.GetProperties();
+
+
+            var dt = newSettings.data.GetType();
+
+            var tmpSettings = settings.Clone();
+
+            foreach (var prop in dt.GetProperties())
+            {
+                if (SettingsProps.Any(x => x.Name == prop.Name))
+                {
+                    var setProp = SettingsProps.First(x => x.Name == prop.Name);
+
+                    setProp.SetValue(tmpSettings, prop.GetValue(newSettings.data));
+                }
+            }
         }
 
         private async void T_Elapsed(object sender, ElapsedEventArgs e)

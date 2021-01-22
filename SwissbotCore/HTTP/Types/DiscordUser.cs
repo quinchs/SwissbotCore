@@ -18,7 +18,7 @@ namespace SwissbotCore.HTTP
     {
 
         public string SessionToken;
-        public SessionPermission Permission = SessionPermission.Staff;
+        public SessionPermission Permission = SessionPermission.None;
         public ulong ID
             => User.id;
         public string Username

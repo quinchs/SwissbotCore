@@ -20,7 +20,7 @@ namespace SwissbotCore.HTTP.Routes
                 return;
 
             // Get the users
-            var users = HandlerService.GetHandlerInstance<EventVCHandler>().CurrentVcUsers;
+            var users = EventVCHandler.CurrentVcUsers;
 
             string html = "";
 

@@ -81,7 +81,8 @@ namespace SwissbotCore.HTTP.Routes
                     string html = Properties.Resources.index
                         .Replace("{user.profile}", pfp)
                         .Replace("{user.username}", requestingUser.ToString())
-                        .Replace("{modlogs}", modlogs);
+                        .Replace("{modlogs}", modlogs)
+                        .Replace("{bot.pfp}", Global.Client.CurrentUser.GetAvatarUrl(Discord.ImageFormat.Png));
 
                     // Return the html
                     c.Response.OutputStream.Write(Encoding.UTF8.GetBytes(html));

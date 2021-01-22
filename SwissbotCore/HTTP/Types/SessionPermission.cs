@@ -9,6 +9,7 @@ namespace SwissbotCore.HTTP.Types
     public enum SessionPermission
     {
         EventManager,
-        Staff
+        Staff,
+        None
     }
 }
