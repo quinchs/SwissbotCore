@@ -180,7 +180,7 @@ namespace SwissbotCore.Modules
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        static async Task<UserModLogs> AddModlogs(ulong userID, Action action, ulong ModeratorID, string reason, string username)
+        public static async Task<UserModLogs> AddModlogs(ulong userID, Action action, ulong ModeratorID, string reason, string username)
         {
             bool newUser = currentLogs.Users.Any(x => x.userId == userID);
             string infracId = RandomString(32);

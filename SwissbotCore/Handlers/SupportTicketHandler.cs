@@ -14,6 +14,7 @@ using Discord.Net;
 using System.IO;
 using Newtonsoft.Json;
 using SwissbotCore.HTTP.Websocket;
+using Discord.Rest;
 
 namespace SwissbotCore.Handlers
 {
@@ -21,7 +22,6 @@ namespace SwissbotCore.Handlers
     public class SupportTicketHandler
     {
         public DiscordSocketClient client { get; set; }
-        Dictionary<ulong, KeyValuePair<ulong, string>> Setups { get; set; }
         static Dictionary<KeyValuePair<ulong, ulong>, Timer> closingState { get; set; }
         public static List<SupportTicket> CurrentTickets { get; set; }
         public static List<ulong> WelcomeMessages { get; set; } = new List<ulong>();
@@ -46,8 +46,6 @@ namespace SwissbotCore.Handlers
         public SupportTicketHandler(DiscordSocketClient client)
         {
             this.client = client;
-
-            Setups = new Dictionary<ulong, KeyValuePair<ulong, string>>();
 
             CurrentTickets = Global.ReadSupportTickets();
 
@@ -116,10 +114,10 @@ namespace SwissbotCore.Handlers
             if (usr.IsBot)
                 return;
 
-            if (Setups.ContainsKey(arg2.Id))
-            {
-                var msg = await arg2.GetMessageAsync(Setups[arg2.Id].Key);
+            var msg = await arg2.GetMessageAsync(arg1.Id);
 
+            if (isValidSetup(msg))
+            {
                 //checkmark
                 if (arg3.Emote.Equals(new Emoji("✅")))
                 {
@@ -133,7 +131,6 @@ namespace SwissbotCore.Handlers
                                 Description = "Looks like your blocked from creating support tickets :/",
                                 Color = Color.Red
                             }.Build());
-                            Setups.Remove(arg2.Id);
                             await msg.DeleteAsync();
                             return;
                         }
@@ -141,7 +138,9 @@ namespace SwissbotCore.Handlers
                         {
                             await msg.DeleteAsync();
                             var tmpmsg = await arg2.SendMessageAsync("**Creating support ticket with the staff team...**");
-                            await CreateNewTicket(arg2, usr, Setups[arg2.Id].Value);
+                            RestDMChannel rChan = (RestDMChannel)await client.Rest.GetDMChannelAsync(arg2.Id);
+                            var msgs = await rChan.GetMessagesAsync(arg1.Id, Direction.Before, 1).FlattenAsync();
+                            await CreateNewTicket(arg2, usr, msgs.First().Content);
                             await tmpmsg.ModifyAsync(x => x.Embed = new EmbedBuilder()
                             {
                                 Title = "Congrats! You are now talking with staff!",
@@ -163,37 +162,36 @@ namespace SwissbotCore.Handlers
                 }
                 else if (arg3.Emote.Equals(new Emoji("❌"))) // xmark
                 {
-                    Setups.Remove(arg2.Id);
                     await msg.DeleteAsync();
                 }
             }
             else if (closingState.Keys.Any(x => x.Key == arg2.Id))
             {
                 var o = closingState.First(x => x.Key.Key == arg2.Id);
-                var msg = await arg2.GetMessageAsync(o.Key.Value);
+                var m = await arg2.GetMessageAsync(o.Key.Value);
 
                 if (arg3.Emote.Equals(new Emoji("❌")))
                 {
                     o.Value.Stop();
                     o.Value.Dispose();
                     closingState.Remove(o.Key);
-                    await msg.DeleteAsync();
+                    await m.DeleteAsync();
                 }
             }
             else if (WelcomeMessages.Contains(arg3.MessageId))
             {
                 if (arg3.Emote.Equals(new Emoji("❌")))
                 {
-                    var msg = await arg2.GetMessageAsync(arg3.MessageId);
-                    await msg.DeleteAsync();
+                    var m = await arg2.GetMessageAsync(arg3.MessageId);
+                    await m.DeleteAsync();
                 }
                 if (arg3.Emote.Equals(new Emoji("✅")))
                 {
                     var ticket = CurrentTickets.Find(x => x.TicketChannel == arg2.Id);
-                    var msg = await arg2.GetMessageAsync(arg3.MessageId);
+                    var m = await arg2.GetMessageAsync(arg3.MessageId);
                     var dmchan = await client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
                     var gusr = usr as SocketGuildUser;
-                    await msg.DeleteAsync();
+                    await m.DeleteAsync();
                     string tmsg = $"**[Staff] {(gusr.Nickname == null ? usr.ToString() : gusr.Nickname)}** - Hello! Swiss001 Support! How May I help you?";
                     await arg2.SendMessageAsync(tmsg);
                     await dmchan.SendMessageAsync(tmsg);
@@ -304,11 +302,10 @@ namespace SwissbotCore.Handlers
                     
             
                 }
-                else if (!Setups.ContainsKey(arg.Author.Id))
+                else 
                 {
                     var msg = await arg.Channel.SendMessageAsync("Hello " + arg.Author.Mention + ", if you want to open a support ticket please click the checkmark, otherwise to delete this message click the X");
                     await msg.AddReactionsAsync(new IEmote[] { new Emoji("✅"), new Emoji("❌") });
-                    Setups.Add(arg.Channel.Id, new KeyValuePair<ulong, string>(msg.Id, arg.Content));
                 }
                 
             }
@@ -318,6 +315,12 @@ namespace SwissbotCore.Handlers
                 await SnippetHandler(arg);
             }
         }
+
+        public bool isValidSetup(IMessage m)
+        {
+            return m.Author.Id == client.CurrentUser.Id && m.Content.Contains("if you want to open a support ticket please click the checkmark, otherwise to delete this message click the X");
+        }
+
 
         public async Task SnippetHandler(SocketMessage arg)
         {

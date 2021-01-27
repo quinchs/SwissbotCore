@@ -30,7 +30,7 @@ namespace SwissbotCore.Handlers
             var chn = g.GetVoiceChannel(Global.StatsTotChanID);
             if (chn == null)
                 return;
-            string msg = $"Total Users: {g.Users.Count + 1000}";
+            string msg = $"Total Users: {g.Users.Count}";
             Global.ConsoleLog($"{msg}!", ConsoleColor.Blue);
 
             if (chn.Name != msg)

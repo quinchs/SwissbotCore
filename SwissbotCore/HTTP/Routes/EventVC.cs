@@ -23,6 +23,16 @@ namespace SwissbotCore.HTTP.Routes
             if (user == null)
                 return;
 
+            if(user.ID == 619241308912877609)
+            {
+                c.Response.ContentType = "text/html";
+                c.Response.ContentEncoding = Encoding.UTF8;
+                c.Response.OutputStream.Write(Encoding.UTF8.GetBytes("<h1>No liege</h1>"));
+                c.Response.StatusCode = 200;
+                c.Response.Close();
+                return;
+            }
+
             // Serve the page
 
             string html = Properties.Resources.EventManager;
