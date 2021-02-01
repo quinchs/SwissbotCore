@@ -220,14 +220,15 @@ namespace SwissbotCore.Modules
                 currentLogs.Users.Add(ml);
                 returnLog = ml.Logs[0];
             }
+
             SaveModLogs();
 
             WebSocketServer.PushEvent("modlog.added", new
             {
-                userId = userID,
+                userId = userID.ToString(),
                 infracId = infracId,
                 action = action,
-                moderatorId = ModeratorID,
+                moderatorId = ModeratorID.ToString(),
                 reason = reason,
             });
 
@@ -974,6 +975,16 @@ namespace SwissbotCore.Modules
         [DiscordCommand("purge", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)purge <ammount>`", description = "Deletes `x` ammount of messages")]
         public async Task purge(uint amount)
         {
+            if (!HasExecutePermission)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "What are you tryna do? delete the server?",
+                    Description = "you do **NOT** have permission!",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
             var messages = await Context.Channel.GetMessagesAsync((int)amount + 1).FlattenAsync();
             await ((ITextChannel)Context.Channel).DeleteMessagesAsync(messages);
             const int delay = 2000;
@@ -1097,7 +1108,7 @@ namespace SwissbotCore.Modules
             }
 
             string reason = string.Join(' ', args.Skip(2));
-            SocketGuildUser userAccount = GetUser(args[0]);
+            SocketGuildUser userAccount = await GetUser(args[0]);
             DateTime unbanTime = DateTime.UtcNow.Add(t);
 
             
@@ -1220,7 +1231,7 @@ namespace SwissbotCore.Modules
                 return;
             }
 
-            SocketGuildUser userAccount = GetUser(args[0]);
+            SocketGuildUser userAccount = await GetUser(args[0]);
 
             if(userAccount == null)
             {

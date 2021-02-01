@@ -1,4 +1,5 @@
-﻿using Discord.Audio;
+﻿using Discord;
+using Discord.Audio;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,14 +19,33 @@ namespace SwissbotCore.Modules
         {
             try
             {
-                Console.WriteLine("running " + Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Sound{Path.DirectorySeparatorChar}phelps.mp3");
-                await PlaySoundFile(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Sound{Path.DirectorySeparatorChar}phelps.mp3");
+                Console.WriteLine("running " + Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Sound{Path.DirectorySeparatorChar}phelps.wav");
+                await PlaySoundFile(Environment.CurrentDirectory + $"{Path.DirectorySeparatorChar}Sound{Path.DirectorySeparatorChar}phelps.wav");
             }
             catch(Exception x)
             {
                 Console.WriteLine(x);
             }
         }
+
+        [Alt("dc")]
+        [Alt("stop")]
+        [DiscordCommand("leave")]
+        public async Task leave()
+        {
+            var u = await Global.GetSwissbotUser(Context.Client.CurrentUser.Id);
+            if(u.VoiceChannel != null)
+            {
+                await u.VoiceChannel.DisconnectAsync();
+                await Context.Message.AddReactionAsync(new Emoji("👍"));
+            }
+            else
+            {
+                await Context.Message.AddReactionAsync(new Emoji("❌"));
+            }
+        }
+
+
 
         private async Task PlaySoundFile(string path)
         {
@@ -57,7 +77,8 @@ namespace SwissbotCore.Modules
                 var proc = Process.Start(new ProcessStartInfo
                 {
                     FileName = "ffmpeg",
-                    Arguments = $"-hide_banner -loglevel panic -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
+                    Arguments = $"-xerror -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
+                    UseShellExecute = false,
                     RedirectStandardOutput = true,
                 });
                 Task.Run(async () =>
@@ -93,33 +114,46 @@ namespace SwissbotCore.Modules
                         return;
                     }
                     using (var output = ffmpeg.StandardOutput.BaseStream)
-                    using (var discord = client.CreatePCMStream(AudioApplication.Mixed))
+                    using (var discord = client.CreatePCMStream(AudioApplication.Mixed, 1920))
                     {
-                        try { await output.CopyToAsync(discord); }
-                        finally { await discord.FlushAsync(); }
-                        //int bufferSize = 1024;
-                        //byte[] buffer = new byte[bufferSize];
-                        //while (!_disposeToken.IsCancellationRequested && !exit)
+                        //try 
                         //{
-                        //    try
-                        //    {
-                        //        int read = await output.ReadAsync(buffer, _disposeToken.Token);
-                        //        if (read == 0)
-                        //        {
-                        //            //No more data available
-                        //            exit = true;
-                        //            break;
-                        //        }
-                        //        await discord.WriteAsync(buffer, 0, read, _disposeToken.Token);
-                        //    }
-                        //    catch(Exception x)
-                        //    {
-                        //        exit = true;
-                        //        Console.WriteLine(x);
-                        //    }
-
+                        //    await output.CopyToAsync(discord); 
                         //}
-                        //await discord.FlushAsync();
+                        //finally 
+                        //{ 
+                        //    await discord.FlushAsync(); 
+                        //}
+                        int bufferSize = 1024;
+                        int total = 0;
+
+                        byte[] buffer = new byte[bufferSize];
+                        while (!_disposeToken.IsCancellationRequested && !exit)
+                        {
+                            Console.WriteLine("Loop");
+                            try
+                            {
+                                int read = await output.ReadAsync(buffer, 0, bufferSize, _disposeToken.Token);
+                                total += read;
+                                Console.WriteLine($"Read {read} - Total {total}");
+                                if (read == 0)
+                                {
+                                    //No more data available
+                                    exit = true;
+                                    break;
+                                }
+                                await discord.WriteAsync(buffer, 0, read, _disposeToken.Token);
+                            }
+                            catch (Exception x)
+                            {
+                                exit = true;
+                                Console.WriteLine(x);
+                            }
+
+                        }
+                        Console.WriteLine("Flushing");
+                        await discord.FlushAsync();
+                        Console.WriteLine("Done!");
                     }
                 }
             }

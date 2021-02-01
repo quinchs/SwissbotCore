@@ -347,7 +347,7 @@ namespace SwissbotCore.Modules
                 return;
             }
             if (arg.Length != 0)
-                await Context.Channel.SendMessageAsync(oWoTextLmao(string.Join(' ', arg)));
+                await Context.Channel.SendMessageAsync(oWoTextLmao(string.Join(' ', arg)).Replace("@", "@ "));
             else
                 await Context.Channel.SendMessageAsync(oWoTextLmao("What do you want me to owo? please do ") + "`*owo <msg>`");
         }
@@ -365,7 +365,7 @@ namespace SwissbotCore.Modules
                 return;
             }
             if (arg.Length != 0)
-                await Context.Channel.SendMessageAsync(oWoTextLmao(string.Join(' ', arg)));
+                await Context.Channel.SendMessageAsync(oWoTextLmao(string.Join(' ', arg)).Replace("@", "@ "));
             else
                 await Context.Channel.SendMessageAsync(oWoTextLmao("What do you want me to uwu? please do ") + "`*uwu <msg>`");
         }

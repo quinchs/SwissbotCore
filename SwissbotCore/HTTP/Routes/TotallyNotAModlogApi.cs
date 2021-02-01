@@ -18,18 +18,15 @@ namespace SwissbotCore.HTTP.Routes
         [Route("/modlog", "POST")]
         public static async Task WhyReadThisLol(HttpListenerContext c)
         {
-            if (!await QuinsCryptoLol.IsValidRequest(c))
+            var r = await QuinsCryptoLol.IsValidRequest(c);
+            if (!r.result)
             {
                 c.Response.StatusCode = 401;
                 c.Response.Close();
+                return;
             }
 
-            string cont = "";
-            using (var sr = new StreamReader(c.Request.InputStream))
-            {
-                cont = sr.ReadToEnd();
-            }
-
+            string cont = r.payload;
             ModlogBody body;
 
             try
@@ -51,7 +48,7 @@ namespace SwissbotCore.HTTP.Routes
             }
             catch(Exception x)
             {
-                Global.ConsoleLog(x);
+                Global.ConsoleLog(x.ToString());
                 c.Response.StatusCode = 500;
                 c.Response.Close();
             }

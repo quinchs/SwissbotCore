@@ -112,7 +112,6 @@ namespace SwissbotCore.HTTP.Websocket
                             await e.socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Invalid session", CancellationToken.None);
                             return;
                         }
-                        
                     }
                     else
                     {
@@ -121,7 +120,7 @@ namespace SwissbotCore.HTTP.Websocket
                         var u = DiscordAuthKeeper.GetUser(hs.session);
                         if (u == null)
                         {
-                            Global.ConsoleLog("No session was provided for new websocket user", ConsoleColor.Yellow);
+                            Global.ConsoleLog($"No session was provided for new websocket user,\nsession: {hs.session}\npacket: {content}", ConsoleColor.Yellow);
                             await e.socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Invalid session", CancellationToken.None);
                             return;
                         }

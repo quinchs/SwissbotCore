@@ -114,7 +114,44 @@ namespace SwissbotCore.Handlers
             if (usr.IsBot)
                 return;
 
-            var msg = await arg2.GetMessageAsync(arg1.Id);
+            if (arg2.GetType() != typeof(SocketDMChannel))
+            {
+                if (closingState.Keys.Any(x => x.Key == arg2.Id))
+                {
+                    var o = closingState.First(x => x.Key.Key == arg2.Id);
+                    var m = await arg2.GetMessageAsync(o.Key.Value);
+
+                    if (arg3.Emote.Equals(new Emoji("❌")))
+                    {
+                        o.Value.Stop();
+                        o.Value.Dispose();
+                        closingState.Remove(o.Key);
+                        await m.DeleteAsync();
+                    }
+                }
+                else if (WelcomeMessages.Contains(arg3.MessageId))
+                {
+                    if (arg3.Emote.Equals(new Emoji("❌")))
+                    {
+                        var m = await arg2.GetMessageAsync(arg3.MessageId);
+                        await m.DeleteAsync();
+                    }
+                    if (arg3.Emote.Equals(new Emoji("✅")))
+                    {
+                        var ticket = CurrentTickets.Find(x => x.TicketChannel == arg2.Id);
+                        var m = await arg2.GetMessageAsync(arg3.MessageId);
+                        var dmchan = await client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
+                        var gusr = usr as SocketGuildUser;
+                        await m.DeleteAsync();
+                        string tmsg = $"**[Staff] {(gusr.Nickname == null ? usr.ToString() : gusr.Nickname)}** - Hello! Swiss001 Support! How May I help you?";
+                        await arg2.SendMessageAsync(tmsg);
+                        await dmchan.SendMessageAsync(tmsg);
+                    }
+                }
+                return;
+            }
+
+            var msg = await client.Rest.GetDMChannelAsync(arg2.Id).Result.GetMessageAsync(arg1.Id);
 
             if (isValidSetup(msg))
             {
@@ -163,38 +200,6 @@ namespace SwissbotCore.Handlers
                 else if (arg3.Emote.Equals(new Emoji("❌"))) // xmark
                 {
                     await msg.DeleteAsync();
-                }
-            }
-            else if (closingState.Keys.Any(x => x.Key == arg2.Id))
-            {
-                var o = closingState.First(x => x.Key.Key == arg2.Id);
-                var m = await arg2.GetMessageAsync(o.Key.Value);
-
-                if (arg3.Emote.Equals(new Emoji("❌")))
-                {
-                    o.Value.Stop();
-                    o.Value.Dispose();
-                    closingState.Remove(o.Key);
-                    await m.DeleteAsync();
-                }
-            }
-            else if (WelcomeMessages.Contains(arg3.MessageId))
-            {
-                if (arg3.Emote.Equals(new Emoji("❌")))
-                {
-                    var m = await arg2.GetMessageAsync(arg3.MessageId);
-                    await m.DeleteAsync();
-                }
-                if (arg3.Emote.Equals(new Emoji("✅")))
-                {
-                    var ticket = CurrentTickets.Find(x => x.TicketChannel == arg2.Id);
-                    var m = await arg2.GetMessageAsync(arg3.MessageId);
-                    var dmchan = await client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
-                    var gusr = usr as SocketGuildUser;
-                    await m.DeleteAsync();
-                    string tmsg = $"**[Staff] {(gusr.Nickname == null ? usr.ToString() : gusr.Nickname)}** - Hello! Swiss001 Support! How May I help you?";
-                    await arg2.SendMessageAsync(tmsg);
-                    await dmchan.SendMessageAsync(tmsg);
                 }
             }
         }
@@ -318,6 +323,8 @@ namespace SwissbotCore.Handlers
 
         public bool isValidSetup(IMessage m)
         {
+            if (m == null)
+                return false;
             return m.Author.Id == client.CurrentUser.Id && m.Content.Contains("if you want to open a support ticket please click the checkmark, otherwise to delete this message click the X");
         }
 

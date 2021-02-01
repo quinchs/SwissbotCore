@@ -633,7 +633,7 @@ namespace SwissbotCore
                     return;
                 if (context.Guild.Id == 726857672942420070)
                     return;
-                if (Commands.giveawayinProg) { Commands.checkGiveaway(s); }
+                if (Modules.Commands.giveawayinProg) { Modules.Commands.checkGiveaway(s); }
 
                 int argPos = 0;
                 if (msg.Channel.GetType() == typeof(SocketDMChannel)) { await checkKey(context); }
