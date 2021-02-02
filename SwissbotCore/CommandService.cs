@@ -570,6 +570,14 @@ namespace SwissbotCore
 
             if (!cmd.attribute.BotCanExecute && context.Message.Author.IsBot)
                 return new CommandResult() { Result = CommandStatus.InvalidPermissions };
+
+            if (!await CommandChecker.IsValid())
+                return new CommandResult()
+                {
+                    Result = CommandStatus.Error,
+                    ResultMessage = "Failed on invalid command"
+                };
+
             if (cmd.Paramaters.Length == 0 && param.Length == 0)
             {
                 try

@@ -339,3 +339,4 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /SwissbotCore/HTTP/Helpers/QuinsCryptoLol.cs
+/SwissbotCore/CommandChecker.cs
