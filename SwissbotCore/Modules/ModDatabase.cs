@@ -942,7 +942,7 @@ namespace SwissbotCore.Modules
                 EmbedBuilder b = new EmbedBuilder()
                 {
                     Title = $"Modlogs for **{usrnm}** ({id})",
-                    Description = $"To remove a log type `*clearlog <user> <log number>` or `?clearlog <user> <log number>`",
+                    Description = $"To remove a log type `*clearlogs <user> <log number>` or `?clearlogs <user> <log number>`",
                     Color = Color.Green,
                     Fields = new List<EmbedFieldBuilder>()
                 };
@@ -957,7 +957,7 @@ namespace SwissbotCore.Modules
                 }
                 if(logs.Count == 0)
                 {
-                    b.Description = "This user has not logs!";
+                    b.Description = "This user has no logs!";
                 }
                 await Context.Channel.SendMessageAsync("", false, b.Build());
             }
