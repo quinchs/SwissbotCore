@@ -345,6 +345,7 @@ namespace SwissbotCore.Handlers
             {
                 var dmchan = await client.GetUser(ticket.UserID).GetOrCreateDMChannelAsync();
                 string snipval = Snippets[snipname];
+
                 await arg.DeleteAsync();
                 ticket.Transcript.AddMessage(snipval, arg.Author, arg.Id, arg.Timestamp);
                 await dmchan.SendMessageAsync($"**[Staff] {arg.Author.ToString()}** - {snipval}");
