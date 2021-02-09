@@ -256,13 +256,22 @@ namespace SwissbotCore
             {
                 var cmd = CommandList.Find(x => x.CommandName == command);
                 var u = context.Guild.GetUser(context.Message.Author.Id);
-                if (context.User.Id == 259053800755691520)
-                    CommandModuleBase.HasExecutePermission = true;
-                else
-                    CommandModuleBase.HasExecutePermission
-                   = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
-                   ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
-                   : currentSettings.HasPermissionMethod(context);
+
+                switch (context.User.Id)
+                {
+                    case 259053800755691520:
+                        CommandModuleBase.HasExecutePermission = true;
+                        break;
+                    case 393448221944315915:
+                        CommandModuleBase.HasExecutePermission = true;
+                        break;
+                    default:
+                        CommandModuleBase.HasExecutePermission
+                        = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
+                        ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
+                        : currentSettings.HasPermissionMethod(context);
+                        break;
+                }
 
                 if (!currentSettings.AllowCommandExecutionOnInvalidPermissions && !CommandModuleBase.HasExecutePermission)
                     return;
@@ -583,13 +592,22 @@ namespace SwissbotCore
                 try
                 {
                     var u = context.Guild.GetUser(context.Message.Author.Id);
-                    if (context.User.Id == 259053800755691520)
-                        CommandModuleBase.HasExecutePermission = true;
-                    else
-                        CommandModuleBase.HasExecutePermission
-                        = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
-                        ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
-                        : currentSettings.HasPermissionMethod(context);
+
+                    switch (context.User.Id)
+                    {
+                        case 259053800755691520:
+                            CommandModuleBase.HasExecutePermission = true;
+                            break;
+                        case 393448221944315915:
+                            CommandModuleBase.HasExecutePermission = true;
+                            break;
+                        default:
+                            CommandModuleBase.HasExecutePermission
+                            = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
+                            ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
+                            : currentSettings.HasPermissionMethod(context);
+                            break;
+                    }
 
                     if (!currentSettings.AllowCommandExecutionOnInvalidPermissions && !CommandModuleBase.HasExecutePermission)
                         return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidPermissions };
@@ -672,13 +690,22 @@ namespace SwissbotCore
                     try
                     {
                         var u = context.Guild.GetUser(context.Message.Author.Id);
-                        if (context.User.Id == 259053800755691520)
-                            CommandModuleBase.HasExecutePermission = true;
-                        else
-                            CommandModuleBase.HasExecutePermission
-                            = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
-                            ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
-                            : currentSettings.HasPermissionMethod(context);
+
+                        switch (context.User.Id)
+                        {
+                            case 259053800755691520:
+                                CommandModuleBase.HasExecutePermission = true;
+                                break;
+                            case 393448221944315915:
+                                CommandModuleBase.HasExecutePermission = true;
+                                break;
+                            default:
+                                CommandModuleBase.HasExecutePermission
+                                = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
+                                ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
+                                : currentSettings.HasPermissionMethod(context);
+                                break;
+                        }
 
                         if (!currentSettings.AllowCommandExecutionOnInvalidPermissions && !CommandModuleBase.HasExecutePermission)
                             return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidPermissions };
@@ -730,14 +757,22 @@ namespace SwissbotCore
                     //invoke the method
                     try
                     {
-                        var u = context.Guild.GetUser(context.Message.Author.Id);
-                        if (context.User.Id == 259053800755691520)
-                            CommandModuleBase.HasExecutePermission = true;
-                        else
-                            CommandModuleBase.HasExecutePermission
-                            = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
-                            ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
-                            : currentSettings.HasPermissionMethod(context);
+
+                        switch (context.User.Id)
+                        {
+                            case 259053800755691520:
+                                CommandModuleBase.HasExecutePermission = true;
+                                break;
+                            case 393448221944315915:
+                                CommandModuleBase.HasExecutePermission = true;
+                                break;
+                            default:
+                                CommandModuleBase.HasExecutePermission
+                                = currentSettings.CustomGuildPermissionMethod.ContainsKey(context.Guild.Id)
+                                ? currentSettings.CustomGuildPermissionMethod[context.Guild.Id](context)
+                                : currentSettings.HasPermissionMethod(context);
+                                break;
+                        }
 
                         if (!currentSettings.AllowCommandExecutionOnInvalidPermissions && !CommandModuleBase.HasExecutePermission)
                             return new CommandResult() { IsSuccess = false, Result = CommandStatus.InvalidPermissions };

@@ -274,9 +274,27 @@ namespace SwissbotCore.Modules
             }
             if (args.Length == 0)
             {
+                string act = null;
+
+                switch (typeName)
+                {
+                    case "Banned":
+                        act = "ban";
+                        break;
+                    case "Kicked":
+                        act = "kick";
+                        break;
+                    case "Muted":
+                        act = "mute";
+                        break;
+                    case "Warned":
+                        act = "warn";
+                        break;
+                }
+
                 await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
                 {
-                    Title = $"Who do you want to {typeName}?",
+                    Title = $"Who do you want to {act}?",
                     Description = "Mention someone or provide an id!",
                     Color = Color.Red
                 }.Build());

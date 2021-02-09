@@ -147,6 +147,7 @@ namespace SwissbotCore.Handlers
                     }.Build());
                     return;
                 }
+                if(Context.User.Id == 259053800755691520 | Context.User.Id == 393448221944315915) { goto skip; }
                 if(Context.Guild.GetUser(Context.Message.Author.Id).Hierarchy < Context.Guild.GetRole(592755793808588840).Position)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
@@ -157,7 +158,7 @@ namespace SwissbotCore.Handlers
                     }.Build());
                     return;
                 }
-
+                skip:
                 if(args.Length == 0)
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
@@ -324,6 +325,11 @@ namespace SwissbotCore.Handlers
                     }
                     if (dlt)
                     {
+                        if((DateTime.UtcNow - msg.Timestamp.UtcDateTime).TotalDays >= 14) {
+                            await Context.Channel.SendMessageAsync("Suggestion cannot be deleted as it is older than 14 days \n" + msg.GetJumpUrl());
+                            CurrentSuggestions.Remove(suggestion);
+                            return;
+                        }
                         await msg.DeleteAsync();
                         await Context.Channel.SendMessageAsync("Deleted!");
                         CurrentSuggestions.Remove(suggestion);
