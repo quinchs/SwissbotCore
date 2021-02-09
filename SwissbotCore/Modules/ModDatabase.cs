@@ -794,7 +794,18 @@ namespace SwissbotCore.Modules
                     }.Build());
                     return;
                 }
-                var usr = Context.Guild.GetUser(id);
+                var usr = await Global.GetSwissbotUser(id);
+
+                if(usr == null)
+                {
+                    await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                    {
+                        Title = "Invalid ID",
+                        Description = "The ID you provided does not point to a user in this guild!",
+                        Color = Color.Red
+                    }.Build());
+                    return;
+                }
 
                 if (usr.Hierarchy >= _client.GetGuild(Global.SwissGuildId).GetUser(Context.Message.Author.Id).Hierarchy && Context.Message.Author.Id != 259053800755691520)
                 {

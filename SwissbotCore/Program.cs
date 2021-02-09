@@ -110,8 +110,6 @@ namespace SwissbotCore
         {
             if (user.Id == 221204198287605770)
                 return false;
-            if (user.Id == 316226442721755137)
-                return true;
             if (user.Id == 259053800755691520)
                 return true;
             else if (user.Guild.GetRole(Global.ModeratorRoleID).Position <= user.Hierarchy)
