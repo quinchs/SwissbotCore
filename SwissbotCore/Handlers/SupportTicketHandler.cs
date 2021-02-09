@@ -455,7 +455,19 @@ namespace SwissbotCore.Handlers
                         }
                         await Context.Channel.SendMessageAsync(msg);
                     }
-                    await Context.Message.DeleteAsync();
+                    try
+                    {
+                        await Context.Message.DeleteAsync();
+                    }
+                    catch (Discord.Net.HttpException x)
+                    {
+                        Global.ConsoleLog($"msg not found: {x}");
+                        // Not found, so like idk
+                    }
+                    catch(Exception x)
+                    {
+                        Global.ConsoleLog($"Failed on delete: {x}");
+                    }
                 }
             }
             [DiscordCommand("ar",
