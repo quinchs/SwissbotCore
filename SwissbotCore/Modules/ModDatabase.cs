@@ -387,7 +387,7 @@ namespace SwissbotCore.Modules
                 {
                     b.Footer = new EmbedFooterBuilder()
                     {
-                        Text = "To appeal your ban, visit (https://swissdev.team/bans)[https://swissdev.team/bans]"
+                        Text = "To appeal your ban, visit https://swissdev.team/bans"
                     };
                 }
 
