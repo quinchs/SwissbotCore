@@ -1284,7 +1284,7 @@ namespace SwissbotCore.Modules
         [DiscordCommand("images")]
         public async Task imgs()
         {
-            await Context.Channel.SendMessageAsync("Getting imgages....");
+            await Context.Channel.SendMessageAsync("Getting images....");
             string htmlcont = "<!DOCTYPE html> <html lang=\"en\"> <head> </head> <body>\n";
             foreach (var chan in Context.Guild.TextChannels)
             {
