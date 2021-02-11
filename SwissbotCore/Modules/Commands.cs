@@ -1301,7 +1301,7 @@ namespace SwissbotCore.Modules
             }
             htmlcont += "</body> </html>";
             File.WriteAllText($"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}img.html", htmlcont);
-            await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}img.html", "heres the immages");
+            await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}img.html", "Here\'s all the images!");
         }
         internal JsonItems modifyJsonData(JsonItems data, string iName, object iValue)
         {
