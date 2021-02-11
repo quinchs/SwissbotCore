@@ -33,49 +33,49 @@ namespace SwissbotCore.Handlers.AutoMod
                         Name = "whitelist",
                         Description = "Adds a word to the whitelist that blocks a word from the censor",
                         Options = new List<ApplicationCommandOptionProperties>()
-                {
-                    new ApplicationCommandOptionProperties()
-                    {
-                        Type = ApplicationCommandOptionType.SubCommand,
-                        Description = "Adds a word to the whitelist",
-                        Name = "Add",
-                        Options = new List<ApplicationCommandOptionProperties>()
                         {
                             new ApplicationCommandOptionProperties()
                             {
-                                Name = "Word",
-                                Type = ApplicationCommandOptionType.String,
-                                Required = true,
-                                Description = "The word to add to the whitelist"
-                            }
-                        }
-                    },
-                    new ApplicationCommandOptionProperties()
-                    {
-                        Type = ApplicationCommandOptionType.SubCommand,
-                        Description = "Removes a word to the whitelist",
-                        Name = "Remove",
-                        Options = new List<ApplicationCommandOptionProperties>()
-                        {
+                                Type = ApplicationCommandOptionType.SubCommand,
+                                Description = "Adds a word to the whitelist",
+                                Name = "Add",
+                                Options = new List<ApplicationCommandOptionProperties>()
+                                {
+                                    new ApplicationCommandOptionProperties()
+                                    {
+                                        Name = "Word",
+                                        Type = ApplicationCommandOptionType.String,
+                                        Required = true,
+                                        Description = "The word to add to the whitelist"
+                                    }
+                                }
+                            },
                             new ApplicationCommandOptionProperties()
                             {
-                                Name = "Word",
-                                Type = ApplicationCommandOptionType.String,
-                                Required = true,
-                                Description = "The word to add to the whitelist"
-                            }
+                                Type = ApplicationCommandOptionType.SubCommand,
+                                Description = "Removes a word to the whitelist",
+                                Name = "Remove",
+                                Options = new List<ApplicationCommandOptionProperties>()
+                                {
+                                    new ApplicationCommandOptionProperties()
+                                    {
+                                        Name = "Word",
+                                        Type = ApplicationCommandOptionType.String,
+                                        Required = true,
+                                        Description = "The word to add to the whitelist"
+                                    }
+                                }
+                            },
+                            new ApplicationCommandOptionProperties()
+                            {
+                                Type = ApplicationCommandOptionType.SubCommand,
+                                Description = "Lists the current whitelist",
+                                Name = "List",
+                            },
                         }
-                    },
-                    new ApplicationCommandOptionProperties()
-                    {
-                        Type = ApplicationCommandOptionType.SubCommand,
-                        Description = "Lists the current whitelist",
-                        Name = "List",
-                    },
-                }
                     }, Global.SwissGuildId);
                 }
-                catch(Exception x)
+                catch (Exception x)
                 {
 
                 }
@@ -94,13 +94,13 @@ namespace SwissbotCore.Handlers.AutoMod
                     return;
                 }
 
-                if(arg.Data.Options.Count == 1)
+                if (arg.Data.Options.Count == 1)
                 {
                     var opt = arg.Data.Options.First();
-                    
+
                     switch (opt.Name)
                     {
-                            
+
                         case "add":
                             {
                                 var word = (string)opt.Options.First().Value;
@@ -187,7 +187,7 @@ namespace SwissbotCore.Handlers.AutoMod
             {
                 return await SwissbotStateHandler.LoadObject<List<string>>("Whitelist.json");
             }
-            catch(Exception x)
+            catch (Exception x)
             {
                 Global.ConsoleLog("Failed to load whitelist, returning empty");
                 return new List<string>();

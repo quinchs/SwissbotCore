@@ -59,6 +59,8 @@ namespace SwissbotCore
         public static ulong SubmissionChanID { get; set; }
         public static string WelcomeMessageURL { get; set; }
         public static ulong ModeratorRoleID { get; set; }
+        public static SocketRole ModeratorRole
+            => SwissGuild.GetRole(ModeratorRoleID);
         public static ulong MemberRoleID { get; set; }
         public static ulong UnverifiedRoleID { get; set; }
         public static ulong VerificationChanID { get; set; }
