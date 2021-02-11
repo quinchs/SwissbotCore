@@ -119,7 +119,6 @@ namespace SwissbotCore.Handlers
                                             Name = "set",
                                             Type = ApplicationCommandOptionType.Integer,
                                             Description = "sets the minimum messages to trigger a infraction",
-                                            Required = true
                                         }
                                     }
                                 }
@@ -162,7 +161,7 @@ namespace SwissbotCore.Handlers
                 }
                 catch
                 {
-                    Settings = default(Settings);
+                    Settings = new Settings();
                 }
             }); 
         }
@@ -366,7 +365,7 @@ namespace SwissbotCore.Handlers
                                 switch (sub.Name)
                                 {
                                     case "minimum-messages":
-                                        if(sub.Options.Count == 0)
+                                        if(sub.Options == null)
                                         {
                                             await arg.FollowupAsync("", false, new EmbedBuilder() 
                                             {

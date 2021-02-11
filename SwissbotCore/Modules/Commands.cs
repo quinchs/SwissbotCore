@@ -1281,28 +1281,28 @@ namespace SwissbotCore.Modules
             }
 
         }
-        [DiscordCommand("images")]
-        public async Task imgs()
-        {
-            await Context.Channel.SendMessageAsync("Getting images....");
-            string htmlcont = "<!DOCTYPE html> <html lang=\"en\"> <head> </head> <body>\n";
-            foreach (var chan in Context.Guild.TextChannels)
-            {
-                foreach (var msg in chan.GetMessagesAsync().FlattenAsync().Result)
-                {
-                    if (msg.Attachments.Count >= 1)
-                    {
-                        foreach (var att in msg.Attachments)
-                        {
-                            htmlcont += $"<img src = \"{att.ProxyUrl}\">\n";
-                        }
-                    }
-                }
-            }
-            htmlcont += "</body> </html>";
-            File.WriteAllText($"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}img.html", htmlcont);
-            await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}img.html", "heres the immages");
-        }
+        //[DiscordCommand("images")]
+        //public async Task imgs()
+        //{
+        //    await Context.Channel.SendMessageAsync("Getting images....");
+        //    string htmlcont = "<!DOCTYPE html> <html lang=\"en\"> <head> </head> <body>\n";
+        //    foreach (var chan in Context.Guild.TextChannels)
+        //    {
+        //        foreach (var msg in chan.GetMessagesAsync().FlattenAsync().Result)
+        //        {
+        //            if (msg.Attachments.Count >= 1)
+        //            {
+        //                foreach (var att in msg.Attachments)
+        //                {
+        //                    htmlcont += $"<img src = \"{att.ProxyUrl}\">\n";
+        //                }
+        //            }
+        //        }
+        //    }
+        //    htmlcont += "</body> </html>";
+        //    File.WriteAllText($"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}img.html", htmlcont);
+        //    await Context.Channel.SendFileAsync($"{Environment.CurrentDirectory}{Global.systemSlash}Data{Global.systemSlash}img.html", "heres the immages");
+        //}
         internal JsonItems modifyJsonData(JsonItems data, string iName, object iValue)
         {
             try
