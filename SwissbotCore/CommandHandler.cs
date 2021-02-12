@@ -644,6 +644,7 @@ namespace SwissbotCore
                 {
                     new Thread(async ()  => 
                     {
+                        if (msg.Content.StartsWith("!")) return;
                         if (msg.Content.StartsWith($"{Global.Preflix}echo")) { await EchoMessage(context); return; }
                         var result = await _service.ExecuteAsync(context);
                         Global.ConsoleLog($"Executed {context.Message.Content} with a result of {result.Result}!", ConsoleColor.Cyan);
