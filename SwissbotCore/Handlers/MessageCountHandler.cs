@@ -431,7 +431,6 @@ namespace SwissbotCore.Handlers
             {
                 Records[Records.FindIndex(x => x.Id == arg.Author.Id)].Messages.Add(new MessageRecord()
                 {
-                    Author = arg.Author.Id,
                     Channel = arg.Channel.Id,
                     Time = arg.Timestamp.UtcDateTime
                 });
@@ -445,7 +444,6 @@ namespace SwissbotCore.Handlers
                     {
                         new MessageRecord()
                         {
-                            Author = arg.Author.Id,
                             Channel = arg.Channel.Id,
                             Time = arg.Timestamp.UtcDateTime
                         }
@@ -501,6 +499,5 @@ namespace SwissbotCore.Handlers
     {
         public DateTime Time { get; set; }
         public ulong Channel { get; set; }
-        public ulong Author { get; set; }
     }
 }

@@ -526,6 +526,8 @@ namespace SwissbotCore
 
             param = param.TakeLast(param.Length - 1).ToArray();
 
+            char prefix = context.Message.Content.Split(' ').First().ToCharArray().First(); 
+
             string command = IsMentionCommand
                 ? context.Message.Content.Replace($"<@{context.Client.CurrentUser.Id}>", string.Empty).Replace($"<@!{context.Client.CurrentUser.Id}>", "").Trim().Split(' ')[0]
                 : context.Message.Content.Remove(0, 1).Split(' ')[0];
@@ -540,6 +542,40 @@ namespace SwissbotCore
                     Result = CommandStatus.NotFound,
                     IsSuccess = false
                 };
+
+
+            // if more than one command with the same name exists then try to execute both or find one that matches the params
+            foreach (var item in commandobj)
+                if (!item.Prefixes.Contains(prefix)) //prefix doesnt match, check the parent class
+                {
+                    if (item.parent.attribute.prefix == '\0') //if theres no prefix
+                        return new CommandResult() { Result = CommandStatus.NotFound, IsSuccess = false };
+                    else //there is a prefix
+                    {
+                        if (item.parent.Prefix == prefix)
+                            commandobj = commandobj.Where(x => x.parent.Prefix == prefix);
+                        else
+                            return new CommandResult() { Result = CommandStatus.NotFound, IsSuccess = false };
+                    }
+
+                }
+                else //prefix match for method
+                {
+                    if (item.parent.attribute.OverwritesPrefix)
+                    {
+                        if (item.parent.Prefix == prefix)
+                        {
+                            commandobj = commandobj.Where(x => x.parent.Prefix == prefix);
+                        }
+                        else
+                            return new CommandResult() { Result = CommandStatus.NotFound, IsSuccess = false };
+                    }
+                    else
+                    {
+                        commandobj = commandobj.Where(x => x.Prefixes.Contains(prefix));
+                    }
+                }
+
             if (context.Channel.GetType() == typeof(SocketDMChannel) && !currentSettings.DMCommands)
                 return new CommandResult() { IsSuccess = false, Result = CommandStatus.DMCommandsDisabled };
             List<CommandResult> results = new List<CommandResult>();
