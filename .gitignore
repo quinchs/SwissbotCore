@@ -340,3 +340,4 @@ ASALocalRun/
 healthchecksdb
 /SwissbotCore/HTTP/Helpers/QuinsCryptoLol.cs
 /SwissbotCore/CommandChecker.cs
+.DS_Store
