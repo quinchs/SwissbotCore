@@ -1,5 +1,4 @@
 ﻿using SwissbotCore.Handlers;
-using SwissbotCore.http;
 using SwissbotCore.Properties;
 using System;
 using System.Collections.Generic;

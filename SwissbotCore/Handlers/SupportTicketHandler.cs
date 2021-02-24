@@ -15,6 +15,7 @@ using System.IO;
 using Newtonsoft.Json;
 using SwissbotCore.HTTP.Websocket;
 using Discord.Rest;
+using System.Text.RegularExpressions;
 
 namespace SwissbotCore.Handlers
 {
@@ -58,6 +59,29 @@ namespace SwissbotCore.Handlers
             client.UserIsTyping += CheckTicketTyping;
 
             client.ChannelDestroyed += CheckSupportChannel;
+
+            client.Ready += Client_Ready;
+
+            Timer t = new Timer();
+            t.Interval = 30000;
+            t.Start();
+            t.Elapsed += T_Elapsed;
+        }
+
+        private async void T_Elapsed(object sender, ElapsedEventArgs e)
+            => await Client_Ready();
+
+        private async Task Client_Ready()
+        {
+            foreach(var item in CurrentTickets.ToList())
+            {
+                if(!Global.SwissGuild.Channels.Any(x => x.Id == item.TicketChannel))
+                {
+                    CurrentTickets.Remove(item);
+                }
+            }
+            Console.WriteLine("Cleared ticket cache");
+            Global.SaveSupportTickets();
         }
 
         private async Task CheckSupportChannel(SocketChannel arg)
@@ -204,7 +228,7 @@ namespace SwissbotCore.Handlers
             }
         }
 
-        public async Task CreateNewTicket(ISocketMessageChannel chan, IUser user, string omsg)
+        public async Task CreateNewTicket(ISocketMessageChannel chan, IUser user, string omsg, bool training = false, string tId = null)
         {
             var ticket = new SupportTicket()
             {
@@ -218,7 +242,7 @@ namespace SwissbotCore.Handlers
             };
             var guilduser = client.GetGuild(Global.SwissGuildId).GetUser(user.Id);
             //create new ticket channel
-            var ticketchan = await client.GetGuild(Global.SwissGuildId).CreateTextChannelAsync($"{user.Username}-{user.Discriminator}", x => x.CategoryId = Global.TicketCategoryID);
+            var ticketchan = await client.GetGuild(Global.SwissGuildId).CreateTextChannelAsync($"{user.Username}-{user.Discriminator}{(training ? "-training" : "")}", x => x.CategoryId = Global.TicketCategoryID);
             var logs = ModDatabase.currentLogs.Users.Any(x => x.userId == user.Id) ? ModDatabase.currentLogs.Users.First(x => x.userId == user.Id) : null;
 
             ticket.Transcript = new TicketTranscript(ticket, omsg);
@@ -263,8 +287,13 @@ namespace SwissbotCore.Handlers
                 embed.AddField("Modlogs", mlogs.Length > 1024 ? $"Modlogs too long, listing top 5\n\n{string.Join("\n\n", mlogs.Split("\n\n").Take(5))}" : string.Join("\n\n", mlogs.Split("\n\n")));
             }
 
-            var msg = await ticketchan.SendMessageAsync("@here", false, embed.Build());
-            await ticketchan.SendMessageAsync($"**\nV----------------START-OF-TICKET----------------V**\n\n**[Ticketer] {user}** - " + omsg);
+            var msg = await ticketchan.SendMessageAsync(training ? $"<@{tId}>" :"@here", false, embed.Build());
+
+            if (training)
+                await ticketchan.SendMessageAsync($"**\nV-----------START-OF-TRAINING TICKET-----------V**\n\n");
+            else
+                await ticketchan.SendMessageAsync($"**\nV----------------START-OF-TICKET----------------V**\n\n**[Ticketer] {user}** - " + omsg);
+
             await msg.PinAsync();
             ticket.TicketChannel = ticketchan.Id;
             CurrentTickets.Add(ticket);
@@ -279,7 +308,7 @@ namespace SwissbotCore.Handlers
             if (arg.Author.Id == client.CurrentUser.Id)
                 return;
 
-            if(arg.Channel.GetType() == typeof(SocketDMChannel))
+            if(arg.Channel is SocketDMChannel channel)
             {
                 if (BlockedUsers.Any(x => x == arg.Author.Id))
                 {
@@ -309,8 +338,32 @@ namespace SwissbotCore.Handlers
                 }
                 else 
                 {
-                    var msg = await arg.Channel.SendMessageAsync("Hello " + arg.Author.Mention + ", if you want to open a support ticket please click the checkmark, otherwise to delete this message click the X");
-                    await msg.AddReactionsAsync(new IEmote[] { new Emoji("✅"), new Emoji("❌") });
+                    if(Regex.IsMatch(arg.Content, @"training (\d{17}|\d{18})$"))
+                    {
+                        if (!Program.UserHasPerm(arg.Author.Id))
+                            return;
+
+                        var m = Regex.Match(arg.Content, @"training (\d{17}|\d{18})$");
+
+                        var uid = m.Groups[1].Value;
+
+                        var tmpmsg = await channel.SendMessageAsync("**Creating training ticket with the staff team...**");
+
+                        await CreateNewTicket(channel, arg.Author, arg.Content, true, uid);
+
+                        await tmpmsg.ModifyAsync(x => x.Embed = new EmbedBuilder()
+                        {
+                            Title = "Training started",
+                            Description = $"Training ticket with <@{uid}>",
+                            Color = Color.Green
+                        }.Build());
+                        return;
+                    }
+                    else
+                    {
+                        var msg = await arg.Channel.SendMessageAsync("Hello " + arg.Author.Mention + ", if you want to open a support ticket please click the checkmark, otherwise to delete this message click the X");
+                        await msg.AddReactionsAsync(new IEmote[] { new Emoji("✅"), new Emoji("❌") });
+                    }
                 }
                 
             }

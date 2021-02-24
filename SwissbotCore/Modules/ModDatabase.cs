@@ -330,40 +330,31 @@ namespace SwissbotCore.Modules
                     return;
                 }
                 var usr = curContext.Guild.GetUser(id);
-                if(usr == null)
+                if (usr == null && type != Action.Banned)
                 {
                     await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
                     {
                         Title = "Thats an invalid user, they might not be in the discord server",
-                        Description = "we cant use commands on people who are not here :/",
+                        Description = "we cant use that command on people who are not here :/",
                         Color = Color.Red
                     }.Build());
                     return;
                 }
-                if (usr.Hierarchy >= _client.GetGuild(Global.SwissGuildId).GetUser(Context.Message.Author.Id).Hierarchy && Context.Message.Author.Id != 259053800755691520)
+                if (usr != null)
                 {
-                    await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                    if (usr.Hierarchy >= _client.GetGuild(Global.SwissGuildId).GetUser(Context.Message.Author.Id).Hierarchy && Context.Message.Author.Id != 259053800755691520)
                     {
-                        Title = "You do not have permission to execute this command",
-                        Description = "You do not have the valid permission to execute this command",
-                        Color = Color.Red
-                    }.Build());
-                    return;
+                        await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                        {
+                            Title = "You do not have permission to execute this command",
+                            Description = "You do not have the valid permission to execute this command",
+                            Color = Color.Red
+                        }.Build());
+                        return;
+                    }
                 }
 
-                if (usr == null)
-                {
-                    await curContext.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
-                    {
-                        Title = "Invalid ID",
-                        Description = "The ID you provided is invalid!",
-                        Color = Color.Red
-                    }.Build());
-                    return;
-                }
-                await AddModlogs(id, type, curContext.Message.Author.Id, reason, usr.ToString());
-
-
+                await AddModlogs(id, type, curContext.Message.Author.Id, reason, usr == null ? "(no username stored)" : usr.ToString());
 
                 EmbedBuilder b = new EmbedBuilder()
                 {
@@ -393,8 +384,8 @@ namespace SwissbotCore.Modules
 
                 Embed b2 = new EmbedBuilder()
                 {
-                    Title = $"Successfully **{typeName}** {usr.ToString()} ({usr.Id})",
-                    Description = $"The user {usr.Mention} has been successfully **{typeName}**",
+                    Title = $"Successfully **{typeName}** {(usr == null ? "" : usr.ToString())} {id}",
+                    Description = $"The user <@{id}> has been successfully **{typeName}**",
                     Fields = new List<EmbedFieldBuilder>()
                     {
                         { new EmbedFieldBuilder()
@@ -411,30 +402,34 @@ namespace SwissbotCore.Modules
                         } }
                     }
                 }.Build();
-                bool notif = true;
-                try
+                bool notif = false;
+                if(usr != null)
                 {
-                    await usr.SendMessageAsync("", false, b.Build());
-                }
-                catch(Exception ex)
-                {
-                    notif = false;
-                    await Context.Channel.SendMessageAsync("Couldn't notify " + usr.ToString() + " that they were " + typeName);
+                    try
+                    {
+                        await usr.SendMessageAsync("", false, b.Build());
+                        notif = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        notif = false;
+                        await Context.Channel.SendMessageAsync("Couldn't notify " + usr.ToString() + " that they were " + typeName);
+                    }
                 }
                 await curContext.Channel.SendMessageAsync("", false, b2);
                 if (type is Action.Kicked)
                     await usr.KickAsync(reason);
                 if (type is Action.Banned)
                 {
-                    await usr.BanAsync(7, reason);
+                    await Global.SwissGuild.AddBanAsync(id, 7, reason);
                     await Context.Guild.GetTextChannel(657691746171355151).SendMessageAsync("", false, new EmbedBuilder()
                     {
                         Color = Color.Red,
-                        Author = new EmbedAuthorBuilder()
+                        Author = usr != null ? new EmbedAuthorBuilder()
                         {
                             IconUrl = usr.GetAvatarUrl(),
                             Name = usr.ToString(),
-                        } ,
+                        } : null,
                         Fields = new List<EmbedFieldBuilder>()
                         {
                             {new EmbedFieldBuilder()

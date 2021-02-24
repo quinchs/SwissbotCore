@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace SwissbotCore.http
+namespace SwissbotCore.HTTP
 {
     public class Route : Attribute
     {

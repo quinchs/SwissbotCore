@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SwissbotCore.http;
 using SwissbotCore.HTTP.Helpers;
 using SwissbotCore.HTTP.Types;
 using SwissbotCore.Modules;

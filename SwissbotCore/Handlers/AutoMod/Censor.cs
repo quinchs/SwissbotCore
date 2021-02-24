@@ -22,6 +22,8 @@ namespace SwissbotCore.Handlers.AutoMod
 
             client.MessageReceived += Client_MessageReceived;
 
+            client.MessageUpdated += Client_MessageUpdated;
+
             WhiteList = LoadWhiteList().Result;
 
             Task.Run(async () =>
@@ -83,6 +85,9 @@ namespace SwissbotCore.Handlers.AutoMod
 
             client.InteractionCreated += Client_InteractionCreated;
         }
+
+        private async Task Client_MessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2, ISocketMessageChannel arg3)
+            => await Client_MessageReceived(arg2);
 
         private async Task Client_InteractionCreated(SocketInteraction arg)
         {
@@ -253,7 +258,13 @@ namespace SwissbotCore.Handlers.AutoMod
         public bool CheckCensor(SocketMessage arg)
         {
             if (arg.Author.IsBot) { return false; }
-            var r = client.GetGuild(Global.SwissGuildId).GetUser(arg.Author.Id).Roles;
+            var g = client.GetGuild(Global.SwissGuildId).GetUser(arg.Author.Id);
+
+            if (g == null)
+                return false;
+
+            var r = g.Roles;
+
             var adminrolepos = client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.ModeratorRoleID).Position;
             var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
             if (rolepos != null || r.Contains(client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == 622156934778454016)))

@@ -1,5 +1,4 @@
 ﻿using SwissbotCore.Handlers.EventVC;
-using SwissbotCore.http;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Newtonsoft.Json;
 using SwissbotCore.Handlers;
-using SwissbotCore.http;
 using SwissbotCore.HTTP.Types;
 using SwissbotCore.HTTP.Websocket;
 using SwissbotCore.Modules;

@@ -17,6 +17,8 @@ namespace SwissbotCore.Handlers
         public List<ulong> ChannelBlacklists = new List<ulong>();
         public Settings Settings = new Settings();
         public Timer timer = new Timer();
+        public Timer VcTimer = new Timer();
+
 
         public MessageCountHandler(DiscordSocketClient c)
         {
@@ -27,6 +29,10 @@ namespace SwissbotCore.Handlers
             timer.Elapsed += HandleCheck;
             timer.Interval = 1800000;
             timer.Start();
+
+            VcTimer.Elapsed += HandleVcCheck;
+            VcTimer.Interval = 60000;
+            VcTimer.Start();
 
             try
             {
@@ -166,19 +172,40 @@ namespace SwissbotCore.Handlers
             }); 
         }
 
+        private async void HandleVcCheck(object sender, ElapsedEventArgs e)
+        {
+            foreach(var channel in Global.SwissGuild.VoiceChannels)
+            {
+                if(channel.Users.Count > 0)
+                {
+                    var staff = channel.Users.Where(x => x.Hierarchy >= Global.ModeratorRole.Position);
+
+                    if(staff.Count() > 0)
+                    {
+                        // Check if the channel is blacklisted
+                        if (ChannelBlacklists.Contains(channel.Id))
+                            continue;
+
+                        foreach(var user in staff)
+                            await UpdateUserRecord(user.Id, ActivityType.Voice);
+                    }
+                }
+            }
+        }
+
         private async void HandleCheck(object sender, ElapsedEventArgs e)
         {
             if(!Settings.HasCompletedCheck && DateTime.UtcNow.DayOfWeek == DayOfWeek.Sunday && DateTime.UtcNow.Hour == 12)
             {
                 var alertsChannel = Global.SwissGuild.GetTextChannel(665647956816429096);
                 // do check for infractions
-                var users = Records.Where(x => x.CountPast7Days < Settings.MinimumMessages && x.IsCheckReady);
+                var users = Records.Where(x => x.CountMessagesPastPast7Days() < Settings.MinimumMessages && x.IsCheckReady);
 
                 foreach(var user in users)
                 {
                     user.Infractions.Add(new CountInfraction()
                     {
-                        Count = user.CountPast7Days,
+                        Count = user.CountMessagesPastPast7Days(),
                         Date = DateTime.UtcNow,
                         MinimumAtTime = Settings.MinimumMessages
                     });
@@ -208,19 +235,27 @@ namespace SwissbotCore.Handlers
         {
             if(arg.Data.Name == "staff-activity")
             {
-                if (!(arg.Member.Roles.Any(x => x.Id == 592464345322094593) || arg.Member.Id == 259053800755691520))
+                if(!Program.UserHasPerm(arg.Member))
                 {
                     await arg.FollowupAsync("No... Bad!");
                     return;
                 }
 
-                if(arg.Data.Options.Count == 1)
+                
+                if (arg.Data.Options.Count == 1)
                 {
                     var opt = arg.Data.Options.First();
+                    
                     switch (opt.Name)
                     {
                         case "blacklist":
                             {
+                                if (!(arg.Member.Roles.Any(x => x.Id == 592464345322094593) || arg.Member.Id == 259053800755691520))
+                                {
+                                    await arg.FollowupAsync("No... Bad!");
+                                    return;
+                                }
+
                                 var sub = opt.Options.First();
                                 switch (sub.Name)
                                 {
@@ -316,38 +351,43 @@ namespace SwissbotCore.Handlers
                                     return;
                                 }
 
-                                var past24 = record.Messages.Count(x => (DateTime.UtcNow - x.Time).TotalDays < 1);
-                                var past7days = record.Messages.Count(x => (DateTime.UtcNow - x.Time).TotalDays < 7);
-                                var past31day = record.Messages.Count(x => (DateTime.UtcNow - x.Time).TotalDays < 31);
-
                                 var oldest = record.Messages.First();
 
-                                await arg.FollowupAsync("", false, new EmbedBuilder() 
-                                { 
+                                await arg.FollowupAsync("", false, new EmbedBuilder()
+                                {
                                     Title = "Message count",
                                     Description = $"Here's the message count for <@{id}>",
                                     Fields = new List<EmbedFieldBuilder>()
                                     {
                                         new EmbedFieldBuilder()
                                         {
-                                            Name = "Past 24 hours",
-                                            Value = $"{past24}"
+                                            Name = "Messages",
+                                            Value = $"**NOTE** all times are based off of 12 am GMT\n\n" +
+                                                    $"**Past 24 Hours**\n" +
+                                                    $"> {record.CountMessagesPast24Hours()}\n\n" +
+                                                    $"**Past 7 Days**\n" +
+                                                    $"> {record.CountMessagesPastPast7Days()}\n\n" +
+                                                    $"**Past 31 Days**\n" +
+                                                    $"> {record.CountMessagesPastPast31Days()}\n\n" +
+                                                    $"**Oldest Record**\n" +
+                                                    $"> {GetFromDateKey(oldest.Key).ToString("R")}",
+                                            IsInline = true
                                         },
                                         new EmbedFieldBuilder()
                                         {
-                                            Name = "Past 7 days",
-                                            Value = $"{past7days}"
+                                            Name = "Voice Activity",
+                                            Value = $"**NOTE** all times are based off of 12 am GMT\n\n" +
+                                                    $"**Past 24 Hours**\n" +
+                                                    $"> {record.CountVoicePast24Hours()}\n\n" +
+                                                    $"**Past 7 Days**\n" +
+                                                    $"> {record.CountVoicePastPast7Days()}\n\n" +
+                                                    $"**Past 31 Days**\n" +
+                                                    $"> {record.CountVoicePastPast31Days()}\n\n" +
+                                                    $"**Oldest Record**\n" +
+                                                    $"> {GetFromDateKey(oldest.Key).ToString("R")}",
+                                            IsInline = true
                                         },
-                                        new EmbedFieldBuilder()
-                                        {
-                                            Name = "Past 31 days",
-                                            Value = $"{past31day}",
-                                        },
-                                        new EmbedFieldBuilder()
-                                        {
-                                            Name = "Oldest record",
-                                            Value = $"{oldest.Time.ToString("R")}"
-                                        },
+
                                         new EmbedFieldBuilder()
                                         {
                                             Name = "Infractions",
@@ -361,6 +401,12 @@ namespace SwissbotCore.Handlers
                             break;
                         case "settings":
                             {
+                                if (!(arg.Member.Roles.Any(x => x.Id == 592464345322094593) || arg.Member.Id == 259053800755691520))
+                                {
+                                    await arg.FollowupAsync("No... Bad!");
+                                    return;
+                                }
+
                                 var sub = opt.Options.First();
                                 switch (sub.Name)
                                 {
@@ -400,11 +446,21 @@ namespace SwissbotCore.Handlers
             }
         }
 
+        private DateTime GetFromDateKey(string DateKey)
+        {
+            var split = DateKey.Split("-");
+            int year = int.Parse(split[0]);
+            int day = int.Parse(split[1]);
+            return new DateTime(year, 1, 1).AddDays(day);
+        }
         private async Task MessageCounter(SocketMessage arg)
         {
             // Check if we are in a guild
             if (arg.Channel is SocketTextChannel channel) // Liege fat
             {
+                if (arg.Author.IsBot)
+                    return;
+
                 if (channel.Guild.Id != Global.SwissGuildId)
                     return;
 
@@ -419,36 +475,72 @@ namespace SwissbotCore.Handlers
                     if(ChannelBlacklists.Any(x => x == arg.Channel.Id))
                         return;
 
-                    await UpdateUserRecord(arg);
+                    await UpdateUserRecord(arg.Author.Id, ActivityType.Message);
                 }
             }
 
         }
 
-        private async Task UpdateUserRecord(SocketMessage arg)
+        public enum ActivityType
         {
-            if(Records.Any(x => x.Id == arg.Author.Id))
+            Voice,
+            Message
+        }
+        private async Task UpdateUserRecord(ulong Id, ActivityType type)
+        {
+            string DateKey = $"{DateTime.UtcNow.Year}-{DateTime.UtcNow.DayOfYear}";
+            if(Records.Any(x => x.Id == Id))
             {
-                Records[Records.FindIndex(x => x.Id == arg.Author.Id)].Messages.Add(new MessageRecord()
-                {
-                    Channel = arg.Channel.Id,
-                    Time = arg.Timestamp.UtcDateTime
-                });
+                var refr = Records[Records.FindIndex(x => x.Id == Id)];
+
+                if (type == ActivityType.Message ? refr.HasDateKeyMessage(DateKey) : refr.HasDateKeyVoice(DateKey))
+                    switch (type)
+                    {
+                        case ActivityType.Message:
+                            refr.Messages[DateKey] += 1;
+                            break;
+                        case ActivityType.Voice:
+                            refr.VCTime[DateKey] += 1;
+                            break;
+                    }
+                else
+                    switch (type)
+                    {
+                        case ActivityType.Message:
+                            refr.Messages.Add(DateKey, 1); 
+                            break;
+                        case ActivityType.Voice:
+                            refr.VCTime.Add(DateKey, 1); 
+                            break;
+                    }
+                
             }
             else
             {
-                Records.Add(new StaffMember()
+                switch (type)
                 {
-                    Id = arg.Author.Id,
-                    Messages = new List<MessageRecord>()
-                    {
-                        new MessageRecord()
+                    case ActivityType.Message:
+                        Records.Add(new StaffMember()
                         {
-                            Channel = arg.Channel.Id,
-                            Time = arg.Timestamp.UtcDateTime
-                        }
-                    }
-                });
+                            Id = Id,
+                            Messages = new Dictionary<string, int>()
+                            {
+                                {DateKey, 1 }
+                            }
+                        });
+                        break;
+                    case ActivityType.Voice:
+                        Records.Add(new StaffMember()
+                        {
+                            Id = Id,
+                            VCTime = new Dictionary<string, int>()
+                            {
+                                {DateKey, 1 }
+                            }
+                        });
+                        break;
+                }
+                
             }
 
             SaveRecords();
@@ -476,18 +568,53 @@ namespace SwissbotCore.Handlers
     public class StaffMember
     {
         public List<CountInfraction> Infractions { get; set; } = new List<CountInfraction>();
-        public List<MessageRecord> Messages { get; set; } = new List<MessageRecord>();
+        public Dictionary<string, int> Messages { get; set; } = new Dictionary<string, int>();
+        public Dictionary<string, int> VCTime { get; set; } = new Dictionary<string, int>();
+
         public ulong Id { get; set; }
 
         public bool IsCheckReady
-            => Messages.Any() ? (DateTime.UtcNow - Messages.First().Time).TotalDays >= 7 : true;
+            => Messages.Count >= 7;
 
-        public int CountPast24Hours
-            => Messages.Count(x => (DateTime.UtcNow - x.Time).TotalDays < 1);
-        public int CountPast7Days
-            => Messages.Count(x => (DateTime.UtcNow - x.Time).TotalDays < 7);
-        public int CountPast31Days
-            => Messages.Count(x => (DateTime.UtcNow - x.Time).TotalDays < 31);
+        public bool HasDateKeyMessage(string key)
+            => Messages.ContainsKey(key);
+        public bool HasDateKeyVoice(string key)
+            => VCTime.ContainsKey(key);
+
+        public int CountMessagesPast24Hours()
+            => Messages.Count > 0 ? Messages.Last().Value : 0;
+        public int CountMessagesPastPast7Days()
+            => CountLast(7, MessageCountHandler.ActivityType.Message);
+        public int CountMessagesPastPast31Days()
+            => CountLast(31, MessageCountHandler.ActivityType.Message);
+
+        public int CountVoicePast24Hours()
+            => VCTime.Count > 0 ? VCTime.Last().Value : 0;
+        public int CountVoicePastPast7Days()
+            => CountLast(7, MessageCountHandler.ActivityType.Voice);
+        public int CountVoicePastPast31Days()
+            => CountLast(31, MessageCountHandler.ActivityType.Voice);
+
+        private int CountLast(int days, MessageCountHandler.ActivityType t)
+        {
+            switch (t)
+            {
+                case MessageCountHandler.ActivityType.Message:
+                    if (Messages.Count == 0)
+                        return 0;
+                    break;
+                case MessageCountHandler.ActivityType.Voice:
+                    if (VCTime.Count == 0)
+                        return 0;
+                    break;
+            }
+            var msgs = t == MessageCountHandler.ActivityType.Message ? Messages.TakeLast(days) : VCTime.TakeLast(days);
+            int final = 0;
+            foreach (var msg in msgs)
+                final += msg.Value;
+            return final;
+        }
+
     }
     public class CountInfraction
     {
@@ -497,7 +624,7 @@ namespace SwissbotCore.Handlers
     }
     public class MessageRecord
     {
-        public DateTime Time { get; set; }
-        public ulong Channel { get; set; }
+        public string DateKey { get; set; }
+        public int MessageCount { get; set; }
     }
 }

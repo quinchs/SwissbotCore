@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SwissbotCore.http;
 using SwissbotCore.HTTP.Websocket;
 using System;
 using System.Diagnostics;
@@ -7,7 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 
-namespace SwissbotCore.Http
+namespace SwissbotCore.HTTP
 {
     public class HttpServer
     {
@@ -69,7 +68,8 @@ namespace SwissbotCore.Http
 
                         sw.Stop();
 
-                        Global.ConsoleLog($"Executed an http request to {context.Request.RawUrl} in {sw.ElapsedMilliseconds}ms");
+                        var u = context.GetUsername();
+                        Global.ConsoleLog($"Executed an http request to {context.Request.RawUrl} in {sw.ElapsedMilliseconds}ms {(u != null ? $"for {u}" : "")}");
                     }
                 });
             }

@@ -1,6 +1,5 @@
 ﻿using IdentityModel.Client;
 using SwissbotCore.Handlers;
-using SwissbotCore.http;
 using System;
 using System.Collections.Generic;
 using System.Linq;

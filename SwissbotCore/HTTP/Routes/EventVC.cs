@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SwissbotCore.Handlers;
 using SwissbotCore.Handlers.EventVC;
-using SwissbotCore.http;
 using SwissbotCore.HTTP.Types;
 using System;
 using System.Collections.Generic;

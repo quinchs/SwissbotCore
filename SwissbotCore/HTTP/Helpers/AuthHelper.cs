@@ -11,6 +11,22 @@ namespace SwissbotCore.HTTP
 {
     public static class AuthHelper
     {
+        public static string GetUsername(this HttpListenerContext c)
+        {
+            if (!c.Request.Cookies.Any(x => x.Name == "csSessionID"))
+                return null;
+
+            var sesh = c.Request.Cookies["csSessionID"];
+
+            if (!DiscordAuthKeeper.IsValidUser(sesh))
+                return null;
+
+            var user = DiscordAuthKeeper.GetUser(sesh.Value);
+
+            if (user == null)
+                return null;
+            return user.Username;
+        }
         public static DiscordUser GetSwissbotAuth(this HttpListenerContext c)
         {
             // Check if they have the discord auth

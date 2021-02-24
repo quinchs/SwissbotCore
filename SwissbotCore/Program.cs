@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using SwissbotCore.Handlers;
-using SwissbotCore.Http;
+using SwissbotCore.HTTP;
 using SwissbotCore.HTTP.Websocket;
 using System;
 using System.Collections.Generic;
@@ -106,6 +106,18 @@ namespace SwissbotCore
             if (c.Guild.Id == Global.SwissBotDevGuildID) { return true; }
             else return UserHasPerm(Global.GetSwissbotUser(c.User.Id).Result);
         }
+
+        public static bool UserHasPerm(ulong id)
+        {
+            return Task.Run<bool>(async () =>
+            {
+                var r = await Global.GetSwissbotUser(id);
+                if (r == null)
+                    return false;
+                return UserHasPerm(r);
+            }).GetAwaiter().GetResult();
+        }
+
         public static bool UserHasPerm(SocketGuildUser user)
         {
             if (user.Id == 221204198287605770)
