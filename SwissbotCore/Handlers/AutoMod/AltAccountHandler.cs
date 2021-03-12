@@ -10,6 +10,29 @@ using static SwissbotCore.Handlers.VerificationHandler;
 
 namespace SwissbotCore.Handlers
 {
+    public class AltHandlerSettings
+    {
+        public bool AutoKick { get; set; } = true;
+        public uint MinimumDays { get; set; } = 7;
+
+        public static async Task<AltHandlerSettings> Load()
+        {
+            try
+            {
+                return await SwissbotStateHandler.LoadObject<AltHandlerSettings>("AltHandlerSettings.json");
+            }
+            catch(Exception x)
+            {
+                return new AltHandlerSettings();
+            }
+        }
+
+        public void Save()
+        {
+            SwissbotStateHandler.SaveObject("AltHandlerSettings.json", this);
+        }
+    }
+
     [DiscordHandler]
     class AltAccountHandler
     {
@@ -17,6 +40,8 @@ namespace SwissbotCore.Handlers
         public List<(ulong id, DateTime joinDate)> JoinWatchList = new List<(ulong id, DateTime joinDate)>();
         public static List<AltMessage> AltMessages = new List<AltMessage>();
         public Dictionary<ulong, List<SocketMessage>> Spammers = new Dictionary<ulong, List<SocketMessage>>();
+
+        public AltHandlerSettings Settings;
 
         public AltAccountHandler(DiscordSocketClient client)
         {
@@ -35,6 +60,11 @@ namespace SwissbotCore.Handlers
             //Timer t2 = new Timer();
             //t2.Interval = 10000;
             //t2.Elapsed += T2_Elapsed;
+
+            Task.Run(async () =>
+            {
+                Settings = await AltHandlerSettings.Load();
+            });
         }
 
         //private void T2_Elapsed(object sender, ElapsedEventArgs e)
@@ -166,6 +196,27 @@ namespace SwissbotCore.Handlers
                                      $"Total: **{contentAverage + total + avgMsg}**");
                             return;
                         }
+
+                        if(allMessages.Average(x => x.Content.Length) > 200 && contentAverage > 0.35d)
+                        {
+                            JoinWatchList.Remove(watch);
+                            AltMessages.RemoveAll(x => x.Author == arg.Author.Id);
+
+                            await LockoutUser(arg.Author.Id,
+                                     $"**Raid trigger**\n" +
+                                     $"```\n" +
+                                     $"Total messages:     {allMessages.Count}\n" +
+                                     $"Join date:          {watch.joinDate.ToString("R")}\n" +
+                                     $"Avg msg's/sec       {avgMsg}\n" +
+                                     $"Avg Content Length  {allMessages.Average(x => x.Content.Length)}\n" +
+                                     $"Content Similarity: {contentAverage}\n" +
+                                     $"Total sim calc:     {total}/{allMessages.Count}\n" +
+                                     $"Total account time: {time.TotalSeconds}s\n```\n\n" +
+                                     $"**Trigger Score**\n" +
+                                     $"`{contentAverage} >= 0.55d && {avgMsg} >= 0.25d`\n" +
+                                     $"Total: **{contentAverage + total + avgMsg}**");
+                            return;
+                        }
                     }
                 }
             }
@@ -268,6 +319,45 @@ namespace SwissbotCore.Handlers
         {
             if (IsAlt(arg))
                 JoinWatchList.Add((arg.Id, arg.JoinedAt.HasValue ? arg.JoinedAt.Value.UtcDateTime : DateTime.UtcNow));
+
+            if(arg.Guild.Id == Global.SwissGuildId)
+            {
+                if((DateTime.UtcNow - arg.CreatedAt.UtcDateTime).TotalDays < Settings.MinimumDays)
+                {
+                    // Kick them if we turned the setting on
+                    if (Settings.AutoKick)
+                    {
+                        await arg.SendMessageAsync("", false, new EmbedBuilder() 
+                        {
+                            Title = $"Sorry {arg.Username}",
+                            Description = $"Your account must be at least {Settings.MinimumDays} days old, You can rejoin the server at {arg.CreatedAt.UtcDateTime.AddDays(Settings.MinimumDays).ToString("R")}",
+                            Color = Color.Red
+                        }.WithCurrentTimestamp().Build());
+
+                        await arg.KickAsync("Auto kick");
+
+                        var av = arg.GetAvatarUrl();
+                        if (av == null)
+                            av = arg.GetDefaultAvatarUrl();
+
+                        // Send the alert
+                        await Global.SendAlertMessage("", false, new EmbedBuilder() 
+                        {
+                            Title = "Possible alt account",
+                            Description = $"The account {arg.ToString()} has been kicked due to it being less than {Settings.MinimumDays} days old.",
+                            Author = new EmbedAuthorBuilder()
+                            {
+                                IconUrl = av,
+                                Name = arg.ToString(),
+                            },
+                            Footer = new EmbedFooterBuilder()
+                            {
+                                Text = "You can enable/disable this feature with `*altsettings <on/off>` and change the minimum days with `*altsettings days <days>`"
+                            }
+                        }.WithCurrentTimestamp().Build());
+                    }
+                }
+            }
         }
 
         public static bool IsAlt(SocketGuildUser arg)

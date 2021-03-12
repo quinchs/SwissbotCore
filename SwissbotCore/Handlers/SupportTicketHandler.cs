@@ -289,10 +289,36 @@ namespace SwissbotCore.Handlers
 
             var msg = await ticketchan.SendMessageAsync(training ? $"<@{tId}>" :"@here", false, embed.Build());
 
+            var content = omsg;
+            if(omsg != null)
+            {
+                content = content.Replace("@everyone", "~~@ everyone~~").Replace("@here", "~~@ here~~");
+
+                List<(string old, string newS)> d = new List<(string old, string newS)>();
+                if (Regex.IsMatch(content, @"<@&(\d{17}|\d{18})>"))
+                {
+                    var mtch = Regex.Matches(content, @"(<@&(\d{17}|\d{18})>)");
+                    foreach (Match m in mtch)
+                    {
+                        var role = Global.SwissGuild.Roles.FirstOrDefault(x => x.Id == ulong.Parse(m.Groups[2].Value));
+
+                        if (role != null)
+                        {
+                            d.Add((m.Value, $"~~@{role.Name}~~"));
+                        }
+                    }
+                }
+
+                foreach (var item in d)
+                {
+                    content = content.Replace(item.old, item.newS);
+                }
+            }
+
             if (training)
                 await ticketchan.SendMessageAsync($"**\nV-----------START-OF-TRAINING TICKET-----------V**\n\n");
             else
-                await ticketchan.SendMessageAsync($"**\nV----------------START-OF-TICKET----------------V**\n\n**[Ticketer] {user}** - " + omsg);
+                await ticketchan.SendMessageAsync($"**\nV----------------START-OF-TICKET----------------V**\n\n**[Ticketer] {user}** - " + content);
 
             await msg.PinAsync();
             ticket.TicketChannel = ticketchan.Id;
@@ -320,7 +346,30 @@ namespace SwissbotCore.Handlers
                     ticket.DMTyping.Typing = false;
                     if (ticket.DMTyping.TypingObject != null)
                         ticket.DMTyping.TypingObject.Dispose();
-                    string msg = $"**[Ticketer] {arg.Author}** - {arg.Content.Replace("@everyone", "~~@ everyone~~").Replace("@here", "~~@ here~~")}";
+
+                    var content = arg.Content.Replace("@everyone", "~~@ everyone~~").Replace("@here", "~~@ here~~");
+
+                    List<(string old, string newS)> d = new List<(string old, string newS)>();
+                    if(Regex.IsMatch(content, @"<@&(\d{17}|\d{18})>"))
+                    {
+                        var mtch = Regex.Matches(content, @"(<@&(\d{17}|\d{18})>)");
+                        foreach(Match m in mtch)
+                        {
+                            var role = Global.SwissGuild.Roles.FirstOrDefault(x => x.Id == ulong.Parse(m.Groups[2].Value));
+
+                            if (role != null)
+                            {
+                                d.Add((m.Value, $"~~@{role.Name}~~"));
+                            }
+                        }
+                    }
+
+                    foreach(var item in d)
+                    {
+                        content = content.Replace(item.old, item.newS);
+                    }   
+
+                    string msg = $"**[Ticketer] {arg.Author}** - {content}";
                     var tkchan = client.GetGuild(Global.SwissGuildId).GetTextChannel(ticket.TicketChannel);
                     await tkchan.SendMessageAsync(msg);
                     ticket.Transcript.AddMessage(arg);

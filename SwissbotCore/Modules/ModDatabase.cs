@@ -376,10 +376,8 @@ namespace SwissbotCore.Modules
                 };
                 if (type is Action.Banned)
                 {
-                    b.Footer = new EmbedFooterBuilder()
-                    {
-                        Text = "To appeal your ban, visit https://swissdev.team/bans"
-                    };
+                    b.Description = "To appeal your ban, click [here](https://swissdev.team/bans)\n" +
+                                    "To view the status of your ban appeal, please click [here](https://swissdev.team/banstatus)";
                 }
 
                 Embed b2 = new EmbedBuilder()
@@ -1325,6 +1323,135 @@ namespace SwissbotCore.Modules
             await Context.Channel.SendMessageAsync("", false, embed.Build());
         }
 
+        [DiscordCommand("altsettings", RequiredPermission = true, commandHelp = "`*altsettings <on/off>`\n`*altsettings days <days>`")]
+        public async Task altsettings(params string[] args)
+        {
+            if (!HasExecutePermission)
+            {
+                await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
+                {
+                    Title = "Uhm no sir.",
+                    Description = "Can't do that you mortal member",
+                    Color = Color.Red
+                }.Build());
+                return;
+            }
+
+            var handler = HandlerService.GetHandlerInstance<AltAccountHandler>();
+
+            if (args.Length == 0)
+            {
+                // list the current settings.
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder() 
+                { 
+                    Title = "Alt handler settings",
+                    Fields = new List<EmbedFieldBuilder>()
+                    {
+                        new EmbedFieldBuilder()
+                        {
+                            Name = "Autokick Enabled?",
+                            Value = handler.Settings.AutoKick
+                        },
+                        new EmbedFieldBuilder()
+                        {
+                            Name = "Minimum days",
+                            Value = handler.Settings.MinimumDays
+                        }
+                    },
+                    Color = Blurple
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+
+            if(args.Length == 1)
+            {
+                switch (args[0])
+                {
+                    case "on" or "enable":
+                        handler.Settings.AutoKick = true;
+                        handler.Settings.Save();
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "Autokick Enabled!",
+                            Description = $"Autokick has been enabled, Users whos account is under {handler.Settings.MinimumDays} days old will be automatically kicked!",
+                            Color = Color.Green
+                        }.WithCurrentTimestamp().Build());
+                        return;
+
+                    case "off" or "disable":
+                        handler.Settings.AutoKick = false;
+                        handler.Settings.Save();
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "Autokick Disabled!",
+                            Description = $"Autokick has been disabled. also liege kinda looking cute td <3",
+                            Color = Color.Green
+                        }.WithCurrentTimestamp().Build());
+                        return;
+                    default:
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "Unknown command",
+                            Description = $"If you are trying to enable/disable the autokick feature please either use `on/enable` or `off/disable`. We don't know what the fuck `{args[0]}` is.",
+                            Color = Color.Red
+                        }.WithCurrentTimestamp().Build());
+                        return;
+                }
+            }
+            
+            if(args.Length == 2)
+            {
+                if(args[0] == "days")
+                {
+                    if(uint.TryParse(args[1], out var res))
+                    {
+                        handler.Settings.MinimumDays = res;
+                        handler.Settings.Save();
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "Minimum Days Saved!",
+                            Description = $"The minimum days for an account is now set to {res}!",
+                            Color = Color.Green
+                        }.WithCurrentTimestamp().Build());
+                        return;
+
+                    }
+                    else
+                    {
+                        // handle
+                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "Invalid number",
+                            Description = $"The days parameter must be a positive whole number between 0 and {uint.MaxValue}",
+                            Color = Color.Red
+                        }.WithCurrentTimestamp().Build());
+                        return;
+                    }
+                }
+                else
+                {
+                    // what?
+                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Unknown command",
+                        Description = $"If you are trying to set the minimum number of days, use `*altsettings days <days>`. We don't know what the fuck `{args[0]}` is.",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+            }
+
+            if(args.Length >= 3)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Wat",
+                    Description = "Thats one to many parameters bucko.",
+                    Color = Color.Red
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+        }
 
         [DiscordCommand("rule", 
             BotCanExecute = false, 
