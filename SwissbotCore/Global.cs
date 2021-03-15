@@ -92,6 +92,11 @@ namespace SwissbotCore
         internal static SocketGuild SwissGuild
             => Client.GetGuild(Global.SwissGuildId);
 
+        internal static ulong AskStaffChannelId { get; } = 752144922009927730;
+
+        internal static SocketTextChannel AskStaffChannel
+            => SwissGuild.GetTextChannel(AskStaffChannelId);
+
         public static async Task SendAlertMessage(string text = "", bool tts = false, Embed embed = null, RequestOptions options = null)
             => await SwissGuild.GetTextChannel(665647956816429096).SendMessageAsync(text, tts, embed, options);
 
