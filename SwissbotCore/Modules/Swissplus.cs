@@ -23,6 +23,38 @@ namespace SwissbotCore.Modules
             // Get the handler
             var handler = HandlerService.GetHandlerInstance<AfkHandler>();
 
+            if(handler == null)
+            {
+                Console.WriteLine("Handler null");
+
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Command unavailable",
+                    Description = "The bot needs to restart for this command to work :/",
+                    Color = Color.Red,
+                    Footer = new EmbedFooterBuilder()
+                    {
+                        Text = "handler"
+                    },
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+
+            if (handler.AfkStatus == null)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Command unavailable",
+                    Description = "The bot needs to restart for this command to work :/",
+                    Footer = new EmbedFooterBuilder()
+                    {
+                        Text = "handler.AfkStatus"
+                    },
+                    Color = Color.Red
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+
             if (handler.AfkStatus.ContainsKey(Context.User.Id))
                 return;
 
@@ -66,6 +98,23 @@ namespace SwissbotCore.Modules
             string question = string.Join(' ', args);
 
             var handler = HandlerService.GetHandlerInstance<AskStaffHandler>();
+
+            if(handler == null)
+            {
+                Console.WriteLine("Handler null");
+
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Command unavailable",
+                    Description = "The bot needs to restart for this command to work. Please contact quin :/",
+                    Color = Color.Red,
+                    Footer = new EmbedFooterBuilder()
+                    {
+                        Text = "`handler`"
+                    },
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
 
             var result = handler.UserCanAsk(Context.User);
 
@@ -113,6 +162,68 @@ namespace SwissbotCore.Modules
                 {
                     Text = "Asked at"
                 }
+            }.WithCurrentTimestamp().Build());
+        }
+
+        [DiscordCommand("aeroboy", prefixes = new char[] {'*', '+'}, description = "bean me daddy")]
+        public async Task aeroboy(params string[] args)
+        {
+            if(Context.User.Id != 599759136493797377)
+            {
+                await Context.Channel.SendMessageAsync("This command has been reserved for King Aeroboy! Fuck off you shit!");
+                return;
+            }
+
+            if(args.Length == 0)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Who do you want to aeroboy?",
+                    Description = "Please provide a user and reason",
+                    Color = Color.Red
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+
+            var user = await GetUser(args[0]);
+
+            if(user == null)
+            {
+                await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Unknown user",
+                    Description = $"Cant find \"{args[0]}\"",
+                    Color = Color.Red
+                }.WithCurrentTimestamp().Build());
+                return;
+            }
+
+            string reason = "No reason provided";
+
+            if(args.Length > 1)
+                reason = string.Join(' ', args);
+
+            await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+            {
+                Title = $"Sucessfuly Areoboy'd {user} ({user.Id})",
+                Description = $"The user {user} has been successfully **Aeroboy'd**",
+                Fields = new List<EmbedFieldBuilder>()
+                {
+                    new EmbedFieldBuilder()
+                    {
+                        Name = "Offender",
+                        Value = Context.User.ToString(),
+                        IsInline = true
+                    },
+                    new EmbedFieldBuilder()
+                    {
+                        Name = "Reason",
+                        Value = reason,
+                        IsInline = true
+                    }
+                },
+                ImageUrl = "https://cdn.discordapp.com/attachments/726863858496700527/796463605230469130/SPOILER_IMG_20200702_183230.jpg",
+                Color = Blurple
             }.WithCurrentTimestamp().Build());
         }
     }

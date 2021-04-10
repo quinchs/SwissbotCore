@@ -240,8 +240,8 @@ namespace SwissbotCore.Modules
                 return true;
             else if (user.Guild.GetRole(Global.ModeratorRoleID).Position <= user.Hierarchy)
                 return true;
-            else if (user.Guild.GetUser(user.Id).Roles.Contains(user.Guild.GetRole(Global.DeveloperRoleId)))
-                return true;
+            //else if (user.Guild.GetUser(user.Id).Roles.Contains(user.Guild.GetRole(Global.DeveloperRoleId)))
+            //    return true;
             else
                 return false;
         }
@@ -829,7 +829,7 @@ namespace SwissbotCore.Modules
                     return;
                 }
 
-                if (usr.Roles.Any(x => x.Id == Global.MutedRoleID))
+                if (usr.RoleIds.Any(x => x == Global.MutedRoleID))
                 {
                     await Context.Channel.SendMessageAsync("", false, new Discord.EmbedBuilder()
                     {
@@ -1453,10 +1453,10 @@ namespace SwissbotCore.Modules
             }
         }
 
-        [DiscordCommand("rule", 
-            BotCanExecute = false, 
-            commandHelp = "`(PREIFX)rule <rule_number>`", 
-            description = "Fetches a rule.", 
+        [DiscordCommand("rule",
+            BotCanExecute = false,
+            commandHelp = "`(PREIFX)rule <rule_number>`",
+            description = "Fetches a rule.",
             RequiredPermission = false)]
         public async Task rules(params string[] args)
         {
@@ -1548,13 +1548,18 @@ namespace SwissbotCore.Modules
                     {
                         new EmbedFieldBuilder()
                         {
-                            Name = bCont,
-                            Value = mCont
+                            Name = $"Rule {mths[index - 1].Groups[1]}",
+                            Value = $"> {mths[index - 1].Groups[2].Value.Remove(0, 1)}"
                         },
                         new EmbedFieldBuilder()
                         {
-                            Name = aCont,
-                            Value ="__\n__"
+                            Name = $"Rule {mths[index].Groups[1]}",
+                            Value = $"> {mths[index].Groups[2].Value.Remove(0, 1)}"
+                        },
+                        new EmbedFieldBuilder()
+                        {
+                            Name = $"Rule {mths[index + 1].Groups[1]}",
+                            Value = $"> {mths[index + 1].Groups[2].Value.Remove(0, 1)}"
                         }
                     },
                     Timestamp = DateTimeOffset.UtcNow,

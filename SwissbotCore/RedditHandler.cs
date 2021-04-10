@@ -6,7 +6,7 @@
 //
 //    var redditHandler = RedditHandler.FromJson(jsonString);
 
-namespace SwissbotCore
+namespace SwissbotCore.Reddit
 {
     using System;
     using System.Collections.Generic;

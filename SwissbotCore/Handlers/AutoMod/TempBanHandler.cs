@@ -118,20 +118,20 @@ namespace SwissbotCore.Handlers.AutoMod
             if (user == null)
                 return null;
 
-            SocketRole[] roles = null;
+            ulong[] roles = null;
 
             RoleRevokes.Add(id, false);
 
             while (RoleRevokes.Any(x => x.Key == id && !x.Value))
             {
                 user = await Global.GetSwissbotUser(id);
-                roles = user.Roles.Where(x => !x.IsEveryone && x.Id != 627683033151176744 && x.Id != 783462878976016385).ToArray();
+                roles = user.RoleIds.Where(x => x != Global.SwissGuildId && x != 627683033151176744 && x != 783462878976016385).ToArray();
 
-                await SwissbotWorkerHandler.AssignTasks(WorkerTask.RemoveRoles, "remove", roles.Select(x => x.Id).ToArray(), user.Id);
+                await SwissbotWorkerHandler.AssignTasks(WorkerTask.RemoveRoles, "remove", roles.Select(x => x).ToArray(), user.Id);
 
-                if (!user.Roles.Any(x => x.Id == 783462878976016385))
+                if (!user.RoleIds.Any(x => x == 783462878976016385))
                     WorkerTaskCreator.CreateTask(WorkerTask.AddRoles, user.Id, "add", 783462878976016385);
-                if (!user.Roles.Any(x => x.Id == 627683033151176744))
+                if (!user.RoleIds.Any(x => x == 627683033151176744))
                     WorkerTaskCreator.CreateTask(WorkerTask.AddRoles, user.Id, "add", 627683033151176744);
 
                 await Task.Delay(1000);
@@ -139,7 +139,7 @@ namespace SwissbotCore.Handlers.AutoMod
 
             RoleRevokes.Remove(id);
 
-            return roles.Select(x => x.Id).ToArray();
+            return roles;
         }
         public static async Task RestoreTempbanRoles(ulong id)
         {

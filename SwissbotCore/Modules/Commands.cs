@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 using static SwissbotCore.Global;
 using Discord.Audio;
 using System.Diagnostics;
-using static SwissbotCore.RedditHandler;
+using SwissbotCore.Reddit;
 using SwissbotCore;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -28,6 +28,7 @@ using static SwissbotCore.CustomCommandService;
 using System.Security.Cryptography;
 using SwissbotCore.Handlers;
 using SwissbotCore.Handlers.AutoMod;
+using SwissbotCore.Reddit;
 
 namespace SwissbotCore.Modules
 {
@@ -207,10 +208,7 @@ namespace SwissbotCore.Modules
         [DiscordCommand("censor", RequiredPermission = true, commandHelp = "`(PREFIX)censor list` will show you the current censored words\nTo add a censored word type `(PREFIX)censor add <word/sentence>`\nTo remove a censored word type `(PREFIX)censor remove <word/sentence>`", description = "adds, removes, or lists the current censor")]
         public async Task Censer(params string[] inp)
         {
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == 592464345322094593).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.Contains(Context.Guild.Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
+            if (HasExecutePermission)
             {
                 if (inp.Length == 0)
                 {
@@ -551,7 +549,48 @@ namespace SwissbotCore.Modules
         [DiscordCommand("ping", description = "Gets the ping of the bot")]
         public async Task ping()
         {
-            await Context.Channel.SendMessageAsync($"Pong: {Context.Client.Latency}ms!");
+            var msg = await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+            {
+                Title = "Discord Ping and Status",
+                Color = Color.Green,
+                Description = $"You can view Discord's status page [here](https://status.discord.com/)\n" +
+                              $"```\nGateway:     Fetching...\n" +
+                              $"Api Latest:  Fetching...\n" +
+                              $"Api Average: Fetching...```",
+                Footer = new EmbedFooterBuilder()
+                {
+                    Text = "Last Updated: Fetching..."
+                }
+            }.Build());
+            HttpClient c = new HttpClient();
+            var resp = await c.GetAsync("https://discord.statuspage.io/metrics-display/ztt4777v23lf/day.json");
+            var cont = await resp.Content.ReadAsStringAsync();
+            var data = JsonConvert.DeserializeObject<PingGenerator.PingData.DiscordApiPing>(cont);
+            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var tm = epoch.AddSeconds(data.Metrics.First().Data.Last().Timestamp);
+            var gfp = await PingGenerator.Generate(data);
+            gfp.Save($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}Ping.jpg", System.Drawing.Imaging.ImageFormat.Jpeg);
+            await msg.ModifyAsync(x => x.Embed = new EmbedBuilder()
+            {
+                Title = "Discord Ping and Status",
+                Color = Color.Green,
+                Description = $"You can view Discord's status page [here](https://status.discord.com/)" +
+                              $"```Gateway:     {this.Context.Client.Latency}ms\n" +
+                              $"Api Latest:  {data.Summary.Last}ms\n" +
+                              $"Api Average: {data.Summary.Mean}ms```",
+                Timestamp = tm,
+                Footer = new EmbedFooterBuilder()
+                {
+                    Text = "Last Updated: "
+                },
+                Author = new EmbedAuthorBuilder()
+                {
+                    Name = "Powered by Hapsy and Luminous",
+                    IconUrl = "https://cdn.discordapp.com/avatars/223707551013797888/a_9f25c6c6374f4b57c5c9fb45baa5a8e8.png?size=256"
+                },
+                ImageUrl = PingGenerator.GetImageLink($"{Environment.CurrentDirectory}{Path.DirectorySeparatorChar}Data{Path.DirectorySeparatorChar}Ping.jpg").GetAwaiter().GetResult()
+            }.Build());
         }
 
         //[DiscordCommand("vcmute", RequiredPermission = true, description = "Mutes all memebrs in vc")]
@@ -979,53 +1018,51 @@ namespace SwissbotCore.Modules
                 }
             }
         }
-        [DiscordCommand("autoslowmode", RequiredPermission = true, description = "Toggles autoslowmode and sets it to `x` ammount of messages per second", commandHelp = "Parameters - `(PREFIX)autoslowmode <on|off>` or `(PREFIX)autoslowmode set <numberOfMessagesPerSecond>`")]
-        public async Task aSlow(params string[] args)
-        {
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == 593106382111113232).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.FirstOrDefault(x => x.Id == Global.DeveloperRoleId) != null)
-            {
-                if (args.Length == 1)
-                {
-                    var val = args.First();
-                    if (val.ToLower() == "on")
-                    {
-                        var data = modifyJsonData(Global.CurrentJsonData, "AutoSlowmodeToggle", true);
-                        Global.SaveConfig(data);
-                        await Context.Channel.SendMessageAsync("Autoslowmode is now On!");
-                    }
-                    if (val.ToLower() == "off")
-                    {
-                        modifyJsonData(Global.CurrentJsonData, "AutoSlowmodeToggle", false);
-                        await Context.Channel.SendMessageAsync("Autoslowmode is now Off!");
-                    }
-                }
-                if (args.Length == 2)
-                {
-                    if (args.First().ToLower() == "set")
-                    {
-                        int val = 5;
-                        try { val = Convert.ToInt32(args.Last()); }
-                        catch (Exception ex) { await Context.Channel.SendMessageAsync("The number you provided is invalad!"); return; }
-                        var data = modifyJsonData(Global.CurrentJsonData, "AutoSlowmodeTrigger", val);
-                        Global.SaveConfig(data);
-                        await Context.Channel.SendMessageAsync($"Set the trigger rate to **{val}** Messages a second!");
+        //[DiscordCommand("autoslowmode", RequiredPermission = true, description = "Toggles autoslowmode and sets it to `x` ammount of messages per second", commandHelp = "Parameters - `(PREFIX)autoslowmode <on|off>` or `(PREFIX)autoslowmode set <numberOfMessagesPerSecond>`")]
+        //public async Task aSlow(params string[] args)
+        //{
+        //    var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
+        //    var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == 593106382111113232).Position;
+        //    var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
+        //    if (rolepos != null || r.FirstOrDefault(x => x.Id == Global.DeveloperRoleId) != null)
+        //    {
+        //        if (args.Length == 1)
+        //        {
+        //            var val = args.First();
+        //            if (val.ToLower() == "on")
+        //            {
+        //                var data = modifyJsonData(Global.CurrentJsonData, "AutoSlowmodeToggle", true);
+        //                Global.SaveConfig(data);
+        //                await Context.Channel.SendMessageAsync("Autoslowmode is now On!");
+        //            }
+        //            if (val.ToLower() == "off")
+        //            {
+        //                modifyJsonData(Global.CurrentJsonData, "AutoSlowmodeToggle", false);
+        //                await Context.Channel.SendMessageAsync("Autoslowmode is now Off!");
+        //            }
+        //        }
+        //        if (args.Length == 2)
+        //        {
+        //            if (args.First().ToLower() == "set")
+        //            {
+        //                int val = 5;
+        //                try { val = Convert.ToInt32(args.Last()); }
+        //                catch (Exception ex) { await Context.Channel.SendMessageAsync("The number you provided is invalad!"); return; }
+        //                var data = modifyJsonData(Global.CurrentJsonData, "AutoSlowmodeTrigger", val);
+        //                Global.SaveConfig(data);
+        //                await Context.Channel.SendMessageAsync($"Set the trigger rate to **{val}** Messages a second!");
 
-                    }
-                }
-            }
+        //            }
+        //        }
+        //    }
 
-        }
+        //}
         [DiscordCommand("slowmode", RequiredPermission = true, commandHelp = "Parameters - `(PREFIX)slowmode <Seconds>`\nTo disable slowmode just type `slowmode off`", description = "This command sets the slowmode")]
         public async Task slowmode(string value)
         {
             //check user perms
-            var r = Context.Guild.GetUser(Context.Message.Author.Id).Roles;
-            var adminrolepos = Context.Guild.Roles.FirstOrDefault(x => x.Id == 593106382111113232).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.FirstOrDefault(x => x.Id == Global.DeveloperRoleId) != null)
+            
+            if (await HasPerms(Context))
             {
                 try
                 {

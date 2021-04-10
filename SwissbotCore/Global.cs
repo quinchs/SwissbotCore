@@ -84,6 +84,7 @@ namespace SwissbotCore
         public static Dictionary<string, List<LogItem>> commandLogs { get; set; }
         public static List<ulong> MutedMembers { get; set; }
 
+        public static string MongoConnectionString { get; set; }
         public static string[] Workers { get; set; }
 
         public static string ApiKey { get; set; }
@@ -96,15 +97,29 @@ namespace SwissbotCore
 
         internal static SocketTextChannel AskStaffChannel
             => SwissGuild.GetTextChannel(AskStaffChannelId);
+        internal static SocketTextChannel SuggestionChannel
+            => SwissGuild.GetTextChannel(SuggestionChannelID);
 
         public static async Task SendAlertMessage(string text = "", bool tts = false, Embed embed = null, RequestOptions options = null)
             => await SwissGuild.GetTextChannel(665647956816429096).SendMessageAsync(text, tts, embed, options);
 
-        public static async Task<SocketGuildUser> GetSwissbotUser(ulong id)
+        public static async Task<IGuildUser> GetSwissbotUser(ulong id)
         {
-            await SwissGuild.DownloadUsersAsync();
+            if (UserCache.TryGetUser(id, out var u))
+                return u;
 
-            return SwissGuild.GetUser(id);
+            IGuildUser user = SwissGuild.GetUser(id);
+
+            if(user == null)
+               user = await Client.Rest.GetGuildUserAsync(SwissGuildId, id);
+
+            if (user == null)
+                return null;
+
+            if (!UserCache.UserExistsInCache(user.Id))
+                UserCache.AddUser(user);
+
+            return user;
         }
 
         public struct GiveAway
@@ -230,6 +245,7 @@ namespace SwissbotCore
             SuggestionChannelID = data.SuggestionChannelID;
             TicketSnippets = data.TicketSnippets;
             Workers = data.Workers.Split(' ');
+            MongoConnectionString = data.MongoDB;
 
             try
             {
@@ -339,7 +355,7 @@ namespace SwissbotCore
             public ulong TicketCategoryID { get; set; }
             public string StateAPIKey { get; set; }
             public string Workers { get; set; }
-
+            public string MongoDB { get; set; }
         }
         public static void ConsoleLog(string ConsoleMessage, ConsoleColor FColor = ConsoleColor.Green, ConsoleColor BColor = ConsoleColor.Black)
         {
@@ -463,21 +479,7 @@ namespace SwissbotCore
         //{
         //    SwissbotStateHandler.SaveObject("Modlogs.json", ModDatabase.currentLogs);
         //}
-        public static List<SuggestionHandler.Suggestion> LoadSuggestions()
-        {
-            try
-            {
-                return SwissbotStateHandler.LoadObject<List<SuggestionHandler.Suggestion>>("Suggestions.json").GetAwaiter().GetResult();
-            }
-            catch
-            {
-                return new List<SuggestionHandler.Suggestion>();
-            }
-        }
-        public static void SaveSuggestions()
-        {
-            SwissbotStateHandler.SaveObject("Suggestions.json", SuggestionHandler.CurrentSuggestions);
-        }
+       
         public static void SaveAutoSlowmode()
         {
             SwissbotStateHandler.SaveObject("AutoSlowmode.json", AutoModHandler.CurrentSlowmodes);

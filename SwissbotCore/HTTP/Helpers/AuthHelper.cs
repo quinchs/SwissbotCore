@@ -93,7 +93,7 @@ namespace SwissbotCore.HTTP
                     c.Response.Close();
                     return null;
                 }
-                if (discordUser.Roles.Any(x => x.Id == 779943693951565824))
+                if (discordUser.RoleIds.Any(x => x == 779943693951565824))
                     return user;
                 else
                 {

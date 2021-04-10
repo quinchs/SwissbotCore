@@ -452,7 +452,7 @@ namespace SwissbotCore
                     CommandName = cmdat.commandName,
                     CommandDescription = cmdat.description,
                     CommandHelpMessage = cmdat.commandHelp,
-                    Prefixes = parat.prefix == '\0' ? cmdobj.Prefixes : cmdobj.Prefixes.Append(parat.prefix).ToArray(),
+                    Prefixes = parat.prefix == 0 ? cmdobj.Prefixes : cmdobj.Prefixes.Append(parat.prefix).ToArray(),
                     RequiresPermission = cmdat.RequiredPermission,
                 };
                 c.Alts = altsL;

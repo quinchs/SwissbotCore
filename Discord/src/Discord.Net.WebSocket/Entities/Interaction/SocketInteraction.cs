@@ -122,7 +122,7 @@ namespace Discord.WebSocket
                 throw new InvalidOperationException("Interaction token is no longer valid");
 
             if (Discord.AlwaysAcknowledgeInteractions)
-                return await FollowupAsync();
+                return await FollowupAsync(text, isTTS, embed, Type, allowedMentions, options);
 
             Preconditions.AtMost(allowedMentions?.RoleIds?.Count ?? 0, 100, nameof(allowedMentions.RoleIds), "A max of 100 role Ids are allowed.");
             Preconditions.AtMost(allowedMentions?.UserIds?.Count ?? 0, 100, nameof(allowedMentions.UserIds), "A max of 100 user Ids are allowed.");

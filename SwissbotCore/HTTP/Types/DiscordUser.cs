@@ -53,7 +53,7 @@ namespace SwissbotCore.HTTP
                 {
                     return;
                 }
-                if (discordUser.Roles.Any(x => x.Id == 779943693951565824))
+                if (discordUser.RoleIds.Any(x => x == 779943693951565824))
                     Permission = SessionPermission.EventManager;
             }
             

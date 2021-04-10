@@ -27,6 +27,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public override bool IsBot { get; internal set; }
 
+        public int Hierarchy { get; } = 0;
         /// <inheritdoc />
         public override bool IsWebhook => true;
         /// <inheritdoc />

@@ -33,7 +33,7 @@ namespace SwissbotCore.Modules
         [DiscordCommand("leave")]
         public async Task leave()
         {
-            var u = await Global.GetSwissbotUser(Context.Client.CurrentUser.Id);
+            var u = Global.SwissGuild.GetUser(Context.Client.CurrentUser.Id);
             if(u.VoiceChannel != null)
             {
                 await u.VoiceChannel.DisconnectAsync();

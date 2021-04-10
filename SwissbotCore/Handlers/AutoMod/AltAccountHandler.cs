@@ -225,7 +225,7 @@ namespace SwissbotCore.Handlers
         public async Task LockoutUser(ulong id, string details)
             => await LockoutUser(await Global.GetSwissbotUser(id), details);
 
-        public async Task LockoutUser(SocketGuildUser user, string details)
+        public async Task LockoutUser(IGuildUser user, string details)
         {
             if (user == null)
                 return;

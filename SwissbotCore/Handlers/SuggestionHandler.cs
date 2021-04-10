@@ -6,53 +6,357 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.Rest;
+using System.Text.RegularExpressions;
 
 namespace SwissbotCore.Handlers
 {
     [DiscordHandler]
     class SuggestionHandler
     {
+        public Dictionary<ulong, DateTime> AskTimes = new Dictionary<ulong, DateTime>();
+
         public static DiscordSocketClient client { get; set; }
-        public static List<Suggestion> CurrentSuggestions { get; set; }
         public SuggestionHandler(DiscordSocketClient _client)
         {
             client = _client;
-            CurrentSuggestions = Global.LoadSuggestions();
+
+            AskTimes = LoadAskTimes();
+
+            client.InteractionCreated += Client_InteractionCreated;
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await client.Rest.CreateGuildCommand(new SlashCommandCreationProperties()
+                    {
+                        Name = "suggestion-answer",
+                        Description = "Answers a question asked in #server-suggestions",
+                        Options = new List<ApplicationCommandOptionProperties>()
+                        {
+                            new ApplicationCommandOptionProperties()
+                            {
+                                Name = "Message",
+                                Description = "The Message ID or the Link to the message containing the suggestion",
+                                Required = true,
+                                Type = ApplicationCommandOptionType.String
+                            },
+                            new ApplicationCommandOptionProperties()
+                            {
+                                Name = "Status",
+                                Description = "The status for your review, for example: `On hold`",
+                                Type = ApplicationCommandOptionType.String,
+                                Required = true,
+                                Choices = new List<ApplicationCommandOptionChoiceProperties>()
+                                {
+                                    new ApplicationCommandOptionChoiceProperties()
+                                    {
+                                        Name = "Accepted - The request has been accepted",
+                                        Value = "0"
+                                    },
+                                    new ApplicationCommandOptionChoiceProperties()
+                                    {
+                                        Name = "Answered - The question has been answered",
+                                        Value = "1"
+                                    },
+                                    new ApplicationCommandOptionChoiceProperties()
+                                    {
+                                        Name = "On Hold - The question is on hold",
+                                        Value = "2"
+                                    },
+                                    new ApplicationCommandOptionChoiceProperties()
+                                    {
+                                        Name = "Denied - The request has been denied",
+                                        Value = "3"
+                                    },
+                                    new ApplicationCommandOptionChoiceProperties()
+                                    {
+                                        Name = "Troll - The question is a troll question",
+                                        Value = "4"
+                                    }
+                                }
+                            },
+                            new ApplicationCommandOptionProperties()
+                            {
+                                Name = "Review_Text",
+                                Type = ApplicationCommandOptionType.String,
+                                Description = "The message for your review, for example: \"We are currently working on that!\"",
+                                Required = true,
+                            }
+                        }
+                    }, Global.SwissGuildId);
+                }
+                catch (Exception x)
+                {
+                    Console.WriteLine($"Failed to create slash command: {x}");
+                }
+            });
         }
 
-        public class Suggestion
+        private async Task Client_InteractionCreated(SocketInteraction arg)
         {
-            public string SuggestionText { get; set; }
-            public ulong MessageID { get; set; }
-            public State ReviewType { get; set; } 
-            public Status CurrentStatus { get; set; }
-            public string ReviewText { get; set; }
-            public ulong AuthorID { get; set; }
-            public List<Updaters> Updaters { get; set; }
-            public ulong ReviewerID { get; set; }
-            public DateTime UTCTime { get; set; }
+            if (arg.Data.Name == "suggestion-answer")
+            {
+                if (!Program.UserHasPerm(arg.Member.Id))
+                {
+                    await arg.Channel.SendMessageAsync("No lmao");
+                    return;
+                }
+
+                // Get the args
+                var messageIdArg = arg.Data.Options.FirstOrDefault(x => x.Name == "message").Value;
+
+                var reviewTextArg = arg.Data.Options.FirstOrDefault(x => x.Name == "review_text");
+
+                var statusArg = arg.Data.Options.FirstOrDefault(x => x.Name == "status");
+
+                var status = (AskStaffStatus)int.Parse(statusArg.Value.ToString());
+
+                if (reviewTextArg.Value.ToString().Length >= 1000)
+                {
+                    await arg.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Error",
+                        Description = $"Your review text must be less than or equal to 1000 characters!",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                IMessage message;
+
+                if (Regex.IsMatch(messageIdArg.ToString(), @"^\d{17,18}$"))
+                {
+                    var messageId = ulong.Parse(messageIdArg.ToString());
+                    message = await Global.SuggestionChannel.GetMessageAsync(messageId);
+                }
+                else if (linkRegex.IsMatch(messageIdArg.ToString()))
+                {
+                    message = await GetMessageFromUrl(messageIdArg.ToString());
+                }
+                else
+                {
+                    await arg.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Error",
+                        Description = $"The `MessageId` argument is not valid: `{messageIdArg} is neither a message id nor a url!`",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                if (message == null)
+                {
+                    // Unknown message
+                    await arg.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Error",
+                        Description = $"The `MessageId` argument is not valid: `The message with the id of `{messageIdArg}` does not exist`",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                if (message.Author.Id != client.CurrentUser.Id)
+                {
+                    // Not sent by us
+                    await arg.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Error",
+                        Description = $"The `MessageId` argument is not valid: `The message with the id of `{messageIdArg}` is not a suggestion message`",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                var embed = message.Embeds.First();
+
+                if (embed.Fields.Length == EmbedBuilder.MaxFieldCount)
+                {
+                    await arg.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Error",
+                        Description = $"The maximum amount of reviews has been reached!",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                var authorId = GetAskerId(embed);
+
+                if (!authorId.HasValue)
+                {
+                    // Unable to get auther
+                    await arg.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Error",
+                        Description = $"Unable to check the auther of the question, This should not happen. Please contact quin!",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                var builder = new EmbedBuilder()
+                {
+                    Author = new EmbedAuthorBuilder()
+                    {
+                        IconUrl = embed.Author.Value.IconUrl,
+                        Name = embed.Author.Value.Name
+                    },
+                    Description = embed.Description,
+                    Color = status == AskStaffStatus.Accepted || status == AskStaffStatus.Answered ? Color.Green
+                          : status == AskStaffStatus.Denied || status == AskStaffStatus.Troll ? Color.Red
+                          : status == AskStaffStatus.OnHold ? Color.Orange
+                          : CommandModuleBase.Blurple,
+                    Footer = new EmbedFooterBuilder()
+                    {
+                        Text = "Last reviewed at"
+                    },
+                    Timestamp = DateTime.UtcNow
+                };
+
+                foreach (var field in embed.Fields)
+                    builder.AddField(field.Name, field.Value, field.Inline);
+
+                builder.AddField($"{status} - {arg.Member}", $"{reviewTextArg.Value}");
+
+                if (message is SocketUserMessage socketMessage)
+                {
+                    await socketMessage.ModifyAsync(x => x.Embed = builder.Build());
+                }
+                else if (message is RestUserMessage restMessage)
+                {
+                    await restMessage.ModifyAsync(x => x.Embed = builder.Build());
+                }
+                else
+                {
+                    // Cry!
+                    Global.ConsoleLog($"Type fail reached: {nameof(message)} - {message.GetType()}");
+                    await arg.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Error",
+                        Description = $"Internal type error! just yell at quin please.",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                // Dm the user
+                try
+                {
+                    var user = await Global.GetSwissbotUser(authorId.Value);
+                    if (user != null)
+                    {
+                        await user.SendMessageAsync("", false, new EmbedBuilder()
+                        {
+                            Title = "Your suggestion to the staff has been reviewed!",
+                            Description = $"{arg.Member} reviewed your suggestion \"{embed.Description.Replace($" []({user.Id})", "")}\"",
+                            Fields = builder.Fields,
+                            Color = builder.Color
+                        }.WithCurrentTimestamp().Build());
+                    }
+                }
+                catch
+                {
+                    // Do nothing
+                }
+
+                await arg.RespondAsync("Successfully added your review!");
+            }
         }
-        public enum State
+
+        private ulong? GetAskerId(IEmbed b)
         {
-            Accepted,
-            Denied,
-            NotReviewed
+            var r = Regex.Match(b.Description, @"\[\]\((\d{17,18})\)");
+            if (!r.Success)
+                return null;
+
+            return ulong.Parse(r.Groups[1].Value);
         }
-        public enum Status
+
+        public enum AskStaffStatus
         {
-            InTheWorks,
-            Completed,
-            NeedsStaffReview,
-            NeedsApproval,
-            NotReviewed
+            Accepted = 0,
+            Answered = 1,
+            OnHold = 2,
+            Denied = 3,
+            Troll = 4,
         }
-        public class Updaters
+
+        private Regex linkRegex = new Regex(@"channels\/(\d{17,18})\/(\d{17,18})\/(\d{17,18})");
+        private async Task<IMessage> GetMessageFromUrl(string url)
         {
-            public Status status { get; set; }
-            public ulong updaterID { get; set; }
-            public DateTime Time { get; set; }
+            if (url == null)
+                return null;
+
+            var match = linkRegex.Match(url);
+
+            if (!match.Success)
+                return null;
+
+            if (match.Groups.Count != 4)
+                return null;
+
+            var guild = ulong.Parse(match.Groups[1].Value);
+            var channel = ulong.Parse(match.Groups[2].Value);
+            var message = ulong.Parse(match.Groups[3].Value);
+
+            if (guild != Global.SwissGuildId)
+                return null;
+
+            if (channel != Global.SuggestionChannelID)
+                return null;
+
+            return await Global.SuggestionChannel.GetMessageAsync(message);
         }
-        //<InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed>
+
+        public void SaveAskTimes()
+            => SwissbotStateHandler.SaveObject("SuggestionTimes.json", AskTimes);
+
+        public Dictionary<ulong, DateTime> LoadAskTimes()
+        {
+            try
+            {
+                return SwissbotStateHandler.LoadObject<Dictionary<ulong, DateTime>>("SuggestionTimes.json").GetAwaiter().GetResult();
+            }
+            catch
+            {
+                return new Dictionary<ulong, DateTime>();
+            }
+        }
+
+        public void SetUserAsked(ulong user, DateTime asked)
+        {
+            if (AskTimes.ContainsKey(user))
+                AskTimes.Remove(user);
+
+            AskTimes.Add(user, asked);
+            SaveAskTimes();
+        }
+
+        public (bool canAsk, DateTime lastAskTime) UserCanAsk(IUser user)
+            => UserCanAsk(user.Id);
+        public (bool canAsk, DateTime lastAskTime) UserCanAsk(ulong user)
+        {
+            if (AskTimes.ContainsKey(user))
+            {
+                var dates = AskTimes[user];
+
+                if ((DateTime.UtcNow - dates).TotalHours >= 1)
+                {
+                    AskTimes.Remove(user);
+                    SaveAskTimes();
+                    return (true, dates);
+                }
+                else
+                {
+                    return (false, dates);
+                }
+            }
+            else
+                return (true, DateTime.Now);
+        }
+
         [DiscordCommandClass()]
         public class SuggestionCommands : CommandModuleBase
         {
@@ -63,315 +367,82 @@ namespace SwissbotCore.Handlers
                 {
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
                     {
-                        Title = "Erm..",
-                        Color = Color.Red,
-                        Description = "What do you want to suggest? like i cant read minds *yet*"
-                    }.Build());
+                        Title = "Huh?",
+                        Description = "You didn't provide anything to suggest!",
+                        Color = Color.Red
+                    }.WithCurrentTimestamp().Build());
                     return;
                 }
-                if (CurrentSuggestions.Any(x => (DateTime.UtcNow - x.UTCTime).TotalHours < 1 && x.AuthorID == Context.Message.Author.Id))
+
+                string question = string.Join(' ', args);
+
+                var handler = HandlerService.GetHandlerInstance<SuggestionHandler>();
+
+                if (handler == null)
                 {
-                    var us = CurrentSuggestions.Find(x => (DateTime.UtcNow - x.UTCTime).TotalHours < 1 && x.AuthorID == Context.Message.Author.Id);
+                    Console.WriteLine("Handler null");
+
                     await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
                     {
-                        Title = "Wait a bit please",
+                        Title = "Command unavailable",
+                        Description = "The bot needs to restart for this command to work. Please contact quin :/",
                         Color = Color.Red,
-                        Description = $"You can only post suggestions once per hour. Please wait another **{60 - ((int)(DateTime.UtcNow - us.UTCTime).TotalMinutes)}** Minutes <3"
-                    }.Build());
-                    return;
-                }
-                string suggestmsg = string.Join(' ', args);
-                Suggestion s = new Suggestion();
-                s.AuthorID = Context.Message.Author.Id;
-                s.Updaters = new List<Updaters>();
-                s.SuggestionText = suggestmsg;
-                s.UTCTime = DateTime.UtcNow;
-                s.ReviewType = State.NotReviewed;
-                var msg = await Context.Guild.GetTextChannel(Global.SuggestionChannelID).SendMessageAsync("creating...");
-                await msg.ModifyAsync(x => 
-                {
-                    x.Content = "";
-                    x.Embed = new EmbedBuilder()
-                    {
-                        Title = "User Suggestion!",
-                        Color = Color.Teal,
-                        Description = suggestmsg,
-                        Fields = new List<EmbedFieldBuilder>()
-                    {
-                        new EmbedFieldBuilder()
+                        Footer = new EmbedFooterBuilder()
                         {
-                            Name = "Author",
-                            Value = Context.Message.Author.Mention + $"\nID: ({Context.Message.Author.Id})          ",
-                            IsInline = true
+                            Text = "`handler`"
                         },
-                        new EmbedFieldBuilder()
+                    }.WithCurrentTimestamp().Build());
+                    return;
+                }
+
+                var result = handler.UserCanAsk(Context.User);
+
+                if (!result.canAsk)
+                {
+                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                    {
+                        Title = "Slow down there buddy!",
+                        Description = "You can only suggest somthing once per hour!",
+                        Footer = new EmbedFooterBuilder()
                         {
-                            Name = "Reviewed?",
-                            Value = "Not yet!",
-                            IsInline = true
+                            Text = "You can ask again at"
                         },
-                        new EmbedFieldBuilder()
-                        {
-                            Name = "Status",
-                            Value = Status.NotReviewed,
-                        },
-                        new EmbedFieldBuilder()
-                        {
-                            Name = "Message ID",
-                            Value = msg.Id,
-                        }
-                    }
-                    }.Build();
-                }) ;
-                await msg.AddReactionsAsync(new IEmote[] { new Emoji("✅"), new Emoji("❌") });
-                s.MessageID = msg.Id;
-                CurrentSuggestions.Add(s);
-                Global.SaveSuggestions();
-                await Context.Channel.SendMessageAsync($"Congrats {Context.Message.Author.Mention}, We added your suggestion! We'll DM you when a staff reviews it!");
-            }
-            
-            [DiscordCommand("suggestion",
-                RequiredPermission = true,
-                description = "Admins use this command to accept or deny suggestions",
-                BotCanExecute = false,
-                commandHelp = "Usage - `(PREFIX)suggestion <accept/deny/delete/update> <MessageID> <Reason>` or `(PREFIX)suggestion status <MessageID> <InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed> <Reason>`")]
-            public async Task suggestions(params string[] args)
-            {
-                if (!HasExecutePermission)
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = "Hol up",
-                        Color = Color.Red,
-                        Description = "You do not have the correct authority ma'am/sir!"
-                    }.Build());
-                    return;
-                }
-                if(Context.User.Id == 259053800755691520 | Context.User.Id == 393448221944315915) { goto skip; }
-                if(Context.Guild.GetUser(Context.Message.Author.Id).Hierarchy < Context.Guild.GetRole(592755793808588840).Position)
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = "Hol up",
-                        Color = Color.Red,
-                        Description = "You do not have the correct authority ma'am/sir!"
-                    }.Build());
-                    return;
-                }
-                skip:
-                if(args.Length == 0)
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = "bch daquafk??!!?!?!?",
-                        Color = Color.Red,
-                        Description = "what you doing? what you want me to do? i aint no magician?",
-                        ImageUrl = "https://i.chzbgr.com/full/6113771776/hEF22755C/dafuk-was-that"
-                    }.Build());
-                    return;
-                }
-                State state = State.NotReviewed;
-                Status status = Status.NotReviewed;
-                bool dlt = false;
-                bool isUpdate = false;
-                bool isStatus = false;
-                switch (args[0].ToLower())
-                {
-                    case "accept":
-                        state = State.Accepted;
-                        break;
-                    case "deny":
-                        state = State.Denied;
-                        break;
-                    case "delete":
-                        dlt = true;
-                        break;
-                    case "update":
-                        isUpdate = true;
-                        break;
-                    case "status":
-                        {
-                            isStatus = true;
-                            //<InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed>
-                            switch (args[2].ToLower())
-                            {
-                                case "InTheWorks":
-                                    status = Status.InTheWorks;
-                                    break;
-                                case "Completed":
-                                    status = Status.Completed;
-                                    break;
-                                case "NeedsStaffReview":
-                                    status = Status.NeedsStaffReview;
-                                    break;
-                                case "NeedsApproval":
-                                    status = Status.NeedsApproval;
-                                    break;
-                                case "NotReviewed":
-                                    status = Status.NotReviewed;
-                                    break;
-                                default:
-                                    {
-                                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                                        {
-                                            Title = "What?",
-                                            Color = Color.Red,
-                                            Description = $"Sorry but you need to follow this format `*suggestion status <MessageID> <InTheWorks/Completed/NeedsStaffReview/NeedsApproval/NotReviewed> <Reason>",
-                                            ImageUrl = "https://i.chzbgr.com/full/6113771776/hEF22755C/dafuk-was-that"
-                                        }.Build());
-                                        return;
-                                    }
-                            }
-                        }
-                        break;
-                    default:
-                        {
-                            await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                            {
-                                Title = "What?",
-                                Color = Color.Red,
-                                Description = $"Sorry but you need to either `Accept` or `Deny` a suggestion. i dont know what {args[0].ToLower()} means..",
-                                ImageUrl = "https://i.chzbgr.com/full/6113771776/hEF22755C/dafuk-was-that"
-                            }.Build());
-                            return;
-                        }
-                }
-                if(args.Length == 1)
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = "What suggestion do you want to accept or deny?",
-                        Color = Color.Red,
-                        Description = "Please provide a message ID",
-                    }.Build());
-                    return;
-                }
-                if (args.Length == 2 && !dlt)
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = "Whats the Reason?",
-                        Color = Color.Red,
-                        Description = "Please provide a reason!",
+                        Timestamp = result.lastAskTime.AddHours(1),
+                        Color = Color.Red
                     }.Build());
                     return;
                 }
 
-                string reason = string.Join(' ', args.Skip(2));
-                ulong id = 0;
-                try
-                {
-                    id = ulong.Parse(args[1]);
-                }
-                catch
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = "H u h ?",
-                        Color = Color.Red,
-                        Description = "That Message ID is Invalid",
-                    }.Build());
-                    return;
-                }
-                if (!CurrentSuggestions.Any(x => x.MessageID == id))
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = "Sorry, I can't find that Message :/",
-                        Color = Color.Red,
-                        Description = "looks like that ID is not on record",
-                    }.Build());
-                    return;
-                }
-                var suggestion = CurrentSuggestions.Find(x => x.MessageID == id);
-                if(suggestion.ReviewType != State.NotReviewed && !isUpdate && !isStatus)
-                {
-                    await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                    {
-                        Title = $"Sorry, you cant {state} that :/",
-                        Color = Color.Red,
-                        Description = $"Someones already {suggestion.ReviewType} that suggestion, try updating it or changing the status",
-                    }.Build());
-                    return;
-                }
-                if (isUpdate)
-                {
-                    //update card
+                handler.SetUserAsked(Context.User.Id, DateTime.UtcNow);
 
-                }
-                else if (isStatus)
-                {
-                    //update status
-                }
-                else
-                {
-                    int inx = CurrentSuggestions.IndexOf(suggestion);
-                    suggestion.ReviewText = reason == null ? "" : reason;
-                    suggestion.ReviewType = state;
-                    suggestion.ReviewerID = Context.Message.Author.Id;
-                    CurrentSuggestions[inx] = suggestion;
-                    Global.SaveSuggestions();
-                    //try to get message
-                    RestUserMessage msg = (RestUserMessage)await Context.Guild.GetTextChannel(Global.SuggestionChannelID).GetMessageAsync(suggestion.MessageID);
-                    if (msg == null)
-                    {
-                        await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
-                        {
-                            Title = "Sorry, I can't find that Message :/",
-                            Color = Color.Red,
-                            Description = "looks like that message is either deleted or is too old",
-                        }.Build());
-                        return;
-                    }
-                    if (dlt)
-                    {
-                        if((DateTime.UtcNow - msg.Timestamp.UtcDateTime).TotalDays >= 14) {
-                            await Context.Channel.SendMessageAsync("Suggestion cannot be deleted as it is older than 14 days \n" + msg.GetJumpUrl());
-                            CurrentSuggestions.Remove(suggestion);
-                            return;
-                        }
-                        await msg.DeleteAsync();
-                        await Context.Channel.SendMessageAsync("Deleted!");
-                        CurrentSuggestions.Remove(suggestion);
-                        Global.SaveSuggestions();
-                        return;
-                    }
-                    await msg.ModifyAsync(x => x.Embed = new EmbedBuilder()
-                    {
-                        Title = "User Suggestion!",
-                        Color = state == State.Accepted ? Color.Green : state == State.Denied ? Color.Red : Color.Red,
-                        Description = suggestion.SuggestionText +
-                        $"\n\n-----------**{state}**-----------\n\n**{state} For:** {reason}",
-                        Fields = new List<EmbedFieldBuilder>()
-                    {
-                        new EmbedFieldBuilder()
-                        {
-                            Name = "Author",
-                            Value = $"<@{suggestion.AuthorID}>" + $"\nID: ({suggestion.AuthorID})          ",
-                            IsInline = true
-                        },
-                        new EmbedFieldBuilder()
-                        {
-                            Name = "Reviewed?",
-                            Value = $"**{state}** by {Context.Message.Author.Mention}\n  ",
-                            IsInline = true
-                        },
-                        new EmbedFieldBuilder()
-                        {
-                            Name = "Message ID",
-                            Value = msg.Id,
-                        }
-                    }
-                    }.Build());
+                var ico = Context.User.GetAvatarUrl();
+                if (ico == null)
+                    ico = Context.User.GetDefaultAvatarUrl();
 
-                    try
+                var embed = new EmbedBuilder()
+                {
+                    Author = new EmbedAuthorBuilder()
                     {
-                        //dm user
-                        var usr = Context.Guild.GetUser(suggestion.AuthorID).SendMessageAsync($"Your Suggestion \"{suggestion.SuggestionText}\" was **{state}** by <@{suggestion.ReviewerID}>");
+                        IconUrl = ico,
+                        Name = $"{Context.User}'s suggestion:"
+                    },
+                    Description = question + $" []({Context.User.Id})",
+                    Color = Blurple
+                }.WithCurrentTimestamp();
+
+                var message = await Global.SuggestionChannel.SendMessageAsync("", false, embed.Build());
+                await message.AddReactionsAsync(new IEmote[] { new Emoji("✅"), new Emoji("❌") });
+                
+                var msg = await Context.Channel.SendMessageAsync("", false, new EmbedBuilder()
+                {
+                    Title = "Success!",
+                    Description = $"Your question has been posted! You can click [Here]({message.GetJumpUrl()} \"liege is sexy also this is an easter egg?\") to view it!",
+                    Color = Color.Green,
+                    Footer = new EmbedFooterBuilder()
+                    {
+                        Text = "Asked at"
                     }
-                    catch { }
-                    await Context.Channel.SendMessageAsync("Success <3");
-                }
+                }.WithCurrentTimestamp().Build());
             }
         }
     }

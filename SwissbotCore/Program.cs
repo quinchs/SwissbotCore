@@ -93,8 +93,6 @@ namespace SwissbotCore
             _server = new HttpServer(3000);
             Global.ConsoleLog("Server running!");
 
-            
-            
             await Task.Delay(-1);   
 
             //jabibot
@@ -118,7 +116,7 @@ namespace SwissbotCore
             }).GetAwaiter().GetResult();
         }
 
-        public static bool UserHasPerm(SocketGuildUser user)
+        public static bool UserHasPerm(IGuildUser user)
         {
             if (user.Id == 221204198287605770)
                 return false;
@@ -128,7 +126,7 @@ namespace SwissbotCore
                 return true;
             else if (user.Guild.GetRole(Global.ModeratorRoleID).Position <= user.Hierarchy)
                 return true;
-            else if (user.Roles.Any(x => x.Id == 706397254000443392))
+            else if (user.RoleIds.Any(x => x == 706397254000443392))
                 return true;
             else
                 return false;

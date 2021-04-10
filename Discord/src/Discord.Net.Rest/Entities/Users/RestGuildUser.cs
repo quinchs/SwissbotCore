@@ -20,7 +20,7 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public string Nickname { get; private set; }
-        internal IGuild Guild { get; private set; }
+        public IGuild Guild { get; private set; }
         /// <inheritdoc />
         public bool IsDeafened { get; private set; }
         /// <inheritdoc />
@@ -43,6 +43,32 @@ namespace Discord.Rest
                 return new GuildPermissions(Permissions.ResolveGuild(Guild, this));
             }
         }
+
+        /// <summary>
+        ///     Returns the position of the user within the role hierarchy.
+        /// </summary>
+        /// <remarks>
+        ///     The returned value equal to the position of the highest role the user has, or 
+        ///     <see cref="int.MaxValue"/> if user is the server owner.
+        /// </remarks>
+        public int Hierarchy
+        {
+            get
+            {
+                if (Guild.OwnerId == Id)
+                    return int.MaxValue;
+
+                int maxPos = 0;
+                for (int i = 0; i < this.RoleIds.Count; i++)
+                {
+                    var role = Guild.GetRole(this.RoleIds.ElementAt(i));
+                    if (role != null && role.Position > maxPos)
+                        maxPos = role.Position;
+                }
+                return maxPos;
+            }
+        }
+
         /// <inheritdoc />
         public IReadOnlyCollection<ulong> RoleIds => _roleIds;
 

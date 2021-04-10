@@ -340,7 +340,6 @@ namespace SwissbotCore
 
         private async Task ReactionHandler(Cacheable<IUserMessage, ulong> arg1, ISocketMessageChannel arg2, SocketReaction arg3)
         {
-               
             try
             {
                 await checkSub(arg1, arg2, arg3);

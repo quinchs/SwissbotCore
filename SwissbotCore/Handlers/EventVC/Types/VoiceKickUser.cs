@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +14,14 @@ namespace SwissbotCore.Handlers.EventVC.Types
         public string displayName { get; set; }
         public ulong expires { get; set; }
         public VoiceKickUser() { }
-        public VoiceKickUser(SocketGuildUser user, ulong duration)
+        public VoiceKickUser(IGuildUser user, ulong duration)
         {
             this.expires = duration;
             this.id = user.Id.ToString();
             this.displayName = user.Nickname != null ? user.Nickname : user.Username;
         }
 
-        public void Update(SocketGuildUser user)
+        public void Update(IGuildUser user)
         {
             this.displayName = user.Nickname != null ? user.Nickname : user.Username;
         }
@@ -38,7 +39,7 @@ namespace SwissbotCore.Handlers.EventVC.Types
                 .Replace("{user.displayName}", user.Nickname != null ? user.Nickname : user.Username)
                 .Replace("{user.id}", user.Id.ToString());
         }
-        public SocketGuildUser GetUser()
+        public IGuildUser GetUser()
             => Global.GetSwissbotUser(ulong.Parse(this.id)).GetAwaiter().GetResult();
     }
 }

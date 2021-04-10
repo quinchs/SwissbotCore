@@ -265,9 +265,7 @@ namespace SwissbotCore.Handlers.AutoMod
 
             var r = g.Roles;
 
-            var adminrolepos = client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.ModeratorRoleID).Position;
-            var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-            if (rolepos != null || r.Contains(client.GetGuild(Global.SwissGuildId).Roles.FirstOrDefault(x => x.Id == 622156934778454016)))
+            if(Program.UserHasPerm(arg.Author.Id))
             { return false; }
 
             string cont = arg.Content.ToLower();
@@ -280,7 +278,7 @@ namespace SwissbotCore.Handlers.AutoMod
                     else
                         word = cont;
 
-                    if (WhiteList.Any(x => x.ToLower() == word.ToLower()))
+                    if (WhiteList.Any(x => x.ToLower() == word.ToLower() || x.ToLower().Contains(word.ToLower())))
                         return false;
                     return true;
                 }

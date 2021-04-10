@@ -64,34 +64,34 @@ namespace SwissbotCore.Modules
             //}
         }
 
-        private async Task userjoinGiveaway(SocketGuildUser arg)
-        {
-            if (arg.Guild.Id == currgiveaway.giveawayguild.guildID)
-            {
-                var role = _client.GetGuild(currgiveaway.giveawayguild.guildID).Roles.FirstOrDefault(r1 => r1.Name == "Admins");
-                var role2 = _client.GetGuild(currgiveaway.giveawayguild.guildID).Roles.FirstOrDefault(r2 => r2.Name == "Contestants");
-                var r = _client.GetGuild(SwissGuildId).GetUser(arg.Id).Roles;
-                var adminrolepos = _client.GetGuild(SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
-                var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
-                if (rolepos != null)
-                {
-                    await arg.AddRoleAsync(role);
-                }
-                else
-                {
-                    await arg.AddRoleAsync(role2);
-                    GiveawayUser u = new GiveawayUser()
-                    {
-                        id = arg.Id,
-                        user = arg,
-                        bannedUsers = new List<GiveawayUser>(),
-                        bans = 0,
-                        DiscordName = arg.ToString()
-                    };
-                    currgiveaway.giveawayguild.giveawayEntryMembers.Add(u);
-                }
-            }
-        }
+        //private async Task userjoinGiveaway(SocketGuildUser arg)
+        //{
+        //    if (arg.Guild.Id == currgiveaway.giveawayguild.guildID)
+        //    {
+        //        var role = _client.GetGuild(currgiveaway.giveawayguild.guildID).Roles.FirstOrDefault(r1 => r1.Name == "Admins");
+        //        var role2 = _client.GetGuild(currgiveaway.giveawayguild.guildID).Roles.FirstOrDefault(r2 => r2.Name == "Contestants");
+        //        var r = _client.GetGuild(SwissGuildId).GetUser(arg.Id).Roles;
+        //        var adminrolepos = _client.GetGuild(SwissGuildId).Roles.FirstOrDefault(x => x.Id == Global.DeveloperRoleId).Position;
+        //        var rolepos = r.FirstOrDefault(x => x.Position >= adminrolepos);
+        //        if (rolepos != null)
+        //        {
+        //            await arg.AddRoleAsync(role);
+        //        }
+        //        else
+        //        {
+        //            await arg.AddRoleAsync(role2);
+        //            GiveawayUser u = new GiveawayUser()
+        //            {
+        //                id = arg.Id,
+        //                user = arg,
+        //                bannedUsers = new List<GiveawayUser>(),
+        //                bans = 0,
+        //                DiscordName = arg.ToString()
+        //            };
+        //            currgiveaway.giveawayguild.giveawayEntryMembers.Add(u);
+        //        }
+        //    }
+        //}
 
         internal async Task UpdateTime(int seconds)
         {

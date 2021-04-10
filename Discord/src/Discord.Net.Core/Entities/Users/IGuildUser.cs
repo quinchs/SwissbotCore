@@ -68,6 +68,7 @@ namespace Discord
         /// </returns>
         IReadOnlyCollection<ulong> RoleIds { get; }
 
+        int Hierarchy { get; }
         /// <summary>
         ///     Whether the user has passed the guild's Membership Screening requirements.
         /// </summary>
